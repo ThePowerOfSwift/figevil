@@ -1,0 +1,385 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0571FA59C0B61657852D33D6 /* Pods_figevil.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C710722E2727E087354024E4 /* Pods_figevil.framework */; };
+		7854B9DD1E64F98300591255 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9DC1E64F98300591255 /* AppDelegate.swift */; };
+		7854B9DF1E64F98300591255 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9DE1E64F98300591255 /* ViewController.swift */; };
+		7854B9E21E64F98300591255 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9E01E64F98300591255 /* Main.storyboard */; };
+		7854B9E41E64F98300591255 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9E31E64F98300591255 /* Assets.xcassets */; };
+		7854B9E71E64F98300591255 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9E51E64F98300591255 /* LaunchScreen.storyboard */; };
+		7854B9EF1E64F9B600591255 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9EE1E64F9B600591255 /* GoogleService-Info.plist */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		54758DDE5EE3F1B539963AA4 /* Pods-figevil.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-figevil.debug.xcconfig"; path = "Pods/Target Support Files/Pods-figevil/Pods-figevil.debug.xcconfig"; sourceTree = "<group>"; };
+		7854B9D91E64F98300591255 /* figevil.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = figevil.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7854B9DC1E64F98300591255 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		7854B9DE1E64F98300591255 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		7854B9E11E64F98300591255 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		7854B9E31E64F98300591255 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7854B9E61E64F98300591255 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		7854B9E81E64F98300591255 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7854B9EE1E64F9B600591255 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-figevil.release.xcconfig"; path = "Pods/Target Support Files/Pods-figevil/Pods-figevil.release.xcconfig"; sourceTree = "<group>"; };
+		C710722E2727E087354024E4 /* Pods_figevil.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_figevil.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7854B9D61E64F98300591255 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0571FA59C0B61657852D33D6 /* Pods_figevil.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		249DBC6DC94AD21D808F7A54 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C710722E2727E087354024E4 /* Pods_figevil.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		7854B9D01E64F98300591255 = {
+			isa = PBXGroup;
+			children = (
+				7854B9DB1E64F98300591255 /* figevil */,
+				7854B9DA1E64F98300591255 /* Products */,
+				DB64432D15A069CAAE0FE212 /* Pods */,
+				249DBC6DC94AD21D808F7A54 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		7854B9DA1E64F98300591255 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7854B9D91E64F98300591255 /* figevil.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7854B9DB1E64F98300591255 /* figevil */ = {
+			isa = PBXGroup;
+			children = (
+				7854B9DC1E64F98300591255 /* AppDelegate.swift */,
+				7854B9EE1E64F9B600591255 /* GoogleService-Info.plist */,
+				7854B9DE1E64F98300591255 /* ViewController.swift */,
+				7854B9E01E64F98300591255 /* Main.storyboard */,
+				7854B9E31E64F98300591255 /* Assets.xcassets */,
+				7854B9E51E64F98300591255 /* LaunchScreen.storyboard */,
+				7854B9E81E64F98300591255 /* Info.plist */,
+			);
+			path = figevil;
+			sourceTree = "<group>";
+		};
+		DB64432D15A069CAAE0FE212 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				54758DDE5EE3F1B539963AA4 /* Pods-figevil.debug.xcconfig */,
+				C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7854B9D81E64F98300591255 /* figevil */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7854B9EB1E64F98300591255 /* Build configuration list for PBXNativeTarget "figevil" */;
+			buildPhases = (
+				46794B0B6DF8421E272935D2 /* [CP] Check Pods Manifest.lock */,
+				7854B9D51E64F98300591255 /* Sources */,
+				7854B9D61E64F98300591255 /* Frameworks */,
+				7854B9D71E64F98300591255 /* Resources */,
+				6FD47EB58A085448A367AEAF /* [CP] Embed Pods Frameworks */,
+				9823CA148D0253A50AB38F4F /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = figevil;
+			productName = figevil;
+			productReference = 7854B9D91E64F98300591255 /* figevil.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7854B9D11E64F98300591255 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0820;
+				LastUpgradeCheck = 0820;
+				ORGANIZATIONNAME = sunsethq;
+				TargetAttributes = {
+					7854B9D81E64F98300591255 = {
+						CreatedOnToolsVersion = 8.2.1;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 7854B9D41E64F98300591255 /* Build configuration list for PBXProject "figevil" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 7854B9D01E64F98300591255;
+			productRefGroup = 7854B9DA1E64F98300591255 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7854B9D81E64F98300591255 /* figevil */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7854B9D71E64F98300591255 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7854B9E71E64F98300591255 /* LaunchScreen.storyboard in Resources */,
+				7854B9EF1E64F9B600591255 /* GoogleService-Info.plist in Resources */,
+				7854B9E41E64F98300591255 /* Assets.xcassets in Resources */,
+				7854B9E21E64F98300591255 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		46794B0B6DF8421E272935D2 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		6FD47EB58A085448A367AEAF /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-figevil/Pods-figevil-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		9823CA148D0253A50AB38F4F /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-figevil/Pods-figevil-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7854B9D51E64F98300591255 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7854B9DF1E64F98300591255 /* ViewController.swift in Sources */,
+				7854B9DD1E64F98300591255 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		7854B9E01E64F98300591255 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7854B9E11E64F98300591255 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		7854B9E51E64F98300591255 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7854B9E61E64F98300591255 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		7854B9E91E64F98300591255 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		7854B9EA1E64F98300591255 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7854B9EC1E64F98300591255 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 54758DDE5EE3F1B539963AA4 /* Pods-figevil.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = figevil/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sunsethq.figevil;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
+			};
+			name = Debug;
+		};
+		7854B9ED1E64F98300591255 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = figevil/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sunsethq.figevil;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7854B9D41E64F98300591255 /* Build configuration list for PBXProject "figevil" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7854B9E91E64F98300591255 /* Debug */,
+				7854B9EA1E64F98300591255 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7854B9EB1E64F98300591255 /* Build configuration list for PBXNativeTarget "figevil" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7854B9EC1E64F98300591255 /* Debug */,
+				7854B9ED1E64F98300591255 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7854B9D11E64F98300591255 /* Project object */;
+}

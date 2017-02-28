@@ -1,0 +1,6 @@
+framework module Pods_figevil {
+  umbrella header "Pods-figevil-umbrella.h"
+
+  export *
+  module * { export * }
+}
