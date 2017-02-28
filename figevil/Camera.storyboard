@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16D32" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="KW6-Bc-DhJ">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Camera View Controller-->
+        <scene sceneID="ItQ-wz-qCZ">
+            <objects>
+                <viewController storyboardIdentifier="CameraViewController" id="KW6-Bc-DhJ" customClass="CameraViewController" customModule="BMe" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="DZY-Vk-aar"/>
+                        <viewControllerLayoutGuide type="bottom" id="baq-Af-xjh"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="wkO-nL-iAc">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MWL-Oi-NMW">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            </view>
+                            <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pTx-8A-oMA">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6v3-5B-uh9">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vkP-xK-PRp">
+                                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                    </view>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vlY-ax-210">
+                                        <rect key="frame" x="0.0" y="471" width="375" height="77"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="77" id="7pK-6U-0th"/>
+                                        </constraints>
+                                    </view>
+                                    <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="iU0-LW-1qw">
+                                        <rect key="frame" x="240" y="556" width="127" height="78"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    </view>
+                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4pJ-iu-cBa">
+                                        <rect key="frame" x="170" y="595" width="35" height="30"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <state key="normal" title="Snap"/>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JLc-co-f7u">
+                                        <rect key="frame" x="8" y="29" width="30" height="30"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <state key="normal" title="X"/>
+                                        <connections>
+                                            <action selector="tappedCancel:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="qWm-Pw-hJk"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="N54-oQ-fkW">
+                                        <rect key="frame" x="327" y="29" width="34" height="30"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <state key="normal" title="Save"/>
+                                        <connections>
+                                            <action selector="tappedSave:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="g2l-rh-9Bo"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QEg-zn-yZI">
+                                        <rect key="frame" x="8" y="586" width="46" height="48"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <state key="normal" title="Selfie "/>
+                                        <connections>
+                                            <action selector="tappedSelfie:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="Woc-nV-4zh"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="DB6-0Y-2aN">
+                                        <rect key="frame" x="83" y="586" width="46" height="48"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <state key="normal" title="Flash"/>
+                                        <connections>
+                                            <action selector="tappedFlash:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="jv4-ao-XZY"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="trailing" secondItem="vlY-ax-210" secondAttribute="trailing" id="Nh3-E0-e2q"/>
+                                    <constraint firstAttribute="bottom" secondItem="vlY-ax-210" secondAttribute="bottom" constant="119" id="lpA-hO-yen"/>
+                                    <constraint firstItem="vlY-ax-210" firstAttribute="leading" secondItem="6v3-5B-uh9" secondAttribute="leading" id="uF4-iJ-1G6"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="baq-Af-xjh" firstAttribute="top" secondItem="pTx-8A-oMA" secondAttribute="bottom" id="4Ip-Aj-ygF"/>
+                            <constraint firstAttribute="trailing" secondItem="MWL-Oi-NMW" secondAttribute="trailing" id="5fX-0I-dxV"/>
+                            <constraint firstAttribute="trailing" secondItem="6v3-5B-uh9" secondAttribute="trailing" id="8ft-BR-v3E"/>
+                            <constraint firstItem="6v3-5B-uh9" firstAttribute="top" secondItem="wkO-nL-iAc" secondAttribute="top" id="Bo3-Vr-iH0"/>
+                            <constraint firstItem="MWL-Oi-NMW" firstAttribute="leading" secondItem="wkO-nL-iAc" secondAttribute="leading" id="Pfy-yG-WWO"/>
+                            <constraint firstItem="6v3-5B-uh9" firstAttribute="leading" secondItem="wkO-nL-iAc" secondAttribute="leading" id="Y61-Hx-fnh"/>
+                            <constraint firstAttribute="trailing" secondItem="pTx-8A-oMA" secondAttribute="trailing" id="f74-U7-HM9"/>
+                            <constraint firstItem="pTx-8A-oMA" firstAttribute="leading" secondItem="wkO-nL-iAc" secondAttribute="leading" id="fBH-0P-9LL"/>
+                            <constraint firstItem="baq-Af-xjh" firstAttribute="top" secondItem="6v3-5B-uh9" secondAttribute="bottom" id="fbQ-nj-mNX"/>
+                            <constraint firstItem="baq-Af-xjh" firstAttribute="top" secondItem="MWL-Oi-NMW" secondAttribute="bottom" id="fuL-HK-1PS"/>
+                            <constraint firstItem="pTx-8A-oMA" firstAttribute="top" secondItem="wkO-nL-iAc" secondAttribute="top" id="lND-Fc-lp3"/>
+                            <constraint firstItem="MWL-Oi-NMW" firstAttribute="top" secondItem="wkO-nL-iAc" secondAttribute="top" id="ohr-DE-qIT"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="cancelButton" destination="JLc-co-f7u" id="Cre-x9-LMm"/>
+                        <outlet property="controlView" destination="6v3-5B-uh9" id="XlP-YX-N0d"/>
+                        <outlet property="effectOptionView" destination="vlY-ax-210" id="FA9-hl-S0D"/>
+                        <outlet property="effectOptionViewBottomConstraint" destination="lpA-hO-yen" id="Cgj-gd-ijx"/>
+                        <outlet property="effectToolView" destination="iU0-LW-1qw" id="77J-x6-wqZ"/>
+                        <outlet property="flashButton" destination="DB6-0Y-2aN" id="z0Z-bg-Fdz"/>
+                        <outlet property="flashView" destination="vkP-xK-PRp" id="vU4-1y-MUv"/>
+                        <outlet property="outputImageContainerView" destination="pTx-8A-oMA" id="ohA-O7-rYx"/>
+                        <outlet property="sampleBufferContainerView" destination="MWL-Oi-NMW" id="wQI-ga-qKX"/>
+                        <outlet property="saveButton" destination="N54-oQ-fkW" id="oOD-yS-6ve"/>
+                        <outlet property="selfieButton" destination="QEg-zn-yZI" id="puq-4o-mzU"/>
+                        <outlet property="snapButton" destination="4pJ-iu-cBa" id="f6V-9r-VL7"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="rj6-Y3-fcH" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-2386.4000000000001" y="677.81109445277366"/>
+        </scene>
+    </scenes>
+</document>

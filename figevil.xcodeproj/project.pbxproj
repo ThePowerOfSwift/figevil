@@ -14,6 +14,23 @@
 		7854B9E41E64F98300591255 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9E31E64F98300591255 /* Assets.xcassets */; };
 		7854B9E71E64F98300591255 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9E51E64F98300591255 /* LaunchScreen.storyboard */; };
 		7854B9EF1E64F9B600591255 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9EE1E64F9B600591255 /* GoogleService-Info.plist */; };
+		7854B9F31E64FD5B00591255 /* SatoCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9F21E64FD5B00591255 /* SatoCamera.swift */; };
+		7854BA001E64FD7D00591255 /* Camera.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9F41E64FD7D00591255 /* Camera.storyboard */; };
+		7854BA011E64FD7D00591255 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9F51E64FD7D00591255 /* CameraViewController.swift */; };
+		7854BA021E64FD7D00591255 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9F61E64FD7D00591255 /* Color.swift */; };
+		7854BA031E64FD7D00591255 /* TextImageEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9F71E64FD7D00591255 /* TextImageEffectView.swift */; };
+		7854BA041E64FD7D00591255 /* TextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9F81E64FD7D00591255 /* TextView.swift */; };
+		7854BA051E64FD7D00591255 /* FilterImageEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9F91E64FD7D00591255 /* FilterImageEffect.swift */; };
+		7854BA061E64FD7D00591255 /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9FA1E64FD7D00591255 /* Filter.swift */; };
+		7854BA071E64FD7D00591255 /* DrawImageEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9FB1E64FD7D00591255 /* DrawImageEffectView.swift */; };
+		7854BA081E64FD7D00591255 /* DrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9FC1E64FD7D00591255 /* DrawView.swift */; };
+		7854BA091E64FD7D00591255 /* BubbleMenuCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9FD1E64FD7D00591255 /* BubbleMenuCollectionViewController.swift */; };
+		7854BA0A1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9FE1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift */; };
+		7854BA0B1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9FF1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib */; };
+		7854BA0E1E65005600591255 /* Index.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854BA0D1E65005600591255 /* Index.swift */; };
+		7857A02E1E6504EC00660B68 /* chinatown.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 7857A02B1E6504EC00660B68 /* chinatown.jpg */; };
+		7857A02F1E6504EC00660B68 /* golden_gate_bridge.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 7857A02C1E6504EC00660B68 /* golden_gate_bridge.jpg */; };
+		7857A0301E6504EC00660B68 /* montgomery.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 7857A02D1E6504EC00660B68 /* montgomery.jpg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +43,23 @@
 		7854B9E61E64F98300591255 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		7854B9E81E64F98300591255 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7854B9EE1E64F9B600591255 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		7854B9F21E64FD5B00591255 /* SatoCamera.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SatoCamera.swift; sourceTree = "<group>"; };
+		7854B9F41E64FD7D00591255 /* Camera.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Camera.storyboard; sourceTree = "<group>"; };
+		7854B9F51E64FD7D00591255 /* CameraViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
+		7854B9F61E64FD7D00591255 /* Color.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
+		7854B9F71E64FD7D00591255 /* TextImageEffectView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextImageEffectView.swift; sourceTree = "<group>"; };
+		7854B9F81E64FD7D00591255 /* TextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextView.swift; sourceTree = "<group>"; };
+		7854B9F91E64FD7D00591255 /* FilterImageEffect.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilterImageEffect.swift; sourceTree = "<group>"; };
+		7854B9FA1E64FD7D00591255 /* Filter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
+		7854B9FB1E64FD7D00591255 /* DrawImageEffectView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawImageEffectView.swift; sourceTree = "<group>"; };
+		7854B9FC1E64FD7D00591255 /* DrawView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawView.swift; sourceTree = "<group>"; };
+		7854B9FD1E64FD7D00591255 /* BubbleMenuCollectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BubbleMenuCollectionViewController.swift; sourceTree = "<group>"; };
+		7854B9FE1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BubbleMenuCollectionViewCell.swift; sourceTree = "<group>"; };
+		7854B9FF1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BubbleMenuCollectionViewCell.xib; sourceTree = "<group>"; };
+		7854BA0D1E65005600591255 /* Index.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Index.swift; sourceTree = "<group>"; };
+		7857A02B1E6504EC00660B68 /* chinatown.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = chinatown.jpg; sourceTree = "<group>"; };
+		7857A02C1E6504EC00660B68 /* golden_gate_bridge.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = golden_gate_bridge.jpg; sourceTree = "<group>"; };
+		7857A02D1E6504EC00660B68 /* montgomery.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = montgomery.jpg; sourceTree = "<group>"; };
 		C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-figevil.release.xcconfig"; path = "Pods/Target Support Files/Pods-figevil/Pods-figevil.release.xcconfig"; sourceTree = "<group>"; };
 		C710722E2727E087354024E4 /* Pods_figevil.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_figevil.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -78,6 +112,23 @@
 				7854B9E31E64F98300591255 /* Assets.xcassets */,
 				7854B9E51E64F98300591255 /* LaunchScreen.storyboard */,
 				7854B9E81E64F98300591255 /* Info.plist */,
+				7854B9F21E64FD5B00591255 /* SatoCamera.swift */,
+				7854BA0D1E65005600591255 /* Index.swift */,
+				7854B9F41E64FD7D00591255 /* Camera.storyboard */,
+				7854B9F51E64FD7D00591255 /* CameraViewController.swift */,
+				7854B9F61E64FD7D00591255 /* Color.swift */,
+				7854B9F71E64FD7D00591255 /* TextImageEffectView.swift */,
+				7854B9F81E64FD7D00591255 /* TextView.swift */,
+				7854B9F91E64FD7D00591255 /* FilterImageEffect.swift */,
+				7854B9FA1E64FD7D00591255 /* Filter.swift */,
+				7854B9FB1E64FD7D00591255 /* DrawImageEffectView.swift */,
+				7854B9FC1E64FD7D00591255 /* DrawView.swift */,
+				7854B9FD1E64FD7D00591255 /* BubbleMenuCollectionViewController.swift */,
+				7854B9FE1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift */,
+				7854B9FF1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib */,
+				7857A02B1E6504EC00660B68 /* chinatown.jpg */,
+				7857A02C1E6504EC00660B68 /* golden_gate_bridge.jpg */,
+				7857A02D1E6504EC00660B68 /* montgomery.jpg */,
 			);
 			path = figevil;
 			sourceTree = "<group>";
@@ -126,6 +177,7 @@
 				TargetAttributes = {
 					7854B9D81E64F98300591255 = {
 						CreatedOnToolsVersion = 8.2.1;
+						DevelopmentTeam = PY8CHQP699;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -155,8 +207,13 @@
 			files = (
 				7854B9E71E64F98300591255 /* LaunchScreen.storyboard in Resources */,
 				7854B9EF1E64F9B600591255 /* GoogleService-Info.plist in Resources */,
+				7857A0301E6504EC00660B68 /* montgomery.jpg in Resources */,
+				7857A02F1E6504EC00660B68 /* golden_gate_bridge.jpg in Resources */,
+				7854BA0B1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib in Resources */,
 				7854B9E41E64F98300591255 /* Assets.xcassets in Resources */,
+				7857A02E1E6504EC00660B68 /* chinatown.jpg in Resources */,
 				7854B9E21E64F98300591255 /* Main.storyboard in Resources */,
+				7854BA001E64FD7D00591255 /* Camera.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -215,8 +272,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7854BA0A1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift in Sources */,
+				7854BA051E64FD7D00591255 /* FilterImageEffect.swift in Sources */,
+				7854B9F31E64FD5B00591255 /* SatoCamera.swift in Sources */,
+				7854BA081E64FD7D00591255 /* DrawView.swift in Sources */,
+				7854BA011E64FD7D00591255 /* CameraViewController.swift in Sources */,
+				7854BA031E64FD7D00591255 /* TextImageEffectView.swift in Sources */,
+				7854BA041E64FD7D00591255 /* TextView.swift in Sources */,
 				7854B9DF1E64F98300591255 /* ViewController.swift in Sources */,
+				7854BA0E1E65005600591255 /* Index.swift in Sources */,
+				7854BA021E64FD7D00591255 /* Color.swift in Sources */,
+				7854BA071E64FD7D00591255 /* DrawImageEffectView.swift in Sources */,
+				7854BA061E64FD7D00591255 /* Filter.swift in Sources */,
 				7854B9DD1E64F98300591255 /* AppDelegate.swift in Sources */,
+				7854BA091E64FD7D00591255 /* BubbleMenuCollectionViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -338,6 +407,7 @@
 			baseConfigurationReference = 54758DDE5EE3F1B539963AA4 /* Pods-figevil.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = PY8CHQP699;
 				INFOPLIST_FILE = figevil/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.sunsethq.figevil;
@@ -351,6 +421,7 @@
 			baseConfigurationReference = C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = PY8CHQP699;
 				INFOPLIST_FILE = figevil/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.sunsethq.figevil;
@@ -378,6 +449,7 @@
 				7854B9ED1E64F98300591255 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
