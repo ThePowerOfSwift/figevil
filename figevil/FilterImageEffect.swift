@@ -11,7 +11,7 @@ import UIKit
 class FilterImageEffect: NSObject, CameraViewBubbleMenu {
 
     var menuContent: [BubbleMenuCollectionViewCellContent] = []
-    var iconContent = BubbleMenuCollectionViewCellContent(image: UIImage(named: "golden_gate_bridge.jpg")!, label: "Filter")
+    var iconContent = BubbleMenuCollectionViewCellContent(image: UIImage(named: "filter.png")!, label: "Filter")
     var delegate: FilterImageEffectDelegate?
     
     override init() {

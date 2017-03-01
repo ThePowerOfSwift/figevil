@@ -15,7 +15,7 @@ class DrawImageEffectView: UIView, CameraViewBubbleMenu {
     
     // MARK: CameraViewBubbleMenu
     var menuContent: [BubbleMenuCollectionViewCellContent] = []
-    var iconContent = BubbleMenuCollectionViewCellContent(image: UIImage(named: "chinatown.jpg")!, label: "Draw")
+    var iconContent = BubbleMenuCollectionViewCellContent(image: UIImage(named: "paintbrush.png")!, label: "Draw")
 
     // MARK: Lifecycle
     

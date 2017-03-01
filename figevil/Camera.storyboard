@@ -12,7 +12,7 @@
         <!--Camera View Controller-->
         <scene sceneID="ItQ-wz-qCZ">
             <objects>
-                <viewController storyboardIdentifier="CameraViewController" id="KW6-Bc-DhJ" customClass="CameraViewController" customModule="BMe" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="CameraViewController" id="KW6-Bc-DhJ" customClass="CameraViewController" customModule="figevil" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="DZY-Vk-aar"/>
                         <viewControllerLayoutGuide type="bottom" id="baq-Af-xjh"/>
@@ -38,60 +38,90 @@
                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                     </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vlY-ax-210">
-                                        <rect key="frame" x="0.0" y="471" width="375" height="77"/>
+                                        <rect key="frame" x="0.0" y="501" width="375" height="77"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="77" id="7pK-6U-0th"/>
                                         </constraints>
                                     </view>
-                                    <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="iU0-LW-1qw">
-                                        <rect key="frame" x="240" y="556" width="127" height="78"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="iU0-LW-1qw">
+                                        <rect key="frame" x="245" y="574" width="130" height="78"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="130" id="4Iq-90-xg5"/>
+                                            <constraint firstAttribute="height" constant="78" id="4cj-oJ-wtJ"/>
+                                        </constraints>
                                     </view>
-                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4pJ-iu-cBa">
-                                        <rect key="frame" x="170" y="595" width="35" height="30"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <state key="normal" title="Snap"/>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JLc-co-f7u">
-                                        <rect key="frame" x="8" y="29" width="30" height="30"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <state key="normal" title="X"/>
-                                        <connections>
-                                            <action selector="tappedCancel:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="qWm-Pw-hJk"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="N54-oQ-fkW">
-                                        <rect key="frame" x="327" y="29" width="34" height="30"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <state key="normal" title="Save"/>
-                                        <connections>
-                                            <action selector="tappedSave:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="g2l-rh-9Bo"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QEg-zn-yZI">
-                                        <rect key="frame" x="8" y="586" width="46" height="48"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <state key="normal" title="Selfie "/>
+                                    <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QEg-zn-yZI">
+                                        <rect key="frame" x="15" y="311" width="44" height="44"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="44" id="2Qm-pe-f5e"/>
+                                            <constraint firstAttribute="height" constant="44" id="ewQ-iS-gdw"/>
+                                        </constraints>
+                                        <state key="normal" title="Selfie " image="camera.png"/>
                                         <connections>
                                             <action selector="tappedSelfie:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="Woc-nV-4zh"/>
                                         </connections>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="DB6-0Y-2aN">
-                                        <rect key="frame" x="83" y="586" width="46" height="48"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <state key="normal" title="Flash"/>
+                                    <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="DB6-0Y-2aN">
+                                        <rect key="frame" x="316" y="311" width="44" height="44"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="44" id="PAo-ap-T9D"/>
+                                            <constraint firstAttribute="height" constant="44" id="bmT-io-eYE"/>
+                                        </constraints>
+                                        <state key="normal" title="Flash" image="flash.png"/>
                                         <connections>
                                             <action selector="tappedFlash:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="jv4-ao-XZY"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4pJ-iu-cBa">
+                                        <rect key="frame" x="165.5" y="608" width="44" height="44"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="44" id="hCB-eX-yoG"/>
+                                            <constraint firstAttribute="width" constant="44" id="hpd-5g-pnx"/>
+                                        </constraints>
+                                        <state key="normal" title="Snap" image="circle.png"/>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JLc-co-f7u">
+                                        <rect key="frame" x="15" y="30" width="44" height="44"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="44" id="7si-gW-sTo"/>
+                                            <constraint firstAttribute="height" constant="44" id="iyb-zf-QXu"/>
+                                        </constraints>
+                                        <state key="normal" title="X" image="back.png"/>
+                                        <connections>
+                                            <action selector="tappedCancel:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="qWm-Pw-hJk"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="N54-oQ-fkW">
+                                        <rect key="frame" x="316" y="30" width="44" height="44"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="44" id="5AQ-Xu-gRR"/>
+                                            <constraint firstAttribute="width" constant="44" id="cr1-IT-2k0"/>
+                                        </constraints>
+                                        <state key="normal" title="Save" image="checkmark.png"/>
+                                        <connections>
+                                            <action selector="tappedSave:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="g2l-rh-9Bo"/>
                                         </connections>
                                     </button>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <constraints>
-                                    <constraint firstAttribute="trailing" secondItem="vlY-ax-210" secondAttribute="trailing" id="Nh3-E0-e2q"/>
-                                    <constraint firstAttribute="bottom" secondItem="vlY-ax-210" secondAttribute="bottom" constant="119" id="lpA-hO-yen"/>
-                                    <constraint firstItem="vlY-ax-210" firstAttribute="leading" secondItem="6v3-5B-uh9" secondAttribute="leading" id="uF4-iJ-1G6"/>
+                                    <constraint firstItem="DB6-0Y-2aN" firstAttribute="centerY" secondItem="6v3-5B-uh9" secondAttribute="centerY" id="848-No-JSU"/>
+                                    <constraint firstAttribute="bottom" secondItem="4pJ-iu-cBa" secondAttribute="bottom" constant="15" id="A3y-LM-C3U"/>
+                                    <constraint firstItem="4pJ-iu-cBa" firstAttribute="centerX" secondItem="6v3-5B-uh9" secondAttribute="centerX" id="B2A-3n-Lyl"/>
+                                    <constraint firstItem="vlY-ax-210" firstAttribute="leading" secondItem="6v3-5B-uh9" secondAttribute="leading" id="CYf-uF-YX6"/>
+                                    <constraint firstAttribute="trailing" secondItem="iU0-LW-1qw" secondAttribute="trailing" id="Chz-eE-cs7"/>
+                                    <constraint firstItem="JLc-co-f7u" firstAttribute="top" secondItem="6v3-5B-uh9" secondAttribute="top" constant="30" id="Dgh-7e-vvP"/>
+                                    <constraint firstItem="4pJ-iu-cBa" firstAttribute="top" secondItem="vlY-ax-210" secondAttribute="bottom" constant="30" id="FxR-Hl-uEL"/>
+                                    <constraint firstAttribute="trailing" secondItem="vlY-ax-210" secondAttribute="trailing" id="GM3-Ic-xsY"/>
+                                    <constraint firstItem="JLc-co-f7u" firstAttribute="leading" secondItem="6v3-5B-uh9" secondAttribute="leading" constant="15" id="Ugw-qa-ZWl"/>
+                                    <constraint firstAttribute="trailing" secondItem="DB6-0Y-2aN" secondAttribute="trailing" constant="15" id="aUA-6g-fTR"/>
+                                    <constraint firstAttribute="bottom" secondItem="iU0-LW-1qw" secondAttribute="bottom" constant="15" id="cit-ts-8pI"/>
+                                    <constraint firstItem="QEg-zn-yZI" firstAttribute="centerY" secondItem="6v3-5B-uh9" secondAttribute="centerY" id="nvZ-yB-5iA"/>
+                                    <constraint firstItem="QEg-zn-yZI" firstAttribute="leading" secondItem="6v3-5B-uh9" secondAttribute="leading" constant="15" id="qMT-il-ZqH"/>
+                                    <constraint firstItem="N54-oQ-fkW" firstAttribute="top" secondItem="6v3-5B-uh9" secondAttribute="top" constant="30" id="x9X-cM-CWH"/>
+                                    <constraint firstAttribute="trailing" secondItem="N54-oQ-fkW" secondAttribute="trailing" constant="15" id="xsL-5B-rfN"/>
                                 </constraints>
                             </view>
                         </subviews>
@@ -115,7 +145,6 @@
                         <outlet property="cancelButton" destination="JLc-co-f7u" id="Cre-x9-LMm"/>
                         <outlet property="controlView" destination="6v3-5B-uh9" id="XlP-YX-N0d"/>
                         <outlet property="effectOptionView" destination="vlY-ax-210" id="FA9-hl-S0D"/>
-                        <outlet property="effectOptionViewBottomConstraint" destination="lpA-hO-yen" id="Cgj-gd-ijx"/>
                         <outlet property="effectToolView" destination="iU0-LW-1qw" id="77J-x6-wqZ"/>
                         <outlet property="flashButton" destination="DB6-0Y-2aN" id="z0Z-bg-Fdz"/>
                         <outlet property="flashView" destination="vkP-xK-PRp" id="vU4-1y-MUv"/>
@@ -131,4 +160,11 @@
             <point key="canvasLocation" x="-2386.4000000000001" y="677.81109445277366"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="back.png" width="240" height="240"/>
+        <image name="camera.png" width="240" height="240"/>
+        <image name="checkmark.png" width="240" height="240"/>
+        <image name="circle.png" width="240" height="240"/>
+        <image name="flash.png" width="240" height="240"/>
+    </resources>
 </document>
