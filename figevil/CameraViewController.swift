@@ -19,25 +19,12 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     @IBOutlet var snapButton: UIButton!
     
     func setupSnapButton() {
-        snapButton.addTarget(self, action: #selector(snap(_:)), for: UIControlEvents.touchUpInside)
-        let longpress = UILongPressGestureRecognizer(target: self, action: #selector(record(_:)))
-        snapButton.addGestureRecognizer(longpress)
+        snapButton.addTarget(self, action: #selector(snapLiveGif(_:)), for: UIControlEvents.touchUpInside)
     }
     
-    func snap(_ sender: UIControlEvents) {
-        satoCamera.capturePhoto()
-    }
-    
-    func record(_ sender: UILongPressGestureRecognizer) {
-        //print("record")
-        
-        if sender.state == UIGestureRecognizerState.began {
-            print("begin")
-            satoCamera.startRecordingGif()
-        } else if sender.state == UIGestureRecognizerState.ended {
-            print("end")
-            satoCamera.stopRecordingGif()
-        }
+    /** Snap live gif. */
+    func snapLiveGif(_ sender: UIControlEvents) {
+        satoCamera.snapGif()
     }
     
     @IBOutlet weak var cancelButton: UIButton!

@@ -23,6 +23,13 @@ enum CameraState {
     case Front
 }
 
+struct LiveGifPreset {
+    var frameCaptureFrequency: Int
+    var gifPlayDuration: Double
+    var sampleBufferFrameRate: Int32
+    var numOfFramesForGif: Int
+}
+
 protocol SatoCameraOutput {
     // set outputImageView with filtered image in
     // didFinishProcessingPhotoSampleBuffer when snapping
@@ -57,7 +64,6 @@ class SatoCamera: NSObject {
     fileprivate var photoOutput: AVCapturePhotoOutput?
     
     fileprivate static let resizingImageScale: CGFloat = 0.3
-    fileprivate static let imageViewAnimationDuration = 2.0
     
     /** array of unfiltered CIImage from didOutputSampleBuffer.
      Filter should be applied when stop recording gif but not real time
@@ -71,7 +77,6 @@ class SatoCamera: NSObject {
     /** count variable to count how many times the method gets called */
     fileprivate var didOutputSampleBufferMethodCallCount: Int = 0
     /** video frame will be captured once in the frequency how many times didOutputSample buffer is called. */
-    fileprivate static let frameCaptureFrequency: Int = 10
     
     /** Indicates if SatoCamera is recording gif.*/
     fileprivate var isRecording: Bool = false
@@ -125,6 +130,8 @@ class SatoCamera: NSObject {
     /** Holds the current filter. */
     var currentFilter: Filter = Filter.list()[0]
     
+    var currentliveGifPreset: LiveGifPreset = LiveGifPreset(frameCaptureFrequency: 2, gifPlayDuration: 1, sampleBufferFrameRate: 30, numOfFramesForGif: 10)
+    
     convenience init(frame: CGRect) {
         self.init(frame: frame, cameraOutput: nil)
     }
@@ -134,9 +141,9 @@ class SatoCamera: NSObject {
         //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
         // didSet in cameraOutput is not called here before super.init() is called
         self.cameraOutput = cameraOutput
-
+        
         super.init()
-
+        
         // EAGLContext object manages an OpenGL ES rendering context
         eaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2)
         guard let eaglContext = eaglContext else {
@@ -168,7 +175,18 @@ class SatoCamera: NSObject {
         ciContext = CIContext(eaglContext: eaglContext)
         
         cameraOutput?.sampleBufferView?.addSubview(videoPreview)
+        
+        
+        
+        _ = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(printPerSecond), userInfo: nil, repeats: true)
         initialStart()
+    }
+    var time = 0
+    var didOutputSampleBufferCountPerSecond = 0
+    func printPerSecond() {
+        time += 1
+        didOutputSampleBufferCountPerSecond = 0
+        print("\(time) second passed -------------------------------------------------------------------------------------")
     }
     
     /** Start running capture session. */
@@ -210,15 +228,9 @@ class SatoCamera: NSObject {
         // add still image output
         photoOutput = AVCapturePhotoOutput()
         
-        // Minimize visibility or inconsistency of state
-        captureSession.beginConfiguration()
-        
-        if !captureSession.canAddOutput(videoDataOutput) {
-            print("cannot add video data output")
-            return
-        }
-        
         // Configure input object with device
+        // THIS CODE HAS TO BE BEFORE THE FRAME RATE  CONFIG
+        // http://stackoverflow.com/questions/20330174/avcapture-capturing-and-getting-framebuffer-at-60-fps-in-ios-7
         do {
             videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
             // Add it to session
@@ -227,6 +239,16 @@ class SatoCamera: NSObject {
             print("Failed to instantiate input object")
         }
         
+        // Minimize visibility or inconsistency of state
+        captureSession.beginConfiguration()
+        
+        if !captureSession.canAddOutput(videoDataOutput) {
+            print("cannot add video data output")
+            return
+        }
+        
+        setupFrameRate(videoDevice: videoDevice)
+        
         // Add output object to session
         captureSession.addOutput(videoDataOutput)
         captureSession.addOutput(photoOutput)
@@ -234,6 +256,53 @@ class SatoCamera: NSObject {
         // Assemble all the settings together
         captureSession.commitConfiguration()
         captureSession.startRunning()
+        startRecordingGif()
+    }
+    
+    /** Setup frame rate for video device. captureSession.addInput must be called before this method is called. */
+    func setupFrameRate(videoDevice: AVCaptureDevice) {
+        do {
+            try videoDevice.lockForConfiguration()
+            // Get the best format available for the video device
+            // http://stackoverflow.com/questions/20330174/avcapture-capturing-and-getting-framebuffer-at-60-fps-in-ios-7
+            var bestFormat = AVCaptureDeviceFormat()
+            for any in videoDevice.formats {
+                let format = any as! AVCaptureDeviceFormat
+                let frameRateRange = format.videoSupportedFrameRateRanges[0] as! AVFrameRateRange
+                
+                // get the format with max frame rate of 60
+                // DO NOT SET 30. IT WON'T WORK
+                if frameRateRange.maxFrameRate == 60 {
+                    bestFormat = format
+                }
+            }
+            
+            // set the format to the device
+            videoDevice.activeFormat = bestFormat
+            
+            // supported frame rate range is now set to 3 - 60 per second. The default is 3 - 30 per second
+            let frameRateRange = videoDevice.activeFormat.videoSupportedFrameRateRanges[0] as? AVFrameRateRange
+            
+            // max frame duration is the max time duration that takes frame to generate.
+            // in the case of 60 fps format, value is 1 and timescale is 3 where frame is generated every 1/3 second.
+            let _ = frameRateRange!.maxFrameDuration
+            
+            // min frame duration is the min time duration that takes frame to genrate.
+            // in the case of 60 fps format, value is 1 and timescale is 60 where frame is generated every 1/60 second (theoretically).
+            // IMPORTANT: even if you set the best format with over 60 fps, the actual max frame you can get per second
+            // is around 40 fps. This is regardless of frame resolution (either AVCaptureSessionPresetLow or High)
+            let _ = frameRateRange!.minFrameDuration
+            
+            // frame is generated every 1/12 second which means didOutputSampleBuffer gets called every 1/12 second
+            //let customFrameDuration = CMTime(value: 1, timescale: currentliveGifPreset.frameRate)
+            let customFrameDuration = CMTime(value: 1, timescale: currentliveGifPreset.sampleBufferFrameRate)
+            videoDevice.activeVideoMinFrameDuration = customFrameDuration
+            videoDevice.activeVideoMaxFrameDuration = customFrameDuration
+            videoDevice.unlockForConfiguration()
+            
+        } catch let error {
+            print(error.localizedDescription)
+        }
     }
     
     /** Focus on where it's tapped. */
@@ -279,7 +348,7 @@ class SatoCamera: NSObject {
         feedbackView.layer.borderWidth = 2.0
         feedbackView.backgroundColor = UIColor.clear
         cameraOutput?.sampleBufferView?.addSubview(feedbackView)
-
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
             // Put your code which should be executed with a delay here
             feedbackView.removeFromSuperview()
@@ -294,7 +363,7 @@ class SatoCamera: NSObject {
             print("video device or photo settings is nil")
             return "Error happened in \(#function): video device or photo settings is nil"
         }
-
+        
         if videoDevice.hasFlash && videoDevice.isFlashAvailable && videoDevice.hasTorch && videoDevice.isTorchAvailable {
             do {
                 try videoDevice.lockForConfiguration()
@@ -321,6 +390,7 @@ class SatoCamera: NSObject {
     /** Resumes camera. */
     internal func start() {
         captureSession?.startRunning()
+        startRecordingGif()
     }
     
     internal func stop() {
@@ -360,14 +430,14 @@ class SatoCamera: NSObject {
                 if error != nil {
                     print("\(error?.localizedDescription)")
                 } else if let url = url {
-    
+                    
                     if let gifData = NSData(contentsOf: url) {
                         let gifSize = Double(gifData.length)
                         print("size of gif in KB: ", gifSize / 1024.0)
                     } else {
                         print("gif data is nil")
                     }
-
+                    
                     
                     // check authorization status
                     PHPhotoLibrary.requestAuthorization
@@ -397,7 +467,7 @@ class SatoCamera: NSObject {
                     })
                 }
             })
-
+            
         } else {
             // render image
             guard let renderedImage = renderStillImage(drawImage: drawImage, textImage: textImage) else {
@@ -414,35 +484,35 @@ class SatoCamera: NSObject {
     /** Renders drawings and texts into image. Needs to be saved to disk by save(completion:)*/
     internal func renderGif(drawImage: UIImage?, textImage: UIImage?) -> UIImageView? {
         
-            guard let resultImageView = resultImageView else {
-                print("result imag view is nil")
-                return nil
-            }
-            
-            guard let animationImages = resultImageView.animationImages else {
-                print("animation image is nil")
-                return nil
-            }
-            
-            var renderedAnimationImages = [UIImage]()
-            
-            // render draw and text into each animation image
-            for animationImage in animationImages {
-                UIGraphicsBeginImageContext(frame.size)
-                // render here
-                animationImage.draw(in: frame)
-                drawImage?.draw(in: frame)
-                textImage?.draw(in: frame)
-                if let renderedAnimationImage = UIGraphicsGetImageFromCurrentImageContext() {
-                    renderedAnimationImages.append(renderedAnimationImage)
-                } else {
-                    print("rendered animation image is nil")
-                }
-                UIGraphicsEndImageContext()
-            }
-            // generate .gif file from array of rendered image
+        guard let resultImageView = resultImageView else {
+            print("result imag view is nil")
+            return nil
+        }
         
-        guard let renderedGifImageView = UIImageView.generateGifImageView(with: renderedAnimationImages, frame: frame, duration: SatoCamera.imageViewAnimationDuration) else {
+        guard let animationImages = resultImageView.animationImages else {
+            print("animation image is nil")
+            return nil
+        }
+        
+        var renderedAnimationImages = [UIImage]()
+        
+        // render draw and text into each animation image
+        for animationImage in animationImages {
+            UIGraphicsBeginImageContext(frame.size)
+            // render here
+            animationImage.draw(in: frame)
+            drawImage?.draw(in: frame)
+            textImage?.draw(in: frame)
+            if let renderedAnimationImage = UIGraphicsGetImageFromCurrentImageContext() {
+                renderedAnimationImages.append(renderedAnimationImage)
+            } else {
+                print("rendered animation image is nil")
+            }
+            UIGraphicsEndImageContext()
+        }
+        // generate .gif file from array of rendered image
+        
+        guard let renderedGifImageView = UIImageView.generateGifImageView(with: renderedAnimationImages, frame: frame, duration: currentliveGifPreset.gifPlayDuration) else {
             print("rendered gif image view is nil in \(#function)")
             return nil
         }
@@ -464,25 +534,6 @@ class SatoCamera: NSObject {
         UIGraphicsEndImageContext()
         return resultImage
     }
-    
-//    /** Render drawings and texts into photo image view. */
-//    private func render() -> UIImage? {
-//        renderTextfields()
-//        
-//        UIGraphicsBeginImageContextWithOptions(photoImageView.frame.size, false, imageScale)
-//        if UIGraphicsGetCurrentContext() != nil {
-//            photoImageView.image?.draw(in: photoImageView.frame)
-//            drawImageView.image?.draw(in: photoImageView.frame)
-//            textImageView.image?.draw(in: photoImageView.frame)
-//            if let resultImage = UIGraphicsGetImageFromCurrentImageContext() {
-//                //let imageVC = ImageViewController(image: resultImage)
-//                //present(imageVC, animated: true, completion: {})
-//                return resultImage
-//            }
-//        }
-//        UIGraphicsEndImageContext()
-//        return nil
-//    }
     
     /** Toggles back camera or front camera. */
     internal func toggleCamera() {
@@ -532,7 +583,7 @@ class SatoCamera: NSObject {
     }
     
     internal func startRecordingGif() {
-
+        
         // set torch
         if let videoDevice = videoDevice {
             if videoDevice.hasTorch && videoDevice.isTorchAvailable {
@@ -545,12 +596,17 @@ class SatoCamera: NSObject {
                 }
             }
         }
-        isRecording = true
+        //isRecording = true
         isGif = true
     }
     
+    var isGifSnapped: Bool = false
+    internal func snapGif() {
+        isGifSnapped = true
+    }
+    
     internal func stopRecordingGif() {
-        
+        isGifSnapped = false
         // Set torch
         if let videoDevice = videoDevice {
             if videoDevice.hasTorch && videoDevice.isTorchAvailable {
@@ -564,20 +620,21 @@ class SatoCamera: NSObject {
             }
         }
         
-        isRecording = false
         stop()
         
         guard let orientUIImages = fixOrientationAndApplyFilter(ciImages: unfilteredCIImages) else {
             print("orient uiimages is nil in \(#function)")
             return
         }
-
-        guard let resizedUIImages = resizeUIImages(orientUIImages) else {
-            print("resized UIImages is nil")
-            return
-        }
         
-        guard let gifImageView = UIImageView.generateGifImageView(with: resizedUIImages, frame: frame, duration: SatoCamera.imageViewAnimationDuration) else {
+        //        guard let resizedUIImages = resizeUIImages(orientUIImages) else {
+        //            print("resized UIImages is nil")
+        //            return
+        //        }
+        
+        let resizedUIImages = orientUIImages
+        
+        guard let gifImageView = UIImageView.generateGifImageView(with: resizedUIImages, frame: frame, duration: currentliveGifPreset.gifPlayDuration) else {
             print("failed to produce gif image")
             return
         }
@@ -645,9 +702,9 @@ class SatoCamera: NSObject {
             let bitmapInfo = cgImage.bitmapInfo
             
             let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace!, bitmapInfo: bitmapInfo.rawValue)
-
+            
             context!.interpolationQuality = CGInterpolationQuality.low //.high
-
+            
             context?.draw(cgImage, in: CGRect(origin: CGPoint.zero, size: CGSize(width: CGFloat(width), height: CGFloat(height))))
             
             let scaledImage = context!.makeImage().flatMap { UIImage(cgImage: $0) }
@@ -671,7 +728,7 @@ extension SatoCamera: FilterImageEffectDelegate {
         // if camera is running, just change the filter name
         //self.filterName = filterName
         //self.filterIndex = indexPath.item
-    
+        
         guard let filter = filter else {
             print("filter is nil in \(#function)")
             return
@@ -689,7 +746,7 @@ extension SatoCamera: FilterImageEffectDelegate {
                     return
                 }
                 
-                guard let gifImageView = UIImageView.generateGifImageView(with: filteredUIImages, frame: frame, duration: SatoCamera.imageViewAnimationDuration) else {
+                guard let gifImageView = UIImageView.generateGifImageView(with: filteredUIImages, frame: frame, duration: currentliveGifPreset.gifPlayDuration) else {
                     print("failed to produce gif image")
                     return
                 }
@@ -701,7 +758,7 @@ extension SatoCamera: FilterImageEffectDelegate {
                         }
                     }
                 }
-
+                
                 cameraOutput?.outputImageView?.addSubview(gifImageView)
                 gifImageView.startAnimating()
                 
@@ -718,7 +775,7 @@ extension SatoCamera: FilterImageEffectDelegate {
                 }
                 
                 let rotatedFilteredUIImage = fixOrientation(ciImage: filteredImage)
-
+                
                 if let cameraOutput = cameraOutput {
                     if let outputImageView = cameraOutput.outputImageView {
                         for subview in outputImageView.subviews {
@@ -740,6 +797,8 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
      If recording is on, store video frame both filtered and unfiltered priodically.
      */
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
+        didOutputSampleBufferCountPerSecond += 1
+        print("\t \(didOutputSampleBufferCountPerSecond)th call of didOutputSampleBuffer()")
         
         guard let imageBuffer: CVImageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             print("image buffer is nil")
@@ -755,13 +814,35 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
         }
         
         didOutputSampleBufferMethodCallCount += 1
-        if isRecording && didOutputSampleBufferMethodCallCount % SatoCamera.frameCaptureFrequency == 0 {
+        if didOutputSampleBufferMethodCallCount % currentliveGifPreset.frameCaptureFrequency == 0 {
             
-            if let resizedCIImage = resizeCIImage(sourceImage) {
-                store(image: resizedCIImage, to: &unfilteredCIImages)
-                print("resized ciimage: \(resizedCIImage) in \(#function)")
+            if !isGifSnapped {
+                // gif before snapping
+                //                if let resizedCIImage = resizeCIImage(sourceImage) {
+                //                    store(image: resizedCIImage, to: &unfilteredCIImages)
+                //                    if unfilteredCIImages.count == 6 {
+                //                        unfilteredCIImages.remove(at: 0)
+                //                    }
+                //                } else {
+                //                    print("resized ciimage is nil in \(#function)")
+                //                }
+                
+                store(image: sourceImage, to: &unfilteredCIImages)
+                if unfilteredCIImages.count == currentliveGifPreset.numOfFramesForGif / 2  {
+                    unfilteredCIImages.remove(at: 0)
+                }
             } else {
-                print("resized ciimage is nil in \(#function)")
+                //                // gif snapped
+                //                if let resizedCIImage = resizeCIImage(sourceImage) {
+                //                    store(image: resizedCIImage, to: &unfilteredCIImages)
+                //                    if unfilteredCIImages.count == 10 {
+                //                        stopRecordingGif()
+                //                    }
+                //                }
+                store(image: sourceImage, to: &unfilteredCIImages)
+                if unfilteredCIImages.count == currentliveGifPreset.numOfFramesForGif {
+                    stopRecordingGif()
+                }
             }
         }
         
@@ -868,12 +949,12 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
             resultImageView = filteredImageView
             // client setup
             cameraOutput?.outputImageView?.addSubview(filteredImageView)
-
+            
             stop()
         }
     }
     
-    /** Fixes orientation of array of CIImage and apply filters to it. 
+    /** Fixes orientation of array of CIImage and apply filters to it.
      Fixing orientation and applying filter have to be done at the same time
      because fixing orientation only produces UIImage with its CIImage property nil.
      */
@@ -933,7 +1014,7 @@ extension CIImage {
     // Apply filter to array of CIImage
     class func applyFilter(to images: [CIImage], filter: Filter) -> [CIImage] {
         var newImages = [CIImage]()
-
+        
         for image in images {
             
             guard let newImage = filter.generateFilteredCIImage(sourceImage: image) else {
@@ -945,87 +1026,6 @@ extension CIImage {
         }
         return newImages
     }
-}
-
-/** All the methods that handle UIImage are in this extension. */
-extension UIImage {
-    
-//    /** Resize UIImage to the specified size with scale. size will be multiplied by scale.
-//     For exmple if you pass self.view with scale 0.7, the actual size will be self.view * 0.7.*/
-//    func resize(width: CGFloat, height: CGFloat, scale: CGFloat) -> UIImage? {
-//        let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
-//        UIGraphicsBeginImageContextWithOptions(size, false, 0)
-//        self.draw(in: rect)
-//        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-//        return newImage
-//    }
-//    
-//    // TODO: Use Core Graphics resizing instead of UIKit for performance: http://nshipster.com/image-resizing/
-//    /** resize images to the specified size and scale so that it won't take much memory. */
-//    class func resizeImages(_ images :[UIImage]?, frame: CGRect) -> [UIImage]? {
-//        guard let images = images else {
-//            print("images is nil")
-//            return nil
-//        }
-//        
-//        // Array to store resized images
-//        var newImages: [UIImage] = [UIImage]()
-//        
-//        // Resize images
-//        for image in images {
-//            print("image size before resizing: \(image.size)")
-//            // Resize image to screen size * resizingImageScale (0.7) to reduce memory usage
-//            if let newImage = image.resize(width: frame.width, height: frame.height, scale: SatoCamera.resizingImageScale) {
-//                newImages.append(newImage)
-//                print("image size after resizing: \(newImage.size)")
-//                
-//            } else {
-//                print("newImage is nil")
-//            }
-//        }
-//        return newImages
-//    }
-//    
-//    // Convert array of CIImage to array of UIImage
-//    class func convertToUIImages(from ciImages: [CIImage]) -> [UIImage] {
-//        var uiImages = [UIImage]()
-//        for ciImage in ciImages {
-//            let uiImage = UIImage(ciImage: ciImage)
-//            uiImages.append(uiImage)
-//        }
-//        return uiImages
-//    }
-//    
-//    /** Generates array of UIImage from array of CIImage. Applies filter and resizes to specific frame. */
-//    class func generateFilteredUIImages(sourceCIImages: [CIImage], with frame: CGRect, filter: Filter) -> [UIImage] {
-//        
-//        let filteredCIImages = CIImage.applyFilter(to: sourceCIImages, filter: filter)
-//        let filteredUIImages = UIImage.convertToUIImages(from: filteredCIImages)
-//        
-//        guard let resizedFilteredUIImages = UIImage.resizeImages(filteredUIImages, frame: frame) else {
-//            print("failed to resize filtered UIImages")
-//            return filteredUIImages
-//        }
-//        
-//        //let resizedFilteredUIImages = filteredUIImages
-//        return resizedFilteredUIImages
-//    }
-//    
-//    /** Rotate UIImage by 90 degrees. This works when UIImage orientation is set to right or left.
-//     Output UIImage orientation is up. */
-//    // http://stackoverflow.com/questions/1315251/how-to-rotate-a-uiimage-90-degrees
-//    func rotate() -> UIImage? {
-//        UIGraphicsBeginImageContext(self.size)
-//        guard let context = UIGraphicsGetCurrentContext() else {
-//            print("context is nil in \(#function)")
-//            return nil
-//        }
-//        context.rotate(by: CGFloat(M_PI_2))
-//        self.draw(at: CGPoint.zero)
-//        let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
-//        UIGraphicsEndImageContext()
-//        return rotatedImage
-//    }
 }
 
 extension UIImageView {
