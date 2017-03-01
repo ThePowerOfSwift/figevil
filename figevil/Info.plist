@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Save to your phone</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Snap a live gif</string>
 	<key>CFBundleDevelopmentRegion</key>

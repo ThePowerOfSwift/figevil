@@ -145,6 +145,7 @@
                         <outlet property="cancelButton" destination="JLc-co-f7u" id="Cre-x9-LMm"/>
                         <outlet property="controlView" destination="6v3-5B-uh9" id="XlP-YX-N0d"/>
                         <outlet property="effectOptionView" destination="vlY-ax-210" id="FA9-hl-S0D"/>
+                        <outlet property="effectOptionViewBottomConstraint" destination="FxR-Hl-uEL" id="lWx-EZ-Cbm"/>
                         <outlet property="effectToolView" destination="iU0-LW-1qw" id="77J-x6-wqZ"/>
                         <outlet property="flashButton" destination="DB6-0Y-2aN" id="z0Z-bg-Fdz"/>
                         <outlet property="flashView" destination="vkP-xK-PRp" id="vU4-1y-MUv"/>

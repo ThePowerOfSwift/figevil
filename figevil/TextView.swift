@@ -125,10 +125,8 @@ class TextView: UIView, UITextFieldDelegate {
         // Add textfield to heirarchy
         imageView.addSubview(newTextField)
         
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 0.025) {
-            self.textField?.becomeFirstResponder()
+        newTextField.becomeFirstResponder()
 
-//        }
     }
     
     func attributedPlaceholder() -> NSAttributedString? {

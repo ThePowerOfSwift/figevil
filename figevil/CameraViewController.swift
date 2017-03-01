@@ -11,7 +11,9 @@ import UIKit
 class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollectionViewControllerDatasource, BubbleMenuCollectionViewControllerDelegate {
     
     // MARK: Snap Testing
-    
+    // TODO: temp var for effect option bottom constraint
+    var lastconstant: CGFloat = 0
+
     func setupTest() {
         print("setup")
     }
@@ -354,8 +356,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         NotificationCenter.default.removeObserver(self, name: .UIKeyboardWillHide, object: nil)
     }
     
-    // TODO: temp var
-    var lastconstant: CGFloat = 0
     /** Keyboard appearance notification.  Pushes content (option menu) up to keyboard top floating */
     func keyboardWillShow(notification: NSNotification) {
         
@@ -367,14 +367,14 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 return
             }
             guard let animationTime = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? Double else {
-                print("Error: Cannot retrienve animation duration from keyboard notification")
+                print("Error: Cannot retrieve animation duration from keyboard notification")
                 return
             }
             
             // Save the original position
             lastconstant = effectOptionViewBottomConstraint.constant
             // Enforce the new position above keyboard
-            effectOptionViewBottomConstraint.constant = keyboardFrame.height
+            effectOptionViewBottomConstraint.constant = keyboardFrame.height - (44 + 15)
             // Animate the constraint changes
             UIView.animate(withDuration: animationTime, animations: { 
                 self.view.layoutIfNeeded()
