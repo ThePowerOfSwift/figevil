@@ -25,6 +25,24 @@ class Filter: NSObject {
             return sourceImage
         }
     }
+    
+    func generateFilteredCIImages(sourceImages: [CIImage]) -> [CIImage]? {
+        var filteredCIImages = [CIImage]()
+        for sourceImage in sourceImages {
+            if let filter = filter {
+                filter.setValue(sourceImage, forKey: kCIInputImageKey)
+                //return filter.outputImage
+                if let filteredCIImage = filter.outputImage {
+                    filteredCIImages.append(filteredCIImage)
+                } else {
+                    print("filetered CIImage is nil in \(#function)")
+                }
+            } else {
+                print("filter is nil in \(#function)")
+            }
+        }
+        return filteredCIImages
+    }
 
     class func list() -> [Filter] {
         // Double size for testing

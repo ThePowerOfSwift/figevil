@@ -568,7 +568,15 @@ class SatoCamera: NSObject {
         }
         
         stop()
-        let gif = Gif(originalCIImages: unfilteredCIImages, currentGifFPS: currentLiveGifPreset.gifFPS, newGifFPS: currentLiveGifPreset.gifFPS, scale: 0, frame: frame)
+        
+        //let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: <#T##CIImage#>)
+        
+        guard let filteredCIImages = currentFilter.generateFilteredCIImages(sourceImages: unfilteredCIImages) else {
+            print("filtered CIImages are nil in \(#function)")
+            return
+        }
+        
+        let gif = Gif(originalCIImages: filteredCIImages, currentGifFPS: currentLiveGifPreset.gifFPS, newGifFPS: currentLiveGifPreset.gifFPS, scale: 0, frame: frame)
         guard let gifImageView = gif.gifImageView else {
             print("gif image view is nil")
             return
