@@ -23,13 +23,6 @@ enum CameraState {
     case Front
 }
 
-//struct LiveGifPreset {
-//    var frameCaptureFrequency: Int
-//    var gifPlayDuration: Double
-//    var sampleBufferFrameRate: Int32
-//    var numOfFramesForGif: Int
-//}
-
 struct LiveGifPreset {
     var frameCaptureFrequency: Int
     var gifPlayDuration: Double
@@ -471,107 +464,8 @@ class SatoCamera: NSObject {
         }
         
         gif.save(drawImage: drawImage, textImage: textImage, completion: completion)
-        
-//        if isGif {
-//            // render gif
-//            guard let renderedGifImageView = renderGif(drawImage: drawImage, textImage: textImage) else {
-//                print("rendered gif image view is nil")
-//                return
-//            }
-//            
-//            renderedGifImageView.saveGifToDisk(completion: { (url: URL?, error: Error?) in
-//                if error != nil {
-//                    print("\(error?.localizedDescription)")
-//                } else if let url = url {
-//                    
-//                    if let gifData = NSData(contentsOf: url) {
-//                        let gifSize = Double(gifData.length)
-//                        print("size of gif in KB: ", gifSize / 1024.0)
-//                    } else {
-//                        print("gif data is nil")
-//                    }
-//                    
-//                    
-//                    // check authorization status
-//                    PHPhotoLibrary.requestAuthorization
-//                        { (status) -> Void in
-//                            switch (status)
-//                            {
-//                            case .authorized:
-//                                // Permission Granted
-//                                print("Photo library usage authorized")
-//                            case .denied:
-//                                // Permission Denied
-//                                print("User denied")
-//                            default:
-//                                print("Restricted")
-//                            }
-//                    }
-//                    
-//                    // save data to the url
-//                    PHPhotoLibrary.shared().performChanges({
-//                        PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
-//                    }, completionHandler: { (saved: Bool, error: Error?) in
-//                        if saved {
-//                            completion?(true)
-//                        } else {
-//                            completion?(false)
-//                        }
-//                    })
-//                }
-//            })
-//            
-//        } else {
-//            // render image
-//            guard let renderedImage = renderStillImage(drawImage: drawImage, textImage: textImage) else {
-//                print("rendered image is nil in \(#function)")
-//                return
-//            }
-//            
-//            UIImageWriteToSavedPhotosAlbum(renderedImage, nil, nil, nil)
-//            completion?(true)
-//        }
     }
-    
-//    // textImageView should render text fields into it
-//    /** Renders drawings and texts into image. Needs to be saved to disk by save(completion:)*/
-//    internal func renderGif(drawImage: UIImage?, textImage: UIImage?) -> UIImageView? {
-//        
-//        guard let resultImageView = resultImageView else {
-//            print("result imag view is nil")
-//            return nil
-//        }
-//        
-//        guard let animationImages = resultImageView.animationImages else {
-//            print("animation image is nil")
-//            return nil
-//        }
-//        
-//        var renderedAnimationImages = [UIImage]()
-//        
-//        // render draw and text into each animation image
-//        for animationImage in animationImages {
-//            UIGraphicsBeginImageContext(frame.size)
-//            // render here
-//            animationImage.draw(in: frame)
-//            drawImage?.draw(in: frame)
-//            textImage?.draw(in: frame)
-//            if let renderedAnimationImage = UIGraphicsGetImageFromCurrentImageContext() {
-//                renderedAnimationImages.append(renderedAnimationImage)
-//            } else {
-//                print("rendered animation image is nil")
-//            }
-//            UIGraphicsEndImageContext()
-//        }
-//        // generate .gif file from array of rendered image
-//        
-//        guard let renderedGifImageView = UIImageView.generateGifImageView(with: renderedAnimationImages, frame: frame, duration: currentLiveGifPreset.gifPlayDuration) else {
-//            print("rendered gif image view is nil in \(#function)")
-//            return nil
-//        }
-//        return renderedGifImageView
-//    }
-//    
+//
 //    /** Renders drawings and texts into image. Needs to be saved to disk by save(). */
 //    internal func renderStillImage(drawImage: UIImage?, textImage: UIImage?) -> UIImage? {
 //        let resultImage: UIImage?
@@ -1000,6 +894,11 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
         
         let sourceImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
         
+        guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
+            print("filtered image is nil in \(#function)")
+            return
+        }
+        
         let sourceExtent: CGRect = sourceImage.extent
         
         didOutputSampleBufferMethodCallCount += 1
@@ -1053,7 +952,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
         glEnable(GLenum(GL_BLEND)) // glEnable — enable or disable server-side GL capabilities
         glBlendFunc(GLenum(GL_ONE), GLenum(GL_ONE_MINUS_SRC_ALPHA)) // specify pixel arithmetic
         
-        ciContext?.draw(sourceImage, in: videoPreviewViewBounds, from: drawRect)
+        ciContext?.draw(filteredImage, in: videoPreviewViewBounds, from: drawRect)
         
         // This causes runtime error with no log sometimes. That's because setNeedsDisplay is being called on a background thread, according to http://stackoverflow.com/questions/31775356/modifying-uiview-above-glkview-causing-crashes
         /*
