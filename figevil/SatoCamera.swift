@@ -23,11 +23,19 @@ enum CameraState {
     case Front
 }
 
+//struct LiveGifPreset {
+//    var frameCaptureFrequency: Int
+//    var gifPlayDuration: Double
+//    var sampleBufferFrameRate: Int32
+//    var numOfFramesForGif: Int
+//}
+
 struct LiveGifPreset {
     var frameCaptureFrequency: Int
     var gifPlayDuration: Double
-    var sampleBufferFrameRate: Int32
+    var sampleBufferFPS: Int32
     var numOfFramesForGif: Int
+    var gifFPS: Int
 }
 
 protocol SatoCameraOutput {
@@ -97,6 +105,9 @@ class SatoCamera: NSObject {
     
     fileprivate var resultImageView: UIImageView?
     
+    /** Store the result gif object. */
+    var gif: Gif?
+    
     /** Indicates the current camera state. */
     var cameraState: CameraState = .Back
     
@@ -130,7 +141,8 @@ class SatoCamera: NSObject {
     /** Holds the current filter. */
     var currentFilter: Filter = Filter.list()[0]
     
-    var currentliveGifPreset: LiveGifPreset = LiveGifPreset(frameCaptureFrequency: 2, gifPlayDuration: 1, sampleBufferFrameRate: 30, numOfFramesForGif: 10)
+//    var currentliveGifPreset: LiveGifPreset = LiveGifPreset(frameCaptureFrequency: 2, gifPlayDuration: 1, sampleBufferFrameRate: 30, numOfFramesForGif: 10)
+    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(frameCaptureFrequency: 3, gifPlayDuration: 1, sampleBufferFPS: 30, numOfFramesForGif: 30, gifFPS: 30/3/3)
     
     convenience init(frame: CGRect) {
         self.init(frame: frame, cameraOutput: nil)
@@ -295,7 +307,7 @@ class SatoCamera: NSObject {
             
             // frame is generated every 1/12 second which means didOutputSampleBuffer gets called every 1/12 second
             //let customFrameDuration = CMTime(value: 1, timescale: currentliveGifPreset.frameRate)
-            let customFrameDuration = CMTime(value: 1, timescale: currentliveGifPreset.sampleBufferFrameRate)
+            let customFrameDuration = CMTime(value: 1, timescale: currentLiveGifPreset.sampleBufferFPS)
             videoDevice.activeVideoMinFrameDuration = customFrameDuration
             videoDevice.activeVideoMaxFrameDuration = customFrameDuration
             videoDevice.unlockForConfiguration()
@@ -449,123 +461,132 @@ class SatoCamera: NSObject {
         start()
     }
     
+    
     /** Saves output image to camera roll. */
     internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((Bool) -> ())?) {
-        if isGif {
-            // render gif
-            guard let renderedGifImageView = renderGif(drawImage: drawImage, textImage: textImage) else {
-                print("rendered gif image view is nil")
-                return
-            }
-            
-            renderedGifImageView.saveGifToDisk(completion: { (url: URL?, error: Error?) in
-                if error != nil {
-                    print("\(error?.localizedDescription)")
-                } else if let url = url {
-                    
-                    if let gifData = NSData(contentsOf: url) {
-                        let gifSize = Double(gifData.length)
-                        print("size of gif in KB: ", gifSize / 1024.0)
-                    } else {
-                        print("gif data is nil")
-                    }
-                    
-                    
-                    // check authorization status
-                    PHPhotoLibrary.requestAuthorization
-                        { (status) -> Void in
-                            switch (status)
-                            {
-                            case .authorized:
-                                // Permission Granted
-                                print("Photo library usage authorized")
-                            case .denied:
-                                // Permission Denied
-                                print("User denied")
-                            default:
-                                print("Restricted")
-                            }
-                    }
-                    
-                    // save data to the url
-                    PHPhotoLibrary.shared().performChanges({
-                        PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
-                    }, completionHandler: { (saved: Bool, error: Error?) in
-                        if saved {
-                            completion?(true)
-                        } else {
-                            completion?(false)
-                        }
-                    })
-                }
-            })
-            
-        } else {
-            // render image
-            guard let renderedImage = renderStillImage(drawImage: drawImage, textImage: textImage) else {
-                print("rendered image is nil in \(#function)")
-                return
-            }
-            
-            UIImageWriteToSavedPhotosAlbum(renderedImage, nil, nil, nil)
-            completion?(true)
+        
+        guard let gif = gif else {
+            print("gif is nil in \(#function)")
+            return
         }
+        
+        gif.save(drawImage: drawImage, textImage: textImage, completion: completion)
+        
+//        if isGif {
+//            // render gif
+//            guard let renderedGifImageView = renderGif(drawImage: drawImage, textImage: textImage) else {
+//                print("rendered gif image view is nil")
+//                return
+//            }
+//            
+//            renderedGifImageView.saveGifToDisk(completion: { (url: URL?, error: Error?) in
+//                if error != nil {
+//                    print("\(error?.localizedDescription)")
+//                } else if let url = url {
+//                    
+//                    if let gifData = NSData(contentsOf: url) {
+//                        let gifSize = Double(gifData.length)
+//                        print("size of gif in KB: ", gifSize / 1024.0)
+//                    } else {
+//                        print("gif data is nil")
+//                    }
+//                    
+//                    
+//                    // check authorization status
+//                    PHPhotoLibrary.requestAuthorization
+//                        { (status) -> Void in
+//                            switch (status)
+//                            {
+//                            case .authorized:
+//                                // Permission Granted
+//                                print("Photo library usage authorized")
+//                            case .denied:
+//                                // Permission Denied
+//                                print("User denied")
+//                            default:
+//                                print("Restricted")
+//                            }
+//                    }
+//                    
+//                    // save data to the url
+//                    PHPhotoLibrary.shared().performChanges({
+//                        PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
+//                    }, completionHandler: { (saved: Bool, error: Error?) in
+//                        if saved {
+//                            completion?(true)
+//                        } else {
+//                            completion?(false)
+//                        }
+//                    })
+//                }
+//            })
+//            
+//        } else {
+//            // render image
+//            guard let renderedImage = renderStillImage(drawImage: drawImage, textImage: textImage) else {
+//                print("rendered image is nil in \(#function)")
+//                return
+//            }
+//            
+//            UIImageWriteToSavedPhotosAlbum(renderedImage, nil, nil, nil)
+//            completion?(true)
+//        }
     }
     
-    // textImageView should render text fields into it
-    /** Renders drawings and texts into image. Needs to be saved to disk by save(completion:)*/
-    internal func renderGif(drawImage: UIImage?, textImage: UIImage?) -> UIImageView? {
-        
-        guard let resultImageView = resultImageView else {
-            print("result imag view is nil")
-            return nil
-        }
-        
-        guard let animationImages = resultImageView.animationImages else {
-            print("animation image is nil")
-            return nil
-        }
-        
-        var renderedAnimationImages = [UIImage]()
-        
-        // render draw and text into each animation image
-        for animationImage in animationImages {
-            UIGraphicsBeginImageContext(frame.size)
-            // render here
-            animationImage.draw(in: frame)
-            drawImage?.draw(in: frame)
-            textImage?.draw(in: frame)
-            if let renderedAnimationImage = UIGraphicsGetImageFromCurrentImageContext() {
-                renderedAnimationImages.append(renderedAnimationImage)
-            } else {
-                print("rendered animation image is nil")
-            }
-            UIGraphicsEndImageContext()
-        }
-        // generate .gif file from array of rendered image
-        
-        guard let renderedGifImageView = UIImageView.generateGifImageView(with: renderedAnimationImages, frame: frame, duration: currentliveGifPreset.gifPlayDuration) else {
-            print("rendered gif image view is nil in \(#function)")
-            return nil
-        }
-        return renderedGifImageView
-    }
-    
-    /** Renders drawings and texts into image. Needs to be saved to disk by save(). */
-    internal func renderStillImage(drawImage: UIImage?, textImage: UIImage?) -> UIImage? {
-        let resultImage: UIImage?
-        UIGraphicsBeginImageContext(frame.size)
-        resultImageView?.image?.draw(in: frame)
-        drawImage?.draw(in: frame)
-        textImage?.draw(in: frame)
-        if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {
-            resultImage = renderedImage
-        } else {
-            resultImage = nil
-        }
-        UIGraphicsEndImageContext()
-        return resultImage
-    }
+//    // textImageView should render text fields into it
+//    /** Renders drawings and texts into image. Needs to be saved to disk by save(completion:)*/
+//    internal func renderGif(drawImage: UIImage?, textImage: UIImage?) -> UIImageView? {
+//        
+//        guard let resultImageView = resultImageView else {
+//            print("result imag view is nil")
+//            return nil
+//        }
+//        
+//        guard let animationImages = resultImageView.animationImages else {
+//            print("animation image is nil")
+//            return nil
+//        }
+//        
+//        var renderedAnimationImages = [UIImage]()
+//        
+//        // render draw and text into each animation image
+//        for animationImage in animationImages {
+//            UIGraphicsBeginImageContext(frame.size)
+//            // render here
+//            animationImage.draw(in: frame)
+//            drawImage?.draw(in: frame)
+//            textImage?.draw(in: frame)
+//            if let renderedAnimationImage = UIGraphicsGetImageFromCurrentImageContext() {
+//                renderedAnimationImages.append(renderedAnimationImage)
+//            } else {
+//                print("rendered animation image is nil")
+//            }
+//            UIGraphicsEndImageContext()
+//        }
+//        // generate .gif file from array of rendered image
+//        
+//        guard let renderedGifImageView = UIImageView.generateGifImageView(with: renderedAnimationImages, frame: frame, duration: currentLiveGifPreset.gifPlayDuration) else {
+//            print("rendered gif image view is nil in \(#function)")
+//            return nil
+//        }
+//        return renderedGifImageView
+//    }
+//    
+//    /** Renders drawings and texts into image. Needs to be saved to disk by save(). */
+//    internal func renderStillImage(drawImage: UIImage?, textImage: UIImage?) -> UIImage? {
+//        let resultImage: UIImage?
+//        UIGraphicsBeginImageContext(frame.size)
+//        resultImageView?.image?.draw(in: frame)
+//        drawImage?.draw(in: frame)
+//        textImage?.draw(in: frame)
+//        if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {
+//            resultImage = renderedImage
+//        } else {
+//            resultImage = nil
+//        }
+//        UIGraphicsEndImageContext()
+//        return resultImage
+//    }
     
     /** Toggles back camera or front camera. */
     internal func toggleCamera() {
@@ -653,23 +674,12 @@ class SatoCamera: NSObject {
         }
         
         stop()
-        
-        guard let orientUIImages = fixOrientationAndApplyFilter(ciImages: unfilteredCIImages) else {
-            print("orient uiimages is nil in \(#function)")
+        let gif = Gif(originalCIImages: unfilteredCIImages, currentGifFPS: currentLiveGifPreset.gifFPS, newGifFPS: currentLiveGifPreset.gifFPS, scale: 0, frame: frame)
+        guard let gifImageView = gif.gifImageView else {
+            print("gif image view is nil")
             return
         }
-        
-        //        guard let resizedUIImages = resizeUIImages(orientUIImages) else {
-        //            print("resized UIImages is nil")
-        //            return
-        //        }
-        
-        let resizedUIImages = orientUIImages
-        
-        guard let gifImageView = UIImageView.generateGifImageView(with: resizedUIImages, frame: frame, duration: currentliveGifPreset.gifPlayDuration) else {
-            print("failed to produce gif image")
-            return
-        }
+        self.gif = gif
         
         if let cameraOutput = cameraOutput {
             if let outputImageView = cameraOutput.outputImageView {
@@ -680,72 +690,120 @@ class SatoCamera: NSObject {
             }
         }
         
-        resultImageView = gifImageView
         cameraOutput?.outputImageView?.addSubview(gifImageView)
         gifImageView.startAnimating()
     }
+
     
-    func resizeCIImage(_ ciImage: CIImage) -> CIImage? {
-        let scale = frame.width / ciImage.extent.width
-        
-        let filter = CIFilter(name: "CILanczosScaleTransform")!
-        //let rectFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height)
-        //let vectorFrame = CIVector(cgRect: frame)
-        //filter.setValue(vectorFrame, forKey: kCIInputExtentKey) // CILanczosScaleTransform doesn't accept vector frame
-        filter.setValue(ciImage, forKey: kCIInputImageKey)
-        filter.setValue(scale, forKey: kCIInputScaleKey)
-        filter.setValue(1.0, forKey: kCIInputAspectRatioKey)
-        
-        guard let outputImage = filter.value(forKey: kCIOutputImageKey) as? CIImage else {
-            print("output image is nil in \(#function)")
-            return nil
-        }
-        
-        let context = CIContext(options: [kCIContextUseSoftwareRenderer: false])
-        
-        guard let scaledCGImage = context.createCGImage(outputImage, from: outputImage.extent) else {
-            print("scaled CGImage is nil in \(#function)")
-            return nil
-        }
-        
-        let scaledCIImage = CIImage(cgImage: scaledCGImage)
-        return scaledCIImage
-    }
+//    internal func stopRecordingGif() {
+//        isGifSnapped = false
+//        // Set torch
+//        if let videoDevice = videoDevice {
+//            if videoDevice.hasTorch && videoDevice.isTorchAvailable {
+//                do {
+//                    try videoDevice.lockForConfiguration()
+//                    videoDevice.torchMode = AVCaptureTorchMode.off
+//                    videoDevice.unlockForConfiguration()
+//                } catch {
+//                    
+//                }
+//            }
+//        }
+//        
+//        stop()
+//        
+//        guard let orientUIImages = fixOrientationAndApplyFilter(ciImages: unfilteredCIImages) else {
+//            print("orient uiimages is nil in \(#function)")
+//            return
+//        }
+//        
+//        //        guard let resizedUIImages = resizeUIImages(orientUIImages) else {
+//        //            print("resized UIImages is nil")
+//        //            return
+//        //        }
+//        
+//        let resizedUIImages = orientUIImages
+//        
+//        guard let gifImageView = UIImageView.generateGifImageView(with: resizedUIImages, frame: frame, duration: currentLiveGifPreset.gifPlayDuration) else {
+//            print("failed to produce gif image")
+//            return
+//        }
+//        
+//        if let cameraOutput = cameraOutput {
+//            if let outputImageView = cameraOutput.outputImageView {
+//                outputImageView.isHidden = false
+//                for subview in outputImageView.subviews {
+//                    subview.removeFromSuperview()
+//                }
+//            }
+//        }
+//        
+//        resultImageView = gifImageView
+//        cameraOutput?.outputImageView?.addSubview(gifImageView)
+//        gifImageView.startAnimating()
+//    }
     
-    func resizeUIImages(_ uiImages: [UIImage]) -> [UIImage]? {
-        var newImages = [UIImage]()
-        for image in uiImages {
-            if let newImage = resizeUIImage(image) {
-                newImages.append(newImage)
-            } else {
-                print("resizeWithCGImage(uiImage:) returned nil")
-            }
-        }
-        return newImages
-    }
-    
-    func resizeUIImage(_ uiImage: UIImage) -> UIImage? {
-        if let cgImage = uiImage.cgImage {
-            let width: Int = Int(frame.width) / 2
-            let height: Int = Int(frame.height) / 2
-            let bitsPerComponent = cgImage.bitsPerComponent
-            let bytesPerRow = cgImage.bytesPerRow
-            let colorSpace = cgImage.colorSpace
-            let bitmapInfo = cgImage.bitmapInfo
-            
-            let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace!, bitmapInfo: bitmapInfo.rawValue)
-            
-            context!.interpolationQuality = CGInterpolationQuality.low //.high
-            
-            context?.draw(cgImage, in: CGRect(origin: CGPoint.zero, size: CGSize(width: CGFloat(width), height: CGFloat(height))))
-            
-            let scaledImage = context!.makeImage().flatMap { UIImage(cgImage: $0) }
-            print("UIImage is resized: \(scaledImage?.size) in \(#function)")
-            return scaledImage
-        }
-        print("cgimage from uiimage is nil in \(#function)")
-        return nil
-    }
+//    func resizeCIImage(_ ciImage: CIImage) -> CIImage? {
+//        let scale = frame.width / ciImage.extent.width
+//        
+//        let filter = CIFilter(name: "CILanczosScaleTransform")!
+//        //let rectFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height)
+//        //let vectorFrame = CIVector(cgRect: frame)
+//        //filter.setValue(vectorFrame, forKey: kCIInputExtentKey) // CILanczosScaleTransform doesn't accept vector frame
+//        filter.setValue(ciImage, forKey: kCIInputImageKey)
+//        filter.setValue(scale, forKey: kCIInputScaleKey)
+//        filter.setValue(1.0, forKey: kCIInputAspectRatioKey)
+//        
+//        guard let outputImage = filter.value(forKey: kCIOutputImageKey) as? CIImage else {
+//            print("output image is nil in \(#function)")
+//            return nil
+//        }
+//        
+//        let context = CIContext(options: [kCIContextUseSoftwareRenderer: false])
+//        
+//        guard let scaledCGImage = context.createCGImage(outputImage, from: outputImage.extent) else {
+//            print("scaled CGImage is nil in \(#function)")
+//            return nil
+//        }
+//        
+//        let scaledCIImage = CIImage(cgImage: scaledCGImage)
+//        return scaledCIImage
+//    }
+//    
+//    func resizeUIImages(_ uiImages: [UIImage]) -> [UIImage]? {
+//        var newImages = [UIImage]()
+//        for image in uiImages {
+//            if let newImage = resizeUIImage(image) {
+//                newImages.append(newImage)
+//            } else {
+//                print("resizeWithCGImage(uiImage:) returned nil")
+//            }
+//        }
+//        return newImages
+//    }
+//    
+//    func resizeUIImage(_ uiImage: UIImage) -> UIImage? {
+//        if let cgImage = uiImage.cgImage {
+//            let width: Int = Int(frame.width) / 2
+//            let height: Int = Int(frame.height) / 2
+//            let bitsPerComponent = cgImage.bitsPerComponent
+//            let bytesPerRow = cgImage.bytesPerRow
+//            let colorSpace = cgImage.colorSpace
+//            let bitmapInfo = cgImage.bitmapInfo
+//            
+//            let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace!, bitmapInfo: bitmapInfo.rawValue)
+//            
+//            context!.interpolationQuality = CGInterpolationQuality.low //.high
+//            
+//            context?.draw(cgImage, in: CGRect(origin: CGPoint.zero, size: CGSize(width: CGFloat(width), height: CGFloat(height))))
+//            
+//            let scaledImage = context!.makeImage().flatMap { UIImage(cgImage: $0) }
+//            print("UIImage is resized: \(scaledImage?.size) in \(#function)")
+//            return scaledImage
+//        }
+//        print("cgimage from uiimage is nil in \(#function)")
+//        return nil
+//    }
 }
 
 extension SatoCamera: FilterImageEffectDelegate {
@@ -778,7 +836,7 @@ extension SatoCamera: FilterImageEffectDelegate {
                     return
                 }
                 
-                guard let gifImageView = UIImageView.generateGifImageView(with: filteredUIImages, frame: frame, duration: currentliveGifPreset.gifPlayDuration) else {
+                guard let gifImageView = UIImageView.generateGifImageView(with: filteredUIImages, frame: frame, duration: currentLiveGifPreset.gifPlayDuration) else {
                     print("failed to produce gif image")
                     return
                 }
@@ -828,51 +886,133 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
     /** Called about every millisecond. Apply filter here and output video frame to preview view.
      If recording is on, store video frame both filtered and unfiltered priodically.
      */
+//    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
+//        didOutputSampleBufferCountPerSecond += 1
+//        //print("\t \(didOutputSampleBufferCountPerSecond)th call of didOutputSampleBuffer()")
+//        
+//        guard let imageBuffer: CVImageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+//            print("image buffer is nil")
+//            return
+//        }
+//        
+//        let sourceImage: CIImage = CIImage(cvPixelBuffer: imageBuffer)
+//        let sourceExtent: CGRect = sourceImage.extent
+//        
+//        guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
+//            print("filtered image is nil")
+//            return
+//        }
+//        
+//        didOutputSampleBufferMethodCallCount += 1
+//        if didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
+//            
+//            if !isGifSnapped {
+//                // gif before snapping
+//                //                if let resizedCIImage = resizeCIImage(sourceImage) {
+//                //                    store(image: resizedCIImage, to: &unfilteredCIImages)
+//                //                    if unfilteredCIImages.count == 6 {
+//                //                        unfilteredCIImages.remove(at: 0)
+//                //                    }
+//                //                } else {
+//                //                    print("resized ciimage is nil in \(#function)")
+//                //                }
+//                
+//                store(image: sourceImage, to: &unfilteredCIImages)
+//                if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif / 2  {
+//                    unfilteredCIImages.remove(at: 0)
+//                }
+//            } else {
+//                //                // gif snapped
+//                //                if let resizedCIImage = resizeCIImage(sourceImage) {
+//                //                    store(image: resizedCIImage, to: &unfilteredCIImages)
+//                //                    if unfilteredCIImages.count == 10 {
+//                //                        stopRecordingGif()
+//                //                    }
+//                //                }
+//                store(image: sourceImage, to: &unfilteredCIImages)
+//                if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif {
+//                    stopRecordingGif()
+//                }
+//            }
+//        }
+//        
+//        let sourceAspect = sourceExtent.width / sourceExtent.height
+//        
+//        guard let videoPreviewViewBounds = videoPreviewViewBounds else {
+//            print("videoPreviewViewBounds is nil")
+//            return
+//        }
+//        
+//        // we want to maintain the aspect radio of the screen size, so we clip the video image
+//        let previewAspect = videoPreviewViewBounds.width / videoPreviewViewBounds.height
+//        
+//        var drawRect: CGRect = sourceExtent
+//        
+//        if sourceAspect > previewAspect {
+//            drawRect.origin.x += (drawRect.size.width - drawRect.size.height * previewAspect) / 2.0
+//            drawRect.size.width = drawRect.size.height * previewAspect
+//        } else {
+//            drawRect.origin.y += (drawRect.size.height - drawRect.size.width / previewAspect) / 2.0
+//            drawRect.size.height = drawRect.size.width / previewAspect
+//        }
+//        
+//        videoPreview?.bindDrawable()
+//        
+//        // Prepare CIContext with EAGLContext
+//        if eaglContext != EAGLContext.current() {
+//            EAGLContext.setCurrent(eaglContext)
+//        }
+//        
+//        // OpenGL official documentation: https://www.khronos.org/registry/OpenGL-Refpages/es2.0/
+//        // clear eagl view to grey
+//        glClearColor(0.5, 0.5, 0.5, 1.0) // specify clear values for the color buffers
+//        glClear(GLbitfield(GL_COLOR_BUFFER_BIT)) // clear buffers to preset values
+//        // set the blend mode to "source over" so that CI will use that
+//        glEnable(GLenum(GL_BLEND)) // glEnable — enable or disable server-side GL capabilities
+//        glBlendFunc(GLenum(GL_ONE), GLenum(GL_ONE_MINUS_SRC_ALPHA)) // specify pixel arithmetic
+//        
+//        ciContext?.draw(filteredImage, in: videoPreviewViewBounds, from: drawRect)
+//        
+//        // This causes runtime error with no log sometimes. That's because setNeedsDisplay is being called on a background thread, according to http://stackoverflow.com/questions/31775356/modifying-uiview-above-glkview-causing-crashes
+//        /*
+//         -display should be called when the view has been set to ignore calls to setNeedsDisplay. This method is used by
+//         the GLKViewController to invoke the draw method. It can also be used when not using a GLKViewController and custom
+//         control of the display loop is needed.
+//         */
+//        // http://stackoverflow.com/questions/26082262/exc-bad-access-with-glteximage2d-in-glkviewcontroller
+//        // http://qiita.com/shu223/items/2ef1e8901e96c65fd155
+//        
+//        videoPreview?.display()
+//    }
+    
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         didOutputSampleBufferCountPerSecond += 1
-        //print("\t \(didOutputSampleBufferCountPerSecond)th call of didOutputSampleBuffer()")
         
-        guard let imageBuffer: CVImageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+        guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             print("image buffer is nil")
             return
         }
         
-        let sourceImage: CIImage = CIImage(cvPixelBuffer: imageBuffer)
-        let sourceExtent: CGRect = sourceImage.extent
-        
-        guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
-            print("filtered image is nil")
+        guard let copyPixelBuffer = pixelBuffer.deepcopy() else {
+            print("copy pixel buffer is nil")
             return
         }
         
+        let sourceImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
+        
+        let sourceExtent: CGRect = sourceImage.extent
+        
         didOutputSampleBufferMethodCallCount += 1
-        if didOutputSampleBufferMethodCallCount % currentliveGifPreset.frameCaptureFrequency == 0 {
-            
+        if didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
             if !isGifSnapped {
-                // gif before snapping
-                //                if let resizedCIImage = resizeCIImage(sourceImage) {
-                //                    store(image: resizedCIImage, to: &unfilteredCIImages)
-                //                    if unfilteredCIImages.count == 6 {
-                //                        unfilteredCIImages.remove(at: 0)
-                //                    }
-                //                } else {
-                //                    print("resized ciimage is nil in \(#function)")
-                //                }
-                
                 store(image: sourceImage, to: &unfilteredCIImages)
-                if unfilteredCIImages.count == currentliveGifPreset.numOfFramesForGif / 2  {
+                
+                if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif / 2 {
                     unfilteredCIImages.remove(at: 0)
                 }
             } else {
-                //                // gif snapped
-                //                if let resizedCIImage = resizeCIImage(sourceImage) {
-                //                    store(image: resizedCIImage, to: &unfilteredCIImages)
-                //                    if unfilteredCIImages.count == 10 {
-                //                        stopRecordingGif()
-                //                    }
-                //                }
                 store(image: sourceImage, to: &unfilteredCIImages)
-                if unfilteredCIImages.count == currentliveGifPreset.numOfFramesForGif {
+                if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif {
                     stopRecordingGif()
                 }
             }
@@ -913,7 +1053,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
         glEnable(GLenum(GL_BLEND)) // glEnable — enable or disable server-side GL capabilities
         glBlendFunc(GLenum(GL_ONE), GLenum(GL_ONE_MINUS_SRC_ALPHA)) // specify pixel arithmetic
         
-        ciContext?.draw(filteredImage, in: videoPreviewViewBounds, from: drawRect)
+        ciContext?.draw(sourceImage, in: videoPreviewViewBounds, from: drawRect)
         
         // This causes runtime error with no log sometimes. That's because setNeedsDisplay is being called on a background thread, according to http://stackoverflow.com/questions/31775356/modifying-uiview-above-glkview-causing-crashes
         /*
@@ -924,8 +1064,15 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
         // http://stackoverflow.com/questions/26082262/exc-bad-access-with-glteximage2d-in-glkviewcontroller
         // http://qiita.com/shu223/items/2ef1e8901e96c65fd155
         
+        
+        //print("end of \(#function)")
         videoPreview?.display()
     }
+    
+    func captureOutput(_ captureOutput: AVCaptureOutput!, didDrop sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
+        print("sample buffer is dropped")
+    }
+
     
     /** Captures an image. Fires didFinishProcessingPhotoSampleBuffer to get image. */
     internal func capturePhoto() {
@@ -1060,75 +1207,25 @@ extension CIImage {
     }
 }
 
-extension UIImageView {
-    // TODO: add method that plays gif in UIImageView https://github.com/bahlo/SwiftGif
-    
-    /** Generate animated image view with UIImages for gif. Call startAnimating() to play. */
-    class func generateGifImageView(with images: [UIImage]?, frame: CGRect, duration: TimeInterval) -> UIImageView? {
-        guard let images = images else {
-            print("images are nil")
-            return nil
+// https://gist.github.com/valkjsaaa/f9edfc25b4fd592caf82834fafc07759
+extension CVPixelBuffer {
+    func deepcopy() -> CVPixelBuffer? {
+        let width = CVPixelBufferGetWidth(self)
+        let height = CVPixelBufferGetHeight(self)
+        let format = CVPixelBufferGetPixelFormatType(self)
+        var pixelBufferCopyOptional:CVPixelBuffer?
+        CVPixelBufferCreate(nil, width, height, format, nil, &pixelBufferCopyOptional)
+        if let pixelBufferCopy = pixelBufferCopyOptional {
+            CVPixelBufferLockBaseAddress(self, CVPixelBufferLockFlags.readOnly)
+            CVPixelBufferLockBaseAddress(pixelBufferCopy, CVPixelBufferLockFlags.readOnly)
+            let baseAddress = CVPixelBufferGetBaseAddress(self)
+            let dataSize = CVPixelBufferGetDataSize(self)
+            print("dataSize: \(dataSize)")
+            let target = CVPixelBufferGetBaseAddress(pixelBufferCopy)
+            memcpy(target, baseAddress, dataSize)
+            CVPixelBufferUnlockBaseAddress(pixelBufferCopy, CVPixelBufferLockFlags.readOnly)
+            CVPixelBufferUnlockBaseAddress(self, CVPixelBufferLockFlags.readOnly)
         }
-        
-        let gifImageView = UIImageView()
-        gifImageView.animationImages = images
-        gifImageView.animationDuration = duration
-        // repeat count 0 means infinite repeating
-        gifImageView.animationRepeatCount = 0
-        // images passed from didOutputSampleBuffer is landscape by default. so it has to be rotated by 90 degrees.
-        //gifImageView.transform = CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
-        gifImageView.frame = frame
-        return gifImageView
-    }
-    
-    /** Creates gif data from [UIImage] and generate URL. */
-    func saveGifToDisk(loopCount: Int = 0, frameDelay: Double = 0, completion: (_ data: URL?, _ error: Error?) -> ()) {
-        guard let animationImages = animationImages else {
-            print("animation images is nil")
-            return
-        }
-        if animationImages.isEmpty {
-            print("animationImages is empty")
-            return
-        }
-        
-        //let rotatedImages = UIImage.rotateImages(images: animationImages)
-        //let rotatedImages = animationImages
-        let fileProperties = [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFLoopCount as String: loopCount]]
-        let frameProperties = [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFDelayTime as String: frameDelay]]
-        let documentsDirectory = NSTemporaryDirectory()
-        let url = URL(fileURLWithPath: documentsDirectory).appendingPathComponent(getRandomGifFileName())
-        
-        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeGIF, animationImages.count, nil) else {
-            print("destination is nil")
-            return
-        }
-        
-        CGImageDestinationSetProperties(destination, fileProperties as CFDictionary?)
-        
-        for i in 0..<animationImages.count {
-            CGImageDestinationAddImage(destination, animationImages[i].cgImage!, frameProperties as CFDictionary?)
-        }
-        
-        if CGImageDestinationFinalize(destination) {
-            completion(url, nil)
-        } else {
-            completion(nil, NSError())
-        }
-    }
-    
-    /** Creates gif name from time interval since 1970. */
-    private func getRandomGifFileName() -> String {
-        let gifName = String(Date().timeIntervalSince1970) + ".gif"
-        return gifName
-    }
-    
-    /** Take CIImage and generate UIImageView. CIImage generated in didFinishProcessing is landscape so it needs to be rotated. */
-    class func generateAdjustedImageView(from sourceImage: CIImage, with frame: CGRect) -> UIImageView {
-        let image = UIImage(ciImage: sourceImage)
-        let imageView = UIImageView(image: image)
-        imageView.transform = CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
-        imageView.frame = frame
-        return imageView
+        return pixelBufferCopyOptional
     }
 }
