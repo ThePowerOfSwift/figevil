@@ -186,7 +186,7 @@ class SatoCamera: NSObject {
     func printPerSecond() {
         time += 1
         didOutputSampleBufferCountPerSecond = 0
-        print("\(time) second passed -------------------------------------------------------------------------------------")
+        //print("\(time) second passed -------------------------------------------------------------------------------------")
     }
     
     /** Start running capture session. */
@@ -381,6 +381,38 @@ class SatoCamera: NSObject {
         case AVCaptureFlashMode.on:
             returnText = "On"
         case AVCaptureFlashMode.auto:
+            returnText = "Auto"
+        }
+        
+        return returnText
+    }
+    
+    internal func toggleTorch() -> String {
+        let torchMode = torchOptions[torchOptionIndex.increment()]
+        
+        guard let videoDevice = videoDevice else {
+            print("video device or photo settings is nil")
+            return "Error happened in \(#function): video device or photo settings is nil"
+        }
+        
+        if videoDevice.hasTorch && videoDevice.isTorchAvailable {
+            do {
+                try videoDevice.lockForConfiguration()
+                videoDevice.torchMode = torchMode
+                torchState = torchMode
+                videoDevice.unlockForConfiguration()
+            } catch {
+                
+            }
+        }
+        
+        var returnText = ""
+        switch torchState {
+        case AVCaptureTorchMode.off:
+            returnText = "Off"
+        case AVCaptureTorchMode.on:
+            returnText = "On"
+        case AVCaptureTorchMode.auto:
             returnText = "Auto"
         }
         
@@ -798,7 +830,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
      */
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         didOutputSampleBufferCountPerSecond += 1
-        print("\t \(didOutputSampleBufferCountPerSecond)th call of didOutputSampleBuffer()")
+        //print("\t \(didOutputSampleBufferCountPerSecond)th call of didOutputSampleBuffer()")
         
         guard let imageBuffer: CVImageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             print("image buffer is nil")

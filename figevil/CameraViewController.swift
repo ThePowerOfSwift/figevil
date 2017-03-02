@@ -46,7 +46,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     @IBOutlet weak var flashButton: UIButton!
     @IBAction func tappedFlash(_ sender: Any) {
-        toggleFlash()
+        toggleTorch()
     }
 
     /** Model */
@@ -254,9 +254,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         satoCamera.toggleCamera()
     }
     
-    func toggleFlash() {
-        let state = satoCamera.toggleFlash()
+    func toggleTorch() {
+        let state = satoCamera.toggleTorch()
         flashButton.setTitle(state, for: .normal)
+        print(state)
     }
     
     // MARK: Selection
