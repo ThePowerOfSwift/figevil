@@ -62,9 +62,6 @@ class SatoCamera: NSObject {
     fileprivate var didOutputSampleBufferMethodCallCount: Int = 0
     /** video frame will be captured once in the frequency how many times didOutputSample buffer is called. */
     
-    /** Indicates if SatoCamera is recording gif.*/
-    fileprivate var isRecording: Bool = false
-    
     /** Frame of preview view in a client. Should be set when being initialized. */
     fileprivate var frame: CGRect
     
@@ -117,7 +114,7 @@ class SatoCamera: NSObject {
     /** Holds the current filter. */
     var currentFilter: Filter = Filter.list()[0]
     
-    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(frameCaptureFrequency: 3, gifPlayDuration: 1, sampleBufferFPS: 30, numOfFramesForGif: 30, gifFPS: 30/3/3)
+    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(frameCaptureFrequency: 3, gifPlayDuration: 2, sampleBufferFPS: 30, numOfFramesForGif: 30, gifFPS: 30/3/3)
     
     init(frame: CGRect) {
         self.frame = frame
@@ -223,6 +220,16 @@ class SatoCamera: NSObject {
             return
         }
         
+        if videoDevice.hasTorch && videoDevice.isTorchAvailable {
+            do {
+                try videoDevice.lockForConfiguration()
+                videoDevice.torchMode = torchState
+                videoDevice.unlockForConfiguration()
+            } catch {
+                
+            }
+        }
+        
         setupFrameRate(videoDevice: videoDevice)
         
         // Add output object to session
@@ -232,7 +239,7 @@ class SatoCamera: NSObject {
         // Assemble all the settings together
         captureSession.commitConfiguration()
         captureSession.startRunning()
-        startRecordingGif()
+        //startRecordingGif()
     }
     
     /** Setup frame rate for video device. captureSession.addInput must be called before this method is called. */
@@ -398,7 +405,7 @@ class SatoCamera: NSObject {
     /** Resumes camera. */
     internal func start() {
         captureSession?.startRunning()
-        startRecordingGif()
+        //startRecordingGif()
     }
     
     internal func stop() {
@@ -481,42 +488,41 @@ class SatoCamera: NSObject {
         images.append(image)
     }
     
-    internal func startRecordingGif() {
-        
-        // set torch
-        if let videoDevice = videoDevice {
-            if videoDevice.hasTorch && videoDevice.isTorchAvailable {
-                do {
-                    try videoDevice.lockForConfiguration()
-                    videoDevice.torchMode = torchState
-                    videoDevice.unlockForConfiguration()
-                } catch {
-                    
-                }
-            }
-        }
-    }
+//    internal func startRecordingGif() {
+//        
+//        // set torch
+//        if let videoDevice = videoDevice {
+//            if videoDevice.hasTorch && videoDevice.isTorchAvailable {
+//                do {
+//                    try videoDevice.lockForConfiguration()
+//                    videoDevice.torchMode = torchState
+//                    videoDevice.unlockForConfiguration()
+//                } catch {
+//                    
+//                }
+//            }
+//        }
+//    }
+    /** Indicates if SatoCamera is recording gif.*/
+    fileprivate var isRecording: Bool = false
     
-    var isGifSnapped: Bool = false
-    internal func snapGif() {
-        isGifSnapped = true
+    internal func startRecordingGif() {
+        isRecording = true
     }
     
     internal func stopRecordingGif() {
+        stop()
+        isRecording = false
+        showGif()
+    }
+    
+    var isGifSnapped: Bool = false
+    internal func snapLiveGif() {
+        isGifSnapped = true
+    }
+    
+    internal func stopLiveGif() {
         isGifSnapped = false
-        // Set torch
-        if let videoDevice = videoDevice {
-            if videoDevice.hasTorch && videoDevice.isTorchAvailable {
-                do {
-                    try videoDevice.lockForConfiguration()
-                    videoDevice.torchMode = AVCaptureTorchMode.off
-                    videoDevice.unlockForConfiguration()
-                } catch {
-                    
-                }
-            }
-        }
-        
         stop()
         showGif()
     }
@@ -525,6 +531,7 @@ class SatoCamera: NSObject {
         let gif = Gif(originalCIImages: unfilteredCIImages,
                       currentGifFPS: currentLiveGifPreset.gifFPS,
                       newGifFPS: currentLiveGifPreset.gifFPS,
+                      gifPlayDuration: currentLiveGifPreset.gifPlayDuration,
                       scale: 0,
                       frame: frame,
                       filter: currentFilter)
@@ -601,17 +608,22 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         let sourceExtent: CGRect = sourceImage.extent
         
         didOutputSampleBufferMethodCallCount += 1
+        
         if didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
-            if !isGifSnapped {
+            if isRecording {
                 store(image: sourceImage, to: &unfilteredCIImages)
-                
-                if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif / 2 {
-                    unfilteredCIImages.remove(at: 0)
-                }
             } else {
-                store(image: sourceImage, to: &unfilteredCIImages)
-                if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif {
-                    stopRecordingGif()
+                if !isGifSnapped {
+                    store(image: sourceImage, to: &unfilteredCIImages)
+                    
+                    if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif / 2 {
+                        unfilteredCIImages.remove(at: 0)
+                    }
+                } else {
+                    store(image: sourceImage, to: &unfilteredCIImages)
+                    if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif {
+                        stopLiveGif()
+                    }
                 }
             }
         }

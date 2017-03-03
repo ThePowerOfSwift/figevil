@@ -29,7 +29,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     /** Snap live gif. */
     func snapLiveGif(_ sender: UIControlEvents) {
-        satoCamera.snapGif()
+        satoCamera.snapLiveGif()
     }
     
     func record(_ sender: UILongPressGestureRecognizer) {

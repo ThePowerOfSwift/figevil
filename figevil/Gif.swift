@@ -25,15 +25,16 @@ class Gif: NSObject {
     var gifImageView: UIImageView?
     var completion: ((Bool) -> ())?
     var filter: Filter?
+    var gifPlayDuration: TimeInterval
     
-    init(originalCIImages: [CIImage], currentGifFPS: Int, newGifFPS: Int, scale: Double, frame: CGRect, filter: Filter?) {
+    init(originalCIImages: [CIImage], currentGifFPS: Int, newGifFPS: Int,gifPlayDuration: TimeInterval = 1 , scale: Double, frame: CGRect, filter: Filter?) {
         self.originalCIImages = originalCIImages
         self.currentGifFPS = currentGifFPS
         self.newGifFPS = newGifFPS
+        self.gifPlayDuration = gifPlayDuration
         self.scale = scale
         self.frame = frame
         self.filter = filter
-        //self.completion = completion
         super.init()
         process()
     }
@@ -52,7 +53,7 @@ class Gif: NSObject {
             // createImagesIwthNewScale
             let scaledImages = createImagesWithNewScale(uiImages: rotatedUIImages, scale: scale)
             // generate gif
-            gifImageView = UIImageView.generateGifImageView(with: scaledImages, frame: frame, duration: 1)
+            gifImageView = UIImageView.generateGifImageView(with: scaledImages, frame: frame, duration: gifPlayDuration)
         } else {
         
             // fixOrientation
@@ -63,7 +64,7 @@ class Gif: NSObject {
             // createImagesIwthNewScale
             let scaledImages = createImagesWithNewScale(uiImages: rotatedUIImages, scale: scale)
             // generate gif
-            gifImageView = UIImageView.generateGifImageView(with: scaledImages, frame: frame, duration: 1)
+            gifImageView = UIImageView.generateGifImageView(with: scaledImages, frame: frame, duration: gifPlayDuration)
         }
     }
     
@@ -258,7 +259,7 @@ class Gif: NSObject {
             UIGraphicsEndImageContext()
         }
         // TODO: Replace 1 with gifPlayDuration
-        guard let renderedGifImageView = UIImageView.generateGifImageView(with: renderedAnimationImages, frame: frame, duration: 1) else {
+        guard let renderedGifImageView = UIImageView.generateGifImageView(with: renderedAnimationImages, frame: frame, duration: gifPlayDuration) else {
             print("rendered gif image view is nil in \(#function)")
             return nil
         }
