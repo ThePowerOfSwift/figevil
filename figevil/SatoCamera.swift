@@ -32,25 +32,14 @@ struct LiveGifPreset {
 }
 
 protocol SatoCameraOutput {
-    // set outputImageView with filtered image in
-    // didFinishProcessingPhotoSampleBuffer when snapping
-    // didSetFilter when post changing
     /** Show the filtered output image view. */
-    var outputImageView: UIImageView? { get set}
-    // set is needed because rotating UIView needs UIImageView. UIImage rotating won't work
+    var outputImageView: UIImageView? { get set }
     
     /** Show the live preview. GLKView is added to this view. */
     var sampleBufferView: UIView? { get }
 }
 
-/** Client of this class has to do
- 1. Initialize with frame the client will use for preview
- 2. Set delegate to self
- 3. Implement delegate methods
- 4. Call start() to start running camera
- 5. Call capturePhoto() to take a photo. Receive the result image view in receive(filteredImageView:unfilteredImageView:)
- 6. Call startRecordingGif() and endRecordingGif(completion:) to record gif
- */
+/** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
     
     /** view where CIImage created from sample buffer in didOutputSampleBuffer() is shown. Updated real time. */
@@ -64,13 +53,10 @@ class SatoCamera: NSObject {
     fileprivate var captureSession: AVCaptureSession?
     fileprivate var photoOutput: AVCapturePhotoOutput?
     
-    fileprivate static let resizingImageScale: CGFloat = 0.3
-    
     /** array of unfiltered CIImage from didOutputSampleBuffer.
      Filter should be applied when stop recording gif but not real time
      because that slows down preview. */
     fileprivate var unfilteredCIImages: [CIImage] = [CIImage]()
-    fileprivate var unfilteredCIImage: CIImage?
     
     /** count variable to count how many times the method gets called */
     fileprivate var didOutputSampleBufferMethodCallCount: Int = 0
@@ -131,19 +117,11 @@ class SatoCamera: NSObject {
     /** Holds the current filter. */
     var currentFilter: Filter = Filter.list()[0]
     
-//    var currentliveGifPreset: LiveGifPreset = LiveGifPreset(frameCaptureFrequency: 2, gifPlayDuration: 1, sampleBufferFrameRate: 30, numOfFramesForGif: 10)
     var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(frameCaptureFrequency: 3, gifPlayDuration: 1, sampleBufferFPS: 30, numOfFramesForGif: 30, gifFPS: 30/3/3)
     
-    convenience init(frame: CGRect) {
-        self.init(frame: frame, cameraOutput: nil)
-    }
-    
-    init(frame: CGRect, cameraOutput: SatoCameraOutput?) {
+    init(frame: CGRect) {
         self.frame = frame
         //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
-        // didSet in cameraOutput is not called here before super.init() is called
-        self.cameraOutput = cameraOutput
-        
         super.init()
         
         // EAGLContext object manages an OpenGL ES rendering context
@@ -152,7 +130,6 @@ class SatoCamera: NSObject {
             print("eaglContext is nil")
             return
         }
-        
         // Configure GLK preview view.
         // GLKView is A default implementation for views that draw their content using OpenGL ES.
         videoPreview = GLKView(frame: frame, context: eaglContext)
@@ -176,13 +153,10 @@ class SatoCamera: NSObject {
         
         ciContext = CIContext(eaglContext: eaglContext)
         
-        cameraOutput?.sampleBufferView?.addSubview(videoPreview)
-        
-        
-        
         _ = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(printPerSecond), userInfo: nil, repeats: true)
         initialStart()
     }
+    
     var time = 0
     var didOutputSampleBufferCountPerSecond = 0
     func printPerSecond() {
@@ -435,7 +409,6 @@ class SatoCamera: NSObject {
     /** Set to the initial state. */
     internal func reset() {
         unfilteredCIImages.removeAll()
-        unfilteredCIImage = nil
         cameraOutput?.sampleBufferView?.isHidden = false
         didOutputSampleBufferMethodCallCount = 0
         
@@ -450,7 +423,6 @@ class SatoCamera: NSObject {
         start()
     }
     
-    
     /** Saves output image to camera roll. */
     internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((Bool) -> ())?) {
         
@@ -461,23 +433,7 @@ class SatoCamera: NSObject {
         
         gif.save(drawImage: drawImage, textImage: textImage, completion: completion)
     }
-//
-//    /** Renders drawings and texts into image. Needs to be saved to disk by save(). */
-//    internal func renderStillImage(drawImage: UIImage?, textImage: UIImage?) -> UIImage? {
-//        let resultImage: UIImage?
-//        UIGraphicsBeginImageContext(frame.size)
-//        resultImageView?.image?.draw(in: frame)
-//        drawImage?.draw(in: frame)
-//        textImage?.draw(in: frame)
-//        if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {
-//            resultImage = renderedImage
-//        } else {
-//            resultImage = nil
-//        }
-//        UIGraphicsEndImageContext()
-//        return resultImage
-//    }
-    
+
     /** Toggles back camera or front camera. */
     internal func toggleCamera() {
         let cameraDevice = getCameraDevice()

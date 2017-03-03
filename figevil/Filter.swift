@@ -38,7 +38,6 @@ class Filter: NSObject {
                     print("filetered CIImage is nil in \(#function)")
                 }
             } else {
-                print("filter is nil in \(#function)")
                 filteredCIImages.append(sourceImage)
             }
         }
