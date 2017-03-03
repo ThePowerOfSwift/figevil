@@ -24,13 +24,15 @@ class Gif: NSObject {
     var filesizeString: String = "KB"
     var gifImageView: UIImageView?
     var completion: ((Bool) -> ())?
+    var filter: Filter?
     
-    init(originalCIImages: [CIImage], currentGifFPS: Int, newGifFPS: Int, scale: Double, frame: CGRect) {
+    init(originalCIImages: [CIImage], currentGifFPS: Int, newGifFPS: Int, scale: Double, frame: CGRect, filter: Filter?) {
         self.originalCIImages = originalCIImages
         self.currentGifFPS = currentGifFPS
         self.newGifFPS = newGifFPS
         self.scale = scale
         self.frame = frame
+        self.filter = filter
         //self.completion = completion
         super.init()
         process()
@@ -40,17 +42,29 @@ class Gif: NSObject {
     func process() {
         // getImagesWithNewFPS
         let imagesWithNewFPS = getImagesWithNewFPS(ciImages: originalCIImages)
-        // fixOrientation
-        guard let rotatedUIImages = fixOrientation(ciImages: imagesWithNewFPS) else {
-            print("rotated images is nil in \(#function)")
-            return
+        
+        if let filteredCIImages = filter?.generateFilteredCIImages(sourceImages: imagesWithNewFPS) {
+            // fixOrientation
+            guard let rotatedUIImages = fixOrientation(ciImages: filteredCIImages) else {
+                print("rotated images is nil in \(#function)")
+                return
+            }
+            // createImagesIwthNewScale
+            let scaledImages = createImagesWithNewScale(uiImages: rotatedUIImages, scale: scale)
+            // generate gif
+            gifImageView = UIImageView.generateGifImageView(with: scaledImages, frame: frame, duration: 1)
+        } else {
+        
+            // fixOrientation
+            guard let rotatedUIImages = fixOrientation(ciImages: imagesWithNewFPS) else {
+                print("rotated images is nil in \(#function)")
+                return
+            }
+            // createImagesIwthNewScale
+            let scaledImages = createImagesWithNewScale(uiImages: rotatedUIImages, scale: scale)
+            // generate gif
+            gifImageView = UIImageView.generateGifImageView(with: scaledImages, frame: frame, duration: 1)
         }
-        // createImagesIwthNewScale
-        let scaledImages = createImagesWithNewScale(uiImages: rotatedUIImages, scale: scale)
-        // generate gif
-        gifImageView = UIImageView.generateGifImageView(with: scaledImages, frame: frame, duration: 1)
-        // save to disk
-        //save(drawImage: nil, textImage: nil, completion: nil)
     }
     
     func getImagesWithNewFPS(ciImages: [CIImage]) -> [CIImage] {

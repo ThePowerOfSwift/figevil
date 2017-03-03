@@ -70,9 +70,6 @@ class SatoCamera: NSObject {
      Filter should be applied when stop recording gif but not real time
      because that slows down preview. */
     fileprivate var unfilteredCIImages: [CIImage] = [CIImage]()
-    /** Check if gif is generated. */
-    fileprivate var isGif: Bool = false
-    
     fileprivate var unfilteredCIImage: CIImage?
     
     /** count variable to count how many times the method gets called */
@@ -440,7 +437,6 @@ class SatoCamera: NSObject {
         unfilteredCIImages.removeAll()
         unfilteredCIImage = nil
         cameraOutput?.sampleBufferView?.isHidden = false
-        isGif = false
         didOutputSampleBufferMethodCallCount = 0
         
         if let cameraOutput = cameraOutput {
@@ -543,8 +539,6 @@ class SatoCamera: NSObject {
                 }
             }
         }
-        //isRecording = true
-        isGif = true
     }
     
     var isGifSnapped: Bool = false
@@ -568,15 +562,17 @@ class SatoCamera: NSObject {
         }
         
         stop()
+        showGif()
+    }
+    
+    func showGif() {
+        let gif = Gif(originalCIImages: unfilteredCIImages,
+                      currentGifFPS: currentLiveGifPreset.gifFPS,
+                      newGifFPS: currentLiveGifPreset.gifFPS,
+                      scale: 0,
+                      frame: frame,
+                      filter: currentFilter)
         
-        //let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: <#T##CIImage#>)
-        
-        guard let filteredCIImages = currentFilter.generateFilteredCIImages(sourceImages: unfilteredCIImages) else {
-            print("filtered CIImages are nil in \(#function)")
-            return
-        }
-        
-        let gif = Gif(originalCIImages: filteredCIImages, currentGifFPS: currentLiveGifPreset.gifFPS, newGifFPS: currentLiveGifPreset.gifFPS, scale: 0, frame: frame)
         guard let gifImageView = gif.gifImageView else {
             print("gif image view is nil")
             return
@@ -595,117 +591,6 @@ class SatoCamera: NSObject {
         cameraOutput?.outputImageView?.addSubview(gifImageView)
         gifImageView.startAnimating()
     }
-
-    
-//    internal func stopRecordingGif() {
-//        isGifSnapped = false
-//        // Set torch
-//        if let videoDevice = videoDevice {
-//            if videoDevice.hasTorch && videoDevice.isTorchAvailable {
-//                do {
-//                    try videoDevice.lockForConfiguration()
-//                    videoDevice.torchMode = AVCaptureTorchMode.off
-//                    videoDevice.unlockForConfiguration()
-//                } catch {
-//                    
-//                }
-//            }
-//        }
-//        
-//        stop()
-//        
-//        guard let orientUIImages = fixOrientationAndApplyFilter(ciImages: unfilteredCIImages) else {
-//            print("orient uiimages is nil in \(#function)")
-//            return
-//        }
-//        
-//        //        guard let resizedUIImages = resizeUIImages(orientUIImages) else {
-//        //            print("resized UIImages is nil")
-//        //            return
-//        //        }
-//        
-//        let resizedUIImages = orientUIImages
-//        
-//        guard let gifImageView = UIImageView.generateGifImageView(with: resizedUIImages, frame: frame, duration: currentLiveGifPreset.gifPlayDuration) else {
-//            print("failed to produce gif image")
-//            return
-//        }
-//        
-//        if let cameraOutput = cameraOutput {
-//            if let outputImageView = cameraOutput.outputImageView {
-//                outputImageView.isHidden = false
-//                for subview in outputImageView.subviews {
-//                    subview.removeFromSuperview()
-//                }
-//            }
-//        }
-//        
-//        resultImageView = gifImageView
-//        cameraOutput?.outputImageView?.addSubview(gifImageView)
-//        gifImageView.startAnimating()
-//    }
-    
-//    func resizeCIImage(_ ciImage: CIImage) -> CIImage? {
-//        let scale = frame.width / ciImage.extent.width
-//        
-//        let filter = CIFilter(name: "CILanczosScaleTransform")!
-//        //let rectFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height)
-//        //let vectorFrame = CIVector(cgRect: frame)
-//        //filter.setValue(vectorFrame, forKey: kCIInputExtentKey) // CILanczosScaleTransform doesn't accept vector frame
-//        filter.setValue(ciImage, forKey: kCIInputImageKey)
-//        filter.setValue(scale, forKey: kCIInputScaleKey)
-//        filter.setValue(1.0, forKey: kCIInputAspectRatioKey)
-//        
-//        guard let outputImage = filter.value(forKey: kCIOutputImageKey) as? CIImage else {
-//            print("output image is nil in \(#function)")
-//            return nil
-//        }
-//        
-//        let context = CIContext(options: [kCIContextUseSoftwareRenderer: false])
-//        
-//        guard let scaledCGImage = context.createCGImage(outputImage, from: outputImage.extent) else {
-//            print("scaled CGImage is nil in \(#function)")
-//            return nil
-//        }
-//        
-//        let scaledCIImage = CIImage(cgImage: scaledCGImage)
-//        return scaledCIImage
-//    }
-//    
-//    func resizeUIImages(_ uiImages: [UIImage]) -> [UIImage]? {
-//        var newImages = [UIImage]()
-//        for image in uiImages {
-//            if let newImage = resizeUIImage(image) {
-//                newImages.append(newImage)
-//            } else {
-//                print("resizeWithCGImage(uiImage:) returned nil")
-//            }
-//        }
-//        return newImages
-//    }
-//    
-//    func resizeUIImage(_ uiImage: UIImage) -> UIImage? {
-//        if let cgImage = uiImage.cgImage {
-//            let width: Int = Int(frame.width) / 2
-//            let height: Int = Int(frame.height) / 2
-//            let bitsPerComponent = cgImage.bitsPerComponent
-//            let bytesPerRow = cgImage.bytesPerRow
-//            let colorSpace = cgImage.colorSpace
-//            let bitmapInfo = cgImage.bitmapInfo
-//            
-//            let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace!, bitmapInfo: bitmapInfo.rawValue)
-//            
-//            context!.interpolationQuality = CGInterpolationQuality.low //.high
-//            
-//            context?.draw(cgImage, in: CGRect(origin: CGPoint.zero, size: CGSize(width: CGFloat(width), height: CGFloat(height))))
-//            
-//            let scaledImage = context!.makeImage().flatMap { UIImage(cgImage: $0) }
-//            print("UIImage is resized: \(scaledImage?.size) in \(#function)")
-//            return scaledImage
-//        }
-//        print("cgimage from uiimage is nil in \(#function)")
-//        return nil
-//    }
 }
 
 extension SatoCamera: FilterImageEffectDelegate {
@@ -718,9 +603,6 @@ extension SatoCamera: FilterImageEffectDelegate {
         }
         
         // if camera is running, just change the filter name
-        //self.filterName = filterName
-        //self.filterIndex = indexPath.item
-        
         guard let filter = filter else {
             print("filter is nil in \(#function)")
             return
@@ -730,162 +612,15 @@ extension SatoCamera: FilterImageEffectDelegate {
         
         // if camera is not running
         if !captureSession.isRunning {
-            
-            if isGif {
-                
-                guard let filteredUIImages = fixOrientationAndApplyFilter(ciImages: unfilteredCIImages) else {
-                    print("filtered uiimages is nil in \(#function)")
-                    return
-                }
-                
-                guard let gifImageView = UIImageView.generateGifImageView(with: filteredUIImages, frame: frame, duration: currentLiveGifPreset.gifPlayDuration) else {
-                    print("failed to produce gif image")
-                    return
-                }
-                
-                if let cameraOutput = cameraOutput {
-                    if let outputImageView = cameraOutput.outputImageView {
-                        for subview in outputImageView.subviews {
-                            subview.removeFromSuperview()
-                        }
-                    }
-                }
-                
-                cameraOutput?.outputImageView?.addSubview(gifImageView)
-                gifImageView.startAnimating()
-                
-            } else {
-                // set outputImageView with filtered image.
-                guard let unfilteredCIImage = unfilteredCIImage else {
-                    print("unfilteredCIImage is nil in \(#function)")
-                    return
-                }
-                
-                guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: unfilteredCIImage) else {
-                    print("filtered image is nil")
-                    return
-                }
-                
-                let rotatedFilteredUIImage = fixOrientation(ciImage: filteredImage)
-                
-                if let cameraOutput = cameraOutput {
-                    if let outputImageView = cameraOutput.outputImageView {
-                        for subview in outputImageView.subviews {
-                            subview.removeFromSuperview()
-                        }
-                    }
-                }
-                
-                let filteredUIImageView = UIImageView(image: rotatedFilteredUIImage)
-                filteredUIImageView.frame = frame
-                cameraOutput?.outputImageView?.addSubview(filteredUIImageView)
-            }
+            showGif()
         }
     }
 }
 
-extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePhotoCaptureDelegate {
+extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
     /** Called about every millisecond. Apply filter here and output video frame to preview view.
      If recording is on, store video frame both filtered and unfiltered priodically.
      */
-//    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-//        didOutputSampleBufferCountPerSecond += 1
-//        //print("\t \(didOutputSampleBufferCountPerSecond)th call of didOutputSampleBuffer()")
-//        
-//        guard let imageBuffer: CVImageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-//            print("image buffer is nil")
-//            return
-//        }
-//        
-//        let sourceImage: CIImage = CIImage(cvPixelBuffer: imageBuffer)
-//        let sourceExtent: CGRect = sourceImage.extent
-//        
-//        guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
-//            print("filtered image is nil")
-//            return
-//        }
-//        
-//        didOutputSampleBufferMethodCallCount += 1
-//        if didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
-//            
-//            if !isGifSnapped {
-//                // gif before snapping
-//                //                if let resizedCIImage = resizeCIImage(sourceImage) {
-//                //                    store(image: resizedCIImage, to: &unfilteredCIImages)
-//                //                    if unfilteredCIImages.count == 6 {
-//                //                        unfilteredCIImages.remove(at: 0)
-//                //                    }
-//                //                } else {
-//                //                    print("resized ciimage is nil in \(#function)")
-//                //                }
-//                
-//                store(image: sourceImage, to: &unfilteredCIImages)
-//                if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif / 2  {
-//                    unfilteredCIImages.remove(at: 0)
-//                }
-//            } else {
-//                //                // gif snapped
-//                //                if let resizedCIImage = resizeCIImage(sourceImage) {
-//                //                    store(image: resizedCIImage, to: &unfilteredCIImages)
-//                //                    if unfilteredCIImages.count == 10 {
-//                //                        stopRecordingGif()
-//                //                    }
-//                //                }
-//                store(image: sourceImage, to: &unfilteredCIImages)
-//                if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif {
-//                    stopRecordingGif()
-//                }
-//            }
-//        }
-//        
-//        let sourceAspect = sourceExtent.width / sourceExtent.height
-//        
-//        guard let videoPreviewViewBounds = videoPreviewViewBounds else {
-//            print("videoPreviewViewBounds is nil")
-//            return
-//        }
-//        
-//        // we want to maintain the aspect radio of the screen size, so we clip the video image
-//        let previewAspect = videoPreviewViewBounds.width / videoPreviewViewBounds.height
-//        
-//        var drawRect: CGRect = sourceExtent
-//        
-//        if sourceAspect > previewAspect {
-//            drawRect.origin.x += (drawRect.size.width - drawRect.size.height * previewAspect) / 2.0
-//            drawRect.size.width = drawRect.size.height * previewAspect
-//        } else {
-//            drawRect.origin.y += (drawRect.size.height - drawRect.size.width / previewAspect) / 2.0
-//            drawRect.size.height = drawRect.size.width / previewAspect
-//        }
-//        
-//        videoPreview?.bindDrawable()
-//        
-//        // Prepare CIContext with EAGLContext
-//        if eaglContext != EAGLContext.current() {
-//            EAGLContext.setCurrent(eaglContext)
-//        }
-//        
-//        // OpenGL official documentation: https://www.khronos.org/registry/OpenGL-Refpages/es2.0/
-//        // clear eagl view to grey
-//        glClearColor(0.5, 0.5, 0.5, 1.0) // specify clear values for the color buffers
-//        glClear(GLbitfield(GL_COLOR_BUFFER_BIT)) // clear buffers to preset values
-//        // set the blend mode to "source over" so that CI will use that
-//        glEnable(GLenum(GL_BLEND)) // glEnable — enable or disable server-side GL capabilities
-//        glBlendFunc(GLenum(GL_ONE), GLenum(GL_ONE_MINUS_SRC_ALPHA)) // specify pixel arithmetic
-//        
-//        ciContext?.draw(filteredImage, in: videoPreviewViewBounds, from: drawRect)
-//        
-//        // This causes runtime error with no log sometimes. That's because setNeedsDisplay is being called on a background thread, according to http://stackoverflow.com/questions/31775356/modifying-uiview-above-glkview-causing-crashes
-//        /*
-//         -display should be called when the view has been set to ignore calls to setNeedsDisplay. This method is used by
-//         the GLKViewController to invoke the draw method. It can also be used when not using a GLKViewController and custom
-//         control of the display loop is needed.
-//         */
-//        // http://stackoverflow.com/questions/26082262/exc-bad-access-with-glteximage2d-in-glkviewcontroller
-//        // http://qiita.com/shu223/items/2ef1e8901e96c65fd155
-//        
-//        videoPreview?.display()
-//    }
     
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         didOutputSampleBufferCountPerSecond += 1
@@ -975,144 +710,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
         //print("end of \(#function)")
         videoPreview?.display()
     }
-    
-    func captureOutput(_ captureOutput: AVCaptureOutput!, didDrop sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-        print("sample buffer is dropped")
-    }
-
-    
-    /** Captures an image. Fires didFinishProcessingPhotoSampleBuffer to get image. */
-    internal func capturePhoto() {
-        
-        // TODO: Research
-        let settings = AVCapturePhotoSettings()
-        let previewPixelType = settings.availablePreviewPhotoPixelFormatTypes.first!
-        let previewFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPixelType,
-                             kCVPixelBufferWidthKey as String: 160,
-                             kCVPixelBufferHeightKey as String: 160]
-        
-        settings.previewPhotoFormat = previewFormat
-        settings.flashMode = flashState
-        
-        
-        guard let photoOutput = photoOutput else {
-            print("photo output or photo setting is nil")
-            return
-        }
-        
-        photoOutput.capturePhoto(with: settings, delegate: self)
-    }
-    
-    /** get video frame and convert it to image. */
-    func capture(_ captureOutput: AVCapturePhotoOutput, didFinishProcessingPhotoSampleBuffer photoSampleBuffer: CMSampleBuffer?, previewPhotoSampleBuffer: CMSampleBuffer?, resolvedSettings: AVCaptureResolvedPhotoSettings, bracketSettings: AVCaptureBracketedStillImageSettings?, error: Error?) {
-        
-        if let error = error {
-            print(error.localizedDescription)
-        } else if let sampleBuffer = photoSampleBuffer, let previewBuffer = previewPhotoSampleBuffer, let dataImage = AVCapturePhotoOutput.jpegPhotoDataRepresentation(forJPEGSampleBuffer: sampleBuffer, previewPhotoSampleBuffer: previewBuffer) {
-            
-            guard let sourceImage = CIImage(data: dataImage) else {
-                print("CIImage is nil")
-                return
-            }
-            
-            // Save sourceImage to class property for post filter editing
-            unfilteredCIImage = sourceImage
-            
-            guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
-                print("filtered image is nil")
-                return
-            }
-            
-            // set orientation right or left and rotate it by 90 or -90 degrees to fix rotation
-            guard let rotatedUIImage = fixOrientation(ciImage: filteredImage) else {
-                print("rotatedUIImage is nil in \(#function)")
-                return
-            }
-            
-            let filteredImageView = UIImageView(image: rotatedUIImage)
-            filteredImageView.frame = frame
-            
-            resultImageView = filteredImageView
-            // client setup
-            cameraOutput?.outputImageView?.addSubview(filteredImageView)
-            
-            stop()
-        }
-    }
-    
-    /** Fixes orientation of array of CIImage and apply filters to it.
-     Fixing orientation and applying filter have to be done at the same time
-     because fixing orientation only produces UIImage with its CIImage property nil.
-     */
-    func fixOrientationAndApplyFilter(ciImages: [CIImage]) -> [UIImage]? {
-        var rotatedUIImages = [UIImage]()
-        
-        for ciImage in ciImages {
-            
-            guard let filteredCIImage = currentFilter.generateFilteredCIImage(sourceImage: ciImage) else {
-                print("filtered image is nil")
-                return nil
-            }
-            
-            let filteredUIImage = UIImage(ciImage: filteredCIImage, scale: 0, orientation: UIImageOrientation.right)
-            
-            guard let rotatedImage = rotate(image: filteredUIImage) else {
-                print("rotatedImage is nil in \(#function)")
-                return nil
-            }
-            rotatedUIImages.append(rotatedImage)
-        }
-        
-        return rotatedUIImages
-    }
-    
-    /** Fixes orientation of CIImage and returns UIImage.
-     Set orientation right or left and rotate it by 90 or -90 degrees to fix rotation. */
-    func fixOrientation(ciImage: CIImage) -> UIImage? {
-        // set orientation right or left and rotate it by 90 or -90 degrees to fix rotation
-        let filteredUIImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right)
-        guard let rotatedImage = rotate(image: filteredUIImage) else {
-            print("rotatedImage is nil in \(#function)")
-            return nil
-        }
-        
-        return rotatedImage
-    }
-    
-    /** Rotates image by 90 degrees. */
-    func rotate(image: UIImage) -> UIImage? {
-        UIGraphicsBeginImageContext(image.size)
-        guard let context = UIGraphicsGetCurrentContext() else {
-            print("context is nil in \(#function)")
-            return nil
-        }
-        image.draw(at: CGPoint.zero)
-        context.rotate(by: CGFloat(M_PI_2)) // M_PI_2 = pi / 2 = 90 degrees (pi radians = 180 degrees)
-        
-        let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return rotatedImage
-    }
-}
-
-/** The methods that handle only CIImage are in this extension. */
-extension CIImage {
-    // Apply filter to array of CIImage
-    class func applyFilter(to images: [CIImage], filter: Filter) -> [CIImage] {
-        var newImages = [CIImage]()
-        
-        for image in images {
-            
-            guard let newImage = filter.generateFilteredCIImage(sourceImage: image) else {
-                print("filtered image is nil")
-                break
-            }
-            
-            newImages.append(newImage)
-        }
-        return newImages
-    }
-}
+ }
 
 // https://gist.github.com/valkjsaaa/f9edfc25b4fd592caf82834fafc07759
 extension CVPixelBuffer {
@@ -1127,7 +725,6 @@ extension CVPixelBuffer {
             CVPixelBufferLockBaseAddress(pixelBufferCopy, CVPixelBufferLockFlags.readOnly)
             let baseAddress = CVPixelBufferGetBaseAddress(self)
             let dataSize = CVPixelBufferGetDataSize(self)
-            print("dataSize: \(dataSize)")
             let target = CVPixelBufferGetBaseAddress(pixelBufferCopy)
             memcpy(target, baseAddress, dataSize)
             CVPixelBufferUnlockBaseAddress(pixelBufferCopy, CVPixelBufferLockFlags.readOnly)
