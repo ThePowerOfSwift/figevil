@@ -106,7 +106,7 @@ class SatoCamera: NSObject {
             }
             
             sampleBufferOutput.addSubview(videoPreview)
-            print("video preview is set to sample buffer output as a subview")
+//            print("video preview is set to sample buffer output as a subview")
             
         }
     }
