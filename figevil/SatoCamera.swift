@@ -642,8 +642,11 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         
-        let storeImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
         let sourceImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
+        //  let storeImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
+        // sourceImage, storeImage and filteredImage all have the same address 
+        // so I thought applying filter to sourceImage affects storeImage stored in array which I don't want
+        // but it doesn't affect. I just use source image.
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -666,24 +669,25 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: imageDrawRect)
         videoGLKPreview?.display()
         
-        // background
+        // store image in array in background
         DispatchQueue.global(qos: .background).async {
             self.didOutputSampleBufferMethodCallCount += 1
             
             if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
                 if self.isRecording {
-                    self.unfilteredCIImages.append(storeImage)
+                    self.unfilteredCIImages.append(sourceImage)
                 } else {
                     if !self.isGifSnapped {
-                        self.unfilteredCIImages.append(storeImage)
+                        self.unfilteredCIImages.append(sourceImage)
                         
                         if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                             self.unfilteredCIImages.remove(at: 0)
                         }
                     } else {
-                        self.unfilteredCIImages.append(storeImage)
+                        self.unfilteredCIImages.append(sourceImage)
                         if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
                             DispatchQueue.main.async {
+                                // UI change has to be in main thread
                                 self.stopLiveGif()
                             }
                         }
