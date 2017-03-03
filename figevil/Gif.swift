@@ -301,8 +301,6 @@ extension UIImageView {
             return
         }
         
-        //let rotatedImages = UIImage.rotateImages(images: animationImages)
-        //let rotatedImages = animationImages
         let fileProperties = [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFLoopCount as String: loopCount]]
         let frameProperties = [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFDelayTime as String: frameDelay]]
         let documentsDirectory = NSTemporaryDirectory()

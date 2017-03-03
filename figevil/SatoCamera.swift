@@ -23,12 +23,40 @@ enum CameraState {
     case Front
 }
 
+//struct LiveGifPreset {
+//    var frameCaptureFrequency: Int
+//    var gifPlayDuration: Double
+//    var sampleBufferFPS: Int32
+//    var liveGifDuration: Int
+//    var liveGifFrameTotalCount: Int {
+//        return liveGifDuration * gifFPS
+//    }
+//    var gifFPS: Int {
+//        return Int(sampleBufferFPS) / frameCaptureFrequency
+//    }
+//}
+
 struct LiveGifPreset {
-    var frameCaptureFrequency: Int
-    var gifPlayDuration: Double
-    var sampleBufferFPS: Int32
-    var numOfFramesForGif: Int
+    /** has to be 0 < gifFPS <= 15 and 30 */
     var gifFPS: Int
+    var liveGifDuration: Int
+    
+    /** "Play Speed" */
+    var gifPlayDuration: TimeInterval {
+        return Double(liveGifDuration)
+    }
+    var frameCaptureFrequency: Int {
+        return Int(sampleBufferFPS) / gifFPS
+    }
+    var sampleBufferFPS: Int32 = 30
+    var liveGifFrameTotalCount: Int {
+        return liveGifDuration * gifFPS
+    }
+    
+    init(gifFPS: Int, liveGifDuration: Int) {
+        self.gifFPS = gifFPS
+        self.liveGifDuration = liveGifDuration
+    }
 }
 
 protocol SatoCameraOutput {
@@ -38,6 +66,8 @@ protocol SatoCameraOutput {
     /** Show the live preview. GLKView is added to this view. */
     var sampleBufferView: UIView? { get }
 }
+
+var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 15, liveGifDuration: 3)
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
@@ -103,8 +133,6 @@ class SatoCamera: NSObject {
             }
             
             sampleBufferOutput.addSubview(videoPreview)
-//            print("video preview is set to sample buffer output as a subview")
-            
         }
     }
     
@@ -113,8 +141,6 @@ class SatoCamera: NSObject {
     
     /** Holds the current filter. */
     var currentFilter: Filter = Filter.list()[0]
-    
-    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(frameCaptureFrequency: 3, gifPlayDuration: 2, sampleBufferFPS: 30, numOfFramesForGif: 30, gifFPS: 30/3/3)
     
     init(frame: CGRect) {
         self.frame = frame
@@ -488,28 +514,15 @@ class SatoCamera: NSObject {
         images.append(image)
     }
     
-//    internal func startRecordingGif() {
-//        
-//        // set torch
-//        if let videoDevice = videoDevice {
-//            if videoDevice.hasTorch && videoDevice.isTorchAvailable {
-//                do {
-//                    try videoDevice.lockForConfiguration()
-//                    videoDevice.torchMode = torchState
-//                    videoDevice.unlockForConfiguration()
-//                } catch {
-//                    
-//                }
-//            }
-//        }
-//    }
     /** Indicates if SatoCamera is recording gif.*/
     fileprivate var isRecording: Bool = false
     
+    /** Starts recording gif.*/
     internal func startRecordingGif() {
         isRecording = true
     }
     
+    /** Stops recording gif. */
     internal func stopRecordingGif() {
         stop()
         isRecording = false
@@ -517,11 +530,13 @@ class SatoCamera: NSObject {
     }
     
     var isGifSnapped: Bool = false
+    
+    /** Snaps live gif.*/
     internal func snapLiveGif() {
         isGifSnapped = true
     }
     
-    internal func stopLiveGif() {
+    fileprivate func stopLiveGif() {
         isGifSnapped = false
         stop()
         showGif()
@@ -616,12 +631,12 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                 if !isGifSnapped {
                     store(image: sourceImage, to: &unfilteredCIImages)
                     
-                    if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif / 2 {
+                    if unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                         unfilteredCIImages.remove(at: 0)
                     }
                 } else {
                     store(image: sourceImage, to: &unfilteredCIImages)
-                    if unfilteredCIImages.count == currentLiveGifPreset.numOfFramesForGif {
+                    if unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
                         stopLiveGif()
                     }
                 }
@@ -678,7 +693,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         //print("end of \(#function)")
         videoPreview?.display()
     }
- }
+}
 
 // https://gist.github.com/valkjsaaa/f9edfc25b4fd592caf82834fafc07759
 extension CVPixelBuffer {
