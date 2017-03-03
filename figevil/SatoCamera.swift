@@ -23,19 +23,6 @@ enum CameraState {
     case Front
 }
 
-//struct LiveGifPreset {
-//    var frameCaptureFrequency: Int
-//    var gifPlayDuration: Double
-//    var sampleBufferFPS: Int32
-//    var liveGifDuration: Int
-//    var liveGifFrameTotalCount: Int {
-//        return liveGifDuration * gifFPS
-//    }
-//    var gifFPS: Int {
-//        return Int(sampleBufferFPS) / frameCaptureFrequency
-//    }
-//}
-
 struct LiveGifPreset {
     /** has to be 0 < gifFPS <= 15 and 30 */
     var gifFPS: Int
@@ -67,7 +54,7 @@ protocol SatoCameraOutput {
     var sampleBufferView: UIView? { get }
 }
 
-var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 15, liveGifDuration: 3)
+var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
