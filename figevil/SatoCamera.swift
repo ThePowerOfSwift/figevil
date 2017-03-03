@@ -54,19 +54,20 @@ protocol SatoCameraOutput {
     var sampleBufferView: UIView? { get }
 }
 
-var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
+var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 1, liveGifDuration: 3)
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
     
     /** view where CIImage created from sample buffer in didOutputSampleBuffer() is shown. Updated real time. */
-    fileprivate var videoPreview: GLKView?
+    fileprivate var videoGLKPreview: GLKView?
     fileprivate var videoDevice: AVCaptureDevice?
     fileprivate var videoDeviceInput: AVCaptureDeviceInput?
     /** needed for real time image processing. instantiated with EAGLContext. */
     fileprivate var ciContext: CIContext?
     fileprivate var eaglContext: EAGLContext?
-    fileprivate var videoPreviewViewBounds: CGRect?
+    /** stores GLKView's drawableWidth (The width, in pixels, of the underlying framebuffer object.) */
+    fileprivate var videoGLKPreviewViewBounds: CGRect?
     fileprivate var captureSession: AVCaptureSession?
     fileprivate var photoOutput: AVCapturePhotoOutput?
     
@@ -101,11 +102,11 @@ class SatoCamera: NSObject {
     /** Indicates the current camera state. */
     var cameraState: CameraState = .Back
     
-    /** Can be set after initialization. videoPreview will be added subview to sampleBufferOutput in dataSource. */
+    /** Can be set after initialization. videoGLKPreview will be added subview to sampleBufferOutput in dataSource. */
     var cameraOutput: SatoCameraOutput? {
         didSet {
             
-            guard let videoPreview = videoPreview, let cameraOutput = cameraOutput else {
+            guard let videoGLKPreview = videoGLKPreview, let cameraOutput = cameraOutput else {
                 print("video preview or camera output is nil")
                 return
             }
@@ -119,7 +120,7 @@ class SatoCamera: NSObject {
                 subview.removeFromSuperview()
             }
             
-            sampleBufferOutput.addSubview(videoPreview)
+            sampleBufferOutput.addSubview(videoGLKPreview)
         }
     }
     
@@ -142,29 +143,41 @@ class SatoCamera: NSObject {
         }
         // Configure GLK preview view.
         // GLKView is A default implementation for views that draw their content using OpenGL ES.
-        videoPreview = GLKView(frame: frame, context: eaglContext)
-        guard let videoPreview = videoPreview else {
-            print("videoPreviewView is nil")
+        videoGLKPreview = GLKView(frame: frame, context: eaglContext)
+        guard let videoGLKPreview = videoGLKPreview else {
+            print("videoGLKPreviewView is nil")
             return
         }
         
-        videoPreview.enableSetNeedsDisplay = false
+        videoGLKPreview.enableSetNeedsDisplay = false
         
         // the original video image from the back SatoCamera is landscape. apply 90 degree transform
-        videoPreview.transform = CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
+        videoGLKPreview.transform = CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
         
         // Always set frame after transformation
-        videoPreview.frame = frame
+        videoGLKPreview.frame = frame
         
-        videoPreview.bindDrawable()
-        videoPreviewViewBounds = CGRect.zero
-        videoPreviewViewBounds?.size.width = CGFloat(videoPreview.drawableWidth)
-        videoPreviewViewBounds?.size.height = CGFloat(videoPreview.drawableHeight)
+        videoGLKPreview.bindDrawable()
+        videoGLKPreviewViewBounds = CGRect.zero
+        // drawable width The width, in pixels, of the underlying framebuffer object.
+        videoGLKPreviewViewBounds?.size.width = CGFloat(videoGLKPreview.drawableWidth)
+        videoGLKPreviewViewBounds?.size.height = CGFloat(videoGLKPreview.drawableHeight)
         
         ciContext = CIContext(eaglContext: eaglContext)
+        setupOpenGL()
         
         _ = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(printPerSecond), userInfo: nil, repeats: true)
         initialStart()
+    }
+    
+    func setupOpenGL() {
+        // OpenGL official documentation: https://www.khronos.org/registry/OpenGL-Refpages/es2.0/
+        // clear eagl view to grey
+        glClearColor(0.5, 0.5, 0.5, 1.0) // specify clear values for the color buffers
+        glClear(GLbitfield(GL_COLOR_BUFFER_BIT)) // clear buffers to preset values
+        // set the blend mode to "source over" so that CI will use that
+        glEnable(GLenum(GL_BLEND)) // glEnable — enable or disable server-side GL capabilities
+        glBlendFunc(GLenum(GL_ONE), GLenum(GL_ONE_MINUS_SRC_ALPHA)) // specify pixel arithmetics
     }
     
     var time = 0
@@ -204,6 +217,7 @@ class SatoCamera: NSObject {
         videoDataOutput.videoSettings = outputSettings
         
         // Ensure frames are delivered to the delegate in order
+        // http://stackoverflow.com/questions/31775356/modifying-uiview-above-glkview-causing-crashes
         let captureSessionQueue = DispatchQueue.main
         // Set delegate to self for didOutputSampleBuffer
         videoDataOutput.setSampleBufferDelegate(self, queue: captureSessionQueue)
@@ -304,7 +318,7 @@ class SatoCamera: NSObject {
     /** Focus on where it's tapped. */
     internal func tapToFocusAndExposure(touch: UITouch) {
         // http://stackoverflow.com/questions/15838443/iphone-camera-show-focus-rectangle
-        let touchPoint = touch.location(in: videoPreview)
+        let touchPoint = touch.location(in: videoGLKPreview)
         
         print("tap to focus: (x: \(String(format: "%.0f", touchPoint.x)), y: \(String(format: "%.0f", touchPoint.y))) in \(self)")
         let adjustedCoordinatePoint = CGPoint(x: frame.width - touchPoint.y, y: touchPoint.x)
@@ -582,63 +596,22 @@ extension SatoCamera: FilterImageEffectDelegate {
     }
 }
 
+var imageDrawRect: CGRect!
+
 extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
-    /** Called about every millisecond. Apply filter here and output video frame to preview view.
-     If recording is on, store video frame both filtered and unfiltered priodically.
-     */
     
-    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-        didOutputSampleBufferCountPerSecond += 1
-        
-        guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            print("image buffer is nil")
-            return
-        }
-        
-        guard let copyPixelBuffer = pixelBuffer.deepcopy() else {
-            print("copy pixel buffer is nil")
-            return
-        }
-        
-        let sourceImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
-        
-        guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
-            print("filtered image is nil in \(#function)")
-            return
-        }
-        
+    /** Calculate ciimage's extent to be fit to GKLView. */
+    func calculateDrawRect(sourceImage: CIImage) -> CGRect {
         let sourceExtent: CGRect = sourceImage.extent
-        
-        didOutputSampleBufferMethodCallCount += 1
-        
-        if didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
-            if isRecording {
-                store(image: sourceImage, to: &unfilteredCIImages)
-            } else {
-                if !isGifSnapped {
-                    store(image: sourceImage, to: &unfilteredCIImages)
-                    
-                    if unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
-                        unfilteredCIImages.remove(at: 0)
-                    }
-                } else {
-                    store(image: sourceImage, to: &unfilteredCIImages)
-                    if unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
-                        stopLiveGif()
-                    }
-                }
-            }
-        }
-        
         let sourceAspect = sourceExtent.width / sourceExtent.height
         
-        guard let videoPreviewViewBounds = videoPreviewViewBounds else {
-            print("videoPreviewViewBounds is nil")
-            return
+        guard let videoGLKPreviewViewBounds = videoGLKPreviewViewBounds else {
+            print("videoGLKPreviewViewBounds is nil")
+            return frame
         }
         
         // we want to maintain the aspect radio of the screen size, so we clip the video image
-        let previewAspect = videoPreviewViewBounds.width / videoPreviewViewBounds.height
+        let previewAspect = videoGLKPreviewViewBounds.width / videoGLKPreviewViewBounds.height
         
         var drawRect: CGRect = sourceExtent
         
@@ -650,35 +623,75 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             drawRect.size.height = drawRect.size.width / previewAspect
         }
         
-        videoPreview?.bindDrawable()
+        return drawRect
+    }
+    
+    /** Called about every millisecond. Apply filter here and output video frame to preview view.
+     If recording is on, store video frame both filtered and unfiltered priodically.
+     */
+    
+    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
+        
+        guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+            print("image buffer is nil")
+            return
+        }
+        
+        guard let copyPixelBuffer = pixelBuffer.deepcopy() else {
+            print("copy pixel buffer is nil")
+            return
+        }
+        
+        let storeImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
+        let sourceImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
+        
+        // filteredImage has the same address as sourceImage
+        guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
+            print("filtered image is nil in \(#function)")
+            return
+        }
+        
+        // execute the first time this method gets called.
+        if didOutputSampleBufferMethodCallCount == 0 {
+            imageDrawRect = calculateDrawRect(sourceImage: sourceImage)
+        }
+
+        videoGLKPreview?.bindDrawable()
         
         // Prepare CIContext with EAGLContext
         if eaglContext != EAGLContext.current() {
             EAGLContext.setCurrent(eaglContext)
         }
         
-        // OpenGL official documentation: https://www.khronos.org/registry/OpenGL-Refpages/es2.0/
-        // clear eagl view to grey
-        glClearColor(0.5, 0.5, 0.5, 1.0) // specify clear values for the color buffers
-        glClear(GLbitfield(GL_COLOR_BUFFER_BIT)) // clear buffers to preset values
-        // set the blend mode to "source over" so that CI will use that
-        glEnable(GLenum(GL_BLEND)) // glEnable — enable or disable server-side GL capabilities
-        glBlendFunc(GLenum(GL_ONE), GLenum(GL_ONE_MINUS_SRC_ALPHA)) // specify pixel arithmetic
+        ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: imageDrawRect)
+        videoGLKPreview?.display()
         
-        ciContext?.draw(filteredImage, in: videoPreviewViewBounds, from: drawRect)
-        
-        // This causes runtime error with no log sometimes. That's because setNeedsDisplay is being called on a background thread, according to http://stackoverflow.com/questions/31775356/modifying-uiview-above-glkview-causing-crashes
-        /*
-         -display should be called when the view has been set to ignore calls to setNeedsDisplay. This method is used by
-         the GLKViewController to invoke the draw method. It can also be used when not using a GLKViewController and custom
-         control of the display loop is needed.
-         */
-        // http://stackoverflow.com/questions/26082262/exc-bad-access-with-glteximage2d-in-glkviewcontroller
-        // http://qiita.com/shu223/items/2ef1e8901e96c65fd155
-        
-        
-        //print("end of \(#function)")
-        videoPreview?.display()
+        // background
+        DispatchQueue.global(qos: .background).async {
+            self.didOutputSampleBufferMethodCallCount += 1
+            
+            if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
+                if self.isRecording {
+                    self.unfilteredCIImages.append(storeImage)
+                } else {
+                    if !self.isGifSnapped {
+                        self.unfilteredCIImages.append(storeImage)
+                        
+                        if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+                            self.unfilteredCIImages.remove(at: 0)
+                        }
+                    } else {
+                        self.unfilteredCIImages.append(storeImage)
+                        if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
+                            DispatchQueue.main.async {
+                                self.stopLiveGif()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }
 
@@ -701,5 +714,54 @@ extension CVPixelBuffer {
             CVPixelBufferUnlockBaseAddress(self, CVPixelBufferLockFlags.readOnly)
         }
         return pixelBufferCopyOptional
+    }
+}
+
+
+extension CMSampleBuffer {
+    var deepCopiedCIImage: CIImage? {
+        get {
+            // Get a CMSampleBuffer's Core Video image buffer for the media data
+            guard let imageBuffer: CVImageBuffer = CMSampleBufferGetImageBuffer(self) else {
+                print("image buffer is nil")
+                return nil
+            }
+    
+            // Lock the base address of the pixel buffer
+            CVPixelBufferLockBaseAddress(imageBuffer, CVPixelBufferLockFlags(rawValue: 0))
+    
+            // Get the number of bytes per row for the pixel buffer
+            let baseAddress = CVPixelBufferGetBaseAddress(imageBuffer)
+    
+            // Get the number of bytes per row for the pixel buffer
+            let bytesPerRow = CVPixelBufferGetBytesPerRow(imageBuffer);
+            // Get the pixel buffer width and height
+            let width = CVPixelBufferGetWidth(imageBuffer);
+            let height = CVPixelBufferGetHeight(imageBuffer);
+    
+            // Create a device-dependent RGB color space
+            let colorSpace = CGColorSpaceCreateDeviceRGB();
+    
+            // Create a bitmap graphics context with the sample buffer data
+            let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)
+                .union(.byteOrder32Little)
+            guard let context = CGContext(data: baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo.rawValue) else {
+                print("Error creating context from cvpixelbuffer")
+                return nil
+            }
+    
+            // Create a Quartz image from the pixel data in the bitmap graphics context
+            guard let quartzImage = context.makeImage() else {
+                print("Error creating source image from quatz image")
+                return nil
+            }
+    
+            // Unlock the pixel buffer
+            CVPixelBufferUnlockBaseAddress(imageBuffer, CVPixelBufferLockFlags(rawValue: 0))
+    
+            let sourceImage = CIImage(cgImage: quartzImage)
+            
+            return sourceImage
+        }
     }
 }
