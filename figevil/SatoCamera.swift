@@ -30,7 +30,7 @@ struct LiveGifPreset {
     
     /** "Play Speed" */
     var gifPlayDuration: TimeInterval {
-        return Double(liveGifDuration)
+        return Double(liveGifDuration/3)
     }
     var frameCaptureFrequency: Int {
         return Int(sampleBufferFPS) / gifFPS
@@ -54,7 +54,12 @@ protocol SatoCameraOutput {
     var sampleBufferView: UIView? { get }
 }
 
-var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 1, liveGifDuration: 3)
+// gifFPS 3: CPU 70-80%, memory 61MB
+// gifFPS 10: 70-80%, 150MB , connection sometimes lost when snapped. if succeeded, memory is 280MB
+// gifFPS 10 with resizing simultaneausly: 70-80%, +300MB, crash after memory usage reached 300MB. Memory keeps growing because second half of resizing method is not executed in background.
+// gifFPS 10: resizing in main thread, +105%, 50MB, lags, UI not responding
+
+var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
@@ -199,17 +204,19 @@ class SatoCamera: NSObject {
         
         self.videoDevice = videoDevice
         
+        
         // If the video device support high preset, set the preset to capture session
         let preset = AVCaptureSessionPresetHigh
         if videoDevice.supportsAVCaptureSessionPreset(preset) {
             captureSession = AVCaptureSession()
-            captureSession?.sessionPreset = preset
         }
         
         guard let captureSession = captureSession else {
             print("capture session is nil")
             return
         }
+        
+        captureSession.sessionPreset = preset
         
         // Configure video output setting
         let outputSettings: [AnyHashable : Any] = [kCVPixelBufferPixelFormatTypeKey as AnyHashable : Int(kCVPixelFormatType_32BGRA)]
@@ -257,7 +264,9 @@ class SatoCamera: NSObject {
             }
         }
         
-        setupFrameRate(videoDevice: videoDevice)
+        //setupFrameRate(videoDevice: videoDevice)
+        
+
         
         // Add output object to session
         captureSession.addOutput(videoDataOutput)
@@ -288,6 +297,8 @@ class SatoCamera: NSObject {
             }
             
             // set the format to the device
+            // this changes the AVCaptureSessionPreset to AVCaptureSessionPresetInputPriority 
+            // which specifies that the capture session does not control audio and video output settings.
             videoDevice.activeFormat = bestFormat
             
             // supported frame rate range is now set to 3 - 60 per second. The default is 3 - 30 per second
@@ -476,6 +487,7 @@ class SatoCamera: NSObject {
             return
         }
         
+        didOutputSampleBufferMethodCallCount = 0
         captureSession.beginConfiguration()
         captureSession.removeInput(videoDeviceInput)
         videoDevice = cameraDevice
@@ -631,22 +643,24 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
      */
     
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-        
+        didOutputSampleBufferCountPerSecond += 1
+
+        //print("\t \(didOutputSampleBufferCountPerSecond) the call")
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             print("image buffer is nil")
             return
         }
         
-        guard let copyPixelBuffer = pixelBuffer.deepcopy() else {
-            print("copy pixel buffer is nil")
-            return
-        }
-        
-        let sourceImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
+        let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
         //  let storeImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
         // sourceImage, storeImage and filteredImage all have the same address 
         // so I thought applying filter to sourceImage affects storeImage stored in array which I don't want
         // but it doesn't affect. I just use source image.
+        
+        //sourceImage.resize(frame: frame)
+        // CPU 70-80%
+        // memory 61MB
+        // Energy impact: Very high
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -668,23 +682,32 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: imageDrawRect)
         videoGLKPreview?.display()
+    
+        guard let copyPixelBuffer = pixelBuffer.deepcopy() else {
+            print("copy pixel buffer is nil")
+            return
+        }
+        
+        let storeImage = CIImage(cvPixelBuffer: copyPixelBuffer)
         
         // store image in array in background
         DispatchQueue.global(qos: .background).async {
             self.didOutputSampleBufferMethodCallCount += 1
-            
             if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
+                // this is called from many different threads
+                //if let resizedCIImage = storeImage.resize(frame: self.frame) {
+                //                if let resizedCIImage = storeImage.resizeWithCGContext(frame: self.frame) {
                 if self.isRecording {
-                    self.unfilteredCIImages.append(sourceImage)
+                    self.unfilteredCIImages.append(storeImage)
                 } else {
                     if !self.isGifSnapped {
-                        self.unfilteredCIImages.append(sourceImage)
+                        self.unfilteredCIImages.append(storeImage)
                         
                         if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                             self.unfilteredCIImages.remove(at: 0)
                         }
                     } else {
-                        self.unfilteredCIImages.append(sourceImage)
+                        self.unfilteredCIImages.append(storeImage)
                         if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
                             DispatchQueue.main.async {
                                 // UI change has to be in main thread
@@ -695,7 +718,84 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
             }
         }
+        
+    }
+}
 
+extension CIImage {
+
+    // worst performance on resizing
+    // http://nshipster.com/image-resizing/
+    func resize(frame: CGRect) -> CIImage? {
+        print("BEFORE scaled CIImage extent: \(self.extent) in \(#function)")
+
+//        let scale = frame.width / self.extent.width
+//        
+//        let filter = CIFilter(name: "CILanczosScaleTransform")!
+//        //let rectFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height)
+//        //let vectorFrame = CIVector(cgRect: frame)
+//        //filter.setValue(vectorFrame, forKey: kCIInputExtentKey) // CILanczosScaleTransform doesn't accept vector frame
+//        filter.setValue(self, forKey: kCIInputImageKey)
+//        filter.setValue(scale, forKey: kCIInputScaleKey)
+//        filter.setValue(1.0, forKey: kCIInputAspectRatioKey)
+//        
+//        guard let outputImage = filter.value(forKey: kCIOutputImageKey) as? CIImage else {
+//            print("output image is nil in \(#function)")
+//            return nil
+//        }
+//        
+//        let context = CIContext(options: [kCIContextUseSoftwareRenderer: false])
+//        
+//        guard let scaledCGImage = context.createCGImage(outputImage, from: outputImage.extent) else {
+//            print("scaled CGImage is nil in \(#function)")
+//            return nil
+//        }
+//        
+//        // code below is not being executed. Execution stops the line above.
+//        let scaledCIImage = CIImage(cgImage: scaledCGImage)
+//        print("AFTER scaled CIImage extent: \(scaledCIImage.extent) in \(#function)")
+//        
+//        return scaledCIImage
+        
+        print("end of \(#function)")
+        return nil
+    }
+    
+    func resizeWithCGContext(frame: CGRect) -> CIImage? {
+        print("BEFORE scaled CIImage extent: \(self.extent) in \(#function)")
+
+        // CGImage is nil
+        guard let cgImage = self.cgImage else {
+            print("CGImage from CIImage is nil")
+            return nil
+        }
+        
+        let width = cgImage.width / 2
+        let height = cgImage.height / 2
+        let bitsPerComponent = cgImage.bitsPerComponent
+        let bytesPerRow = cgImage.bytesPerRow
+        let colorSpace = cgImage.colorSpace
+        let bitmapInfo = cgImage.bitmapInfo
+        
+        
+        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace!, bitmapInfo: bitmapInfo.rawValue) else {
+            print("context is nil in \(#function)")
+            return nil
+        }
+        
+        context.interpolationQuality = CGInterpolationQuality.high
+        
+        context.draw(cgImage, in:  CGRect(origin: CGPoint.zero, size: CGSize(width: CGFloat(width), height: CGFloat(height))))
+        guard let scaledCGImage = context.makeImage() else {
+            print("newCGImage is nil in \(#function)")
+            return nil
+        }
+        
+        let scaledCIImage = CIImage(cgImage: scaledCGImage)
+        print("AFTER scaled CIImage extent: \(scaledCIImage.extent) in \(#function)")
+
+        return scaledCIImage
+        
     }
 }
 

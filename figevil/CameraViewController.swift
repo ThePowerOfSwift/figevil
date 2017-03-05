@@ -138,7 +138,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        print("received memory warning")
     }
     
     deinit {
