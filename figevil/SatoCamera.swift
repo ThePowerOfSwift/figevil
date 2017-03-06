@@ -209,7 +209,6 @@ class SatoCamera: NSObject {
         
         self.videoDevice = videoDevice
         
-        
         // If the video device support high preset, set the preset to capture session
         let preset = AVCaptureSessionPresetHigh
         if videoDevice.supportsAVCaptureSessionPreset(preset) {
@@ -268,10 +267,6 @@ class SatoCamera: NSObject {
                 
             }
         }
-        
-        //setupFrameRate(videoDevice: videoDevice)
-        
-
         
         // Add output object to session
         captureSession.addOutput(videoDataOutput)
@@ -413,6 +408,7 @@ class SatoCamera: NSObject {
         return returnText
     }
     
+    /** */
     internal func toggleTorch() -> String {
         let torchMode = torchOptions[torchOptionIndex.increment()]
         
@@ -441,7 +437,6 @@ class SatoCamera: NSObject {
         case AVCaptureTorchMode.auto:
             returnText = "Auto"
         }
-        
         return returnText
     }
     
@@ -451,6 +446,7 @@ class SatoCamera: NSObject {
         //startRecordingGif()
     }
     
+    /** */
     internal func stop() {
         cameraOutput?.sampleBufferView?.isHidden = true
         captureSession?.stopRunning()
@@ -551,17 +547,19 @@ class SatoCamera: NSObject {
     
     var isGifSnapped: Bool = false
     
-    /** Snaps live gif.*/
+    /** Snaps live gif. Starts image post-storing. */
     internal func snapLiveGif() {
         isGifSnapped = true
     }
     
+    /** Stops image post-storing. Calls showGif to show gif.*/
     fileprivate func stopLiveGif() {
         isGifSnapped = false
         stop()
         showGif()
     }
     
+    /** Creates an image view with images for animation. Show the image view on output image view. */
     func showGif() {
         let gif = Gif(originalCIImages: unfilteredCIImages,
                       currentGifFPS: currentLiveGifPreset.gifFPS,
@@ -587,12 +585,14 @@ class SatoCamera: NSObject {
         }
         
         cameraOutput?.outputImageView?.addSubview(gifImageView)
-        //gifImageView.startAnimating()
+        gifImageView.startAnimating()
     }
 }
 
 extension SatoCamera: FilterImageEffectDelegate {
     
+    /** Changes the current filter. If camera is live, applies filter to the live preview. 
+     If a gif or image has already been taken and is showing on outputImageView, applies fitler to it. */
     func didSelectFilter(_ sender: FilterImageEffect, filter: Filter?) {
         // set filtered output image to outputImageView
         guard let captureSession = captureSession else {
@@ -647,10 +647,9 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         return sourceImage.extent
     }
     
-    /** Called about every millisecond. Apply filter here and output video frame to preview view.
-     If recording is on, store video frame both filtered and unfiltered priodically.
-     */
-    
+    /** Called the specified times (FPS) every second. Converts sample buffer into CIImage. 
+     Applies filter to it. Draw the CIImage into CIContext to update GLKView.
+     In background, store CIImages into array one by one. Resizing should be done in background.*/
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         didOutputSampleBufferCountPerSecond += 1
 
@@ -665,11 +664,6 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         // sourceImage, storeImage and filteredImage all have the same address 
         // so I thought applying filter to sourceImage affects storeImage stored in array which I don't want
         // but it doesn't affect. I just use source image.
-        
-        //sourceImage.resize(frame: frame)
-        // CPU 70-80%
-        // memory 61MB
-        // Energy impact: Very high
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -692,8 +686,6 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         // imageDrawRect = width: 1920, height: 1078 (same as CIImage extent)
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: imageDrawRect)
         videoGLKPreview?.display()
-        
-
         
         DispatchQueue.global(qos: .background).async {
             self.didOutputSampleBufferMethodCallCount += 1
@@ -727,89 +719,49 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
             }
         }
-
-        
-        
-//        guard let copyPixelBuffer = pixelBuffer.deepcopy() else {
-//            print("copy pixel buffer is nil")
-//            return
-//        }
-//        
-//        let storeImage = CIImage(cvPixelBuffer: copyPixelBuffer)
-//        
-//        // store image in array in background
-//        DispatchQueue.global(qos: .background).async {
-//            self.didOutputSampleBufferMethodCallCount += 1
-//            if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
-//                // this is called from many different threads
-//                //if let resizedCIImage = storeImage.resize(frame: self.frame) {
-//                //                if let resizedCIImage = storeImage.resizeWithCGContext(frame: self.frame) {
-//                if self.isRecording {
-//                    self.unfilteredCIImages.append(storeImage)
-//                } else {
-//                    if !self.isGifSnapped {
-//                        self.unfilteredCIImages.append(storeImage)
-//                        
-//                        if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
-//                            self.unfilteredCIImages.remove(at: 0)
-//                        }
-//                    } else {
-//                        self.unfilteredCIImages.append(storeImage)
-//                        if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
-//                            DispatchQueue.main.async {
-//                                // UI change has to be in main thread
-//                                self.stopLiveGif()
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-        
     }
 }
 
 extension CIImage {
 
-    // worst performance on resizing
-    // http://nshipster.com/image-resizing/
+    /** Resize CIImage using CIContext. Worst performance according to NSHipster. http://nshipster.com/image-resizing/. */
     func resize(frame: CGRect) -> CIImage? {
         print("BEFORE scaled CIImage extent: \(self.extent) in \(#function)")
 
-//        let scale = frame.width / self.extent.width
-//        
-//        let filter = CIFilter(name: "CILanczosScaleTransform")!
-//        //let rectFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height)
-//        //let vectorFrame = CIVector(cgRect: frame)
-//        //filter.setValue(vectorFrame, forKey: kCIInputExtentKey) // CILanczosScaleTransform doesn't accept vector frame
-//        filter.setValue(self, forKey: kCIInputImageKey)
-//        filter.setValue(scale, forKey: kCIInputScaleKey)
-//        filter.setValue(1.0, forKey: kCIInputAspectRatioKey)
-//        
-//        guard let outputImage = filter.value(forKey: kCIOutputImageKey) as? CIImage else {
-//            print("output image is nil in \(#function)")
-//            return nil
-//        }
-//        
-//        let context = CIContext(options: [kCIContextUseSoftwareRenderer: false])
-//        
-//        guard let scaledCGImage = context.createCGImage(outputImage, from: outputImage.extent) else {
-//            print("scaled CGImage is nil in \(#function)")
-//            return nil
-//        }
-//        
-//        // code below is not being executed. Execution stops the line above.
-//        let scaledCIImage = CIImage(cgImage: scaledCGImage)
-//        print("AFTER scaled CIImage extent: \(scaledCIImage.extent) in \(#function)")
-//        
-//        return scaledCIImage
+        let scale = frame.width / self.extent.width
         
-        print("end of \(#function)")
-        return nil
+        let filter = CIFilter(name: "CILanczosScaleTransform")!
+        //let rectFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height)
+        //let vectorFrame = CIVector(cgRect: frame)
+        //filter.setValue(vectorFrame, forKey: kCIInputExtentKey) // CILanczosScaleTransform doesn't accept vector frame
+        filter.setValue(self, forKey: kCIInputImageKey)
+        filter.setValue(scale, forKey: kCIInputScaleKey)
+        filter.setValue(1.0, forKey: kCIInputAspectRatioKey)
+        
+        guard let outputImage = filter.value(forKey: kCIOutputImageKey) as? CIImage else {
+            print("output image is nil in \(#function)")
+            return nil
+        }
+        
+        let context = CIContext(options: [kCIContextUseSoftwareRenderer: false])
+        
+        guard let scaledCGImage = context.createCGImage(outputImage, from: outputImage.extent) else {
+            print("scaled CGImage is nil in \(#function)")
+            return nil
+        }
+        
+        // code below is not being executed. Execution stops the line above.
+        let scaledCIImage = CIImage(cgImage: scaledCGImage)
+        print("AFTER scaled CIImage extent: \(scaledCIImage.extent) in \(#function)")
+        
+        return scaledCIImage
     }
     
+    /** Resize CIImage using CGContext. if CIImage is created from sample buffer, CGImage is nil. */
     func resizeWithCGContext(frame: CGRect) -> CIImage? {
-        print("BEFORE scaled CIImage extent: \(self.extent) in \(#function)")
+        // https://developer.apple.com/reference/coreimage/ciimage/1687603-cgimage
+        // If CIImage is created from init(cgImage:) or init(contentsOf:) initializer, cgImage property is value
+        // otherwise nil. In that case, to create CGImage from CIImage, use CIContext createCGImage(_:from:)
 
         // CGImage is nil
         guard let cgImage = self.cgImage else {
@@ -823,7 +775,6 @@ extension CIImage {
         let bytesPerRow = cgImage.bytesPerRow
         let colorSpace = cgImage.colorSpace
         let bitmapInfo = cgImage.bitmapInfo
-        
         
         guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace!, bitmapInfo: bitmapInfo.rawValue) else {
             print("context is nil in \(#function)")
@@ -839,15 +790,13 @@ extension CIImage {
         }
         
         let scaledCIImage = CIImage(cgImage: scaledCGImage)
-        print("AFTER scaled CIImage extent: \(scaledCIImage.extent) in \(#function)")
-
         return scaledCIImage
-        
     }
 }
 
 // https://gist.github.com/valkjsaaa/f9edfc25b4fd592caf82834fafc07759
 extension CVPixelBuffer {
+    /** Make a deep copy of CVPixelBuffer. */
     func deepcopy() -> CVPixelBuffer? {
         let width = CVPixelBufferGetWidth(self)
         let height = CVPixelBufferGetHeight(self)
@@ -868,8 +817,8 @@ extension CVPixelBuffer {
     }
 }
 
-
 extension CMSampleBuffer {
+    /** Make a brand new CIImage from CMSampleBuffer using bitmap. */
     var deepCopiedCIImage: CIImage? {
         get {
             // Get a CMSampleBuffer's Core Video image buffer for the media data
@@ -877,7 +826,6 @@ extension CMSampleBuffer {
                 print("image buffer is nil")
                 return nil
             }
-            
     
             // Lock the base address of the pixel buffer
             CVPixelBufferLockBaseAddress(imageBuffer, CVPixelBufferLockFlags(rawValue: 0))
@@ -938,19 +886,11 @@ extension CMSampleBuffer {
 
             var sourceImage = CIImage(cgImage: quartzImage)
             
-            //print("BEFORE resizing, extent: \(sourceImage.extent)")
-//            let image = UIImage(cgImage: quartzImage, scale: 0.1, orientation: UIImageOrientation.up)
-//            let imageView = UIImageView(image: image)
-//            imageView.frame = UIScreen.main.bounds
-//            let vc = UIViewController()
-//            vc.view.addSubview(imageView)
             let scale = UIScreen.main.bounds.width / sourceImage.extent.width
-            // 251MB
+            
+            // resize
             //sourceImage = sourceImage.applying(CGAffineTransform(scaleX: scale, y: scale)) // 251MB after snapping
-            //print("AFTER resizing, extent: \(sourceImage.extent)")
-            //print(MemoryLayout<CIImage>.size)
             return sourceImage
         }
     }
 }
-

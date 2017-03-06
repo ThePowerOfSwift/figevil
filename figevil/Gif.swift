@@ -39,10 +39,6 @@ class Gif: NSObject {
         process()
     }
     
-//    func rotateCIImage(_ ciImage: CIImage) -> CIImage {
-//        
-//    }
-    
     /** Produces a gif image view with specified settings*/
     func process() {
         // getImagesWithNewFPS
@@ -70,12 +66,6 @@ class Gif: NSObject {
             // generate gif
             gifImageView = UIImageView.generateGifImageView(with: scaledImages, frame: frame, duration: gifPlayDuration)
         }
-        
-        save(drawImage: nil, textImage: nil) { (saved: Bool) in
-            if saved {
-                print("saved")
-            }
-        }
     }
     
     func getImagesWithNewFPS(ciImages: [CIImage]) -> [CIImage] {
@@ -94,32 +84,6 @@ class Gif: NSObject {
         return resizeUIImages(uiImages, scale: scale)
     }
     
-//    /** Fixes orientation of array of CIImage and apply filters to it.
-//     Fixing orientation and applying filter have to be done at the same time
-//     because fixing orientation only produces UIImage with its CIImage property nil.
-//     */
-//    func fixOrientation(ciImages: [CIImage]) -> [UIImage]? {
-//        var rotatedUIImages = [UIImage]()
-//        
-//        for ciImage in ciImages {
-//            
-//            //let newCIImage = ciImage.applying(CGAffineTransform(scaleX: 0.05, y: 0.05))
-//            //let newCIImage = ciImage.applying(CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
-//            
-//            //let uiImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right)
-//            //let uiImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right) // width: 1080, height: 1920, scale: 1.0, orientation: 3
-//            let uiImage = UIImage(ciImage: ciImage, scale: 3, orientation: UIImageOrientation.right) // 360, 640. The bigger scale is, the image smaller becomes
-//            
-//            guard let rotatedImage = rotate(image: uiImage) else { // width: 1080, height: 1920, scale: 1.0, orientation: 0
-//                print("rotatedImage is nil in \(#function)")
-//                return nil
-//            }
-//            rotatedUIImages.append(rotatedImage)
-////            rotatedUIImages.append(uiImage)
-//        }
-//        
-//        return rotatedUIImages
-//    }
     /** Fixes orientation of array of CIImage and apply filters to it.
      Fixing orientation and applying filter have to be done at the same time
      because fixing orientation only produces UIImage with its CIImage property nil.
@@ -127,39 +91,48 @@ class Gif: NSObject {
     func fixOrientation(ciImages: [CIImage]) -> [UIImage]? {
         var rotatedUIImages = [UIImage]()
         
+        // whats the size of ciImages
         for ciImage in ciImages {
             
-            //let newCIImage = ciImage.applying(CGAffineTransform(scaleX: 0.05, y: 0.05))
-            //let newCIImage = ciImage.applying(CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
             
-            //let uiImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right)
-            //let uiImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right) // width: 1080, height: 1920, scale: 1.0, orientation: 3
-            let uiImage = UIImage(ciImage: ciImage, scale: 0.5, orientation: UIImageOrientation.right) // 360, 640. The bigger scale is, the image smaller becomes
+            // let newCIImage = ciImage.applying(CGAffineTransform(scaleX: 0.05, y: 0.05))
+            // let newCIImage = ciImage.applying(CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
+            // let uiImage = UIImage(ciImage: newCIImage) causes crash when startAnimating()
+            // let uiImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right) // width: 1080, height: 1920, scale: 1.0, orientation: 3
+            // rotatedUIImages.append(uiImage)
+            // --------------------------------------------------------------------------------------
+            print("screen scale \()")
+            // Whats ths size of each uiImage
+            let uiImage = UIImage(ciImage: ciImage, scale: 3, orientation: UIImageOrientation.right) // 360, 640. The bigger scale is, the image smaller becomes
             
-//            guard let rotatedImage = rotate(image: uiImage) else { // width: 1080, height: 1920, scale: 1.0, orientation: 0
-//                print("rotatedImage is nil in \(#function)")
-//                return nil
-//            }
-//            rotatedUIImages.append(rotatedImage)
-            rotatedUIImages.append(uiImage)
+            
+            // Skip
+            guard let rotatedImage = rotate(image: uiImage) else { // width: 1080, height: 1920, scale: 1.0, orientation: 0
+                print("rotatedImage is nil in \(#function)")
+                return nil
+            }
+            rotatedUIImages.append(rotatedImage)
+            
+            // create a timer that loops through each image to imageView.image every 1 sec
         }
         
         return rotatedUIImages
     }
-    
+
     /** Fixes orientation of CIImage and returns UIImage.
      Set orientation right or left and rotate it by 90 or -90 degrees to fix rotation. */
     func fixOrientation(ciImage: CIImage) -> UIImage? {
         // set orientation right or left and rotate it by 90 or -90 degrees to fix rotation
-        let filteredUIImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.left)
-        //let filteredUIImage = UIImage(ciImage: ciImage)
-//        guard let rotatedImage = rotate(image: filteredUIImage) else {
-//            print("rotatedImage is nil in \(#function)")
-//            return nil
-//        }
-//        
-//        return rotatedImage
-        return filteredUIImage
+        let filteredUIImage = UIImage(ciImage: ciImage)
+        guard let rotatedImage = rotate(image: filteredUIImage) else {
+            print("rotatedImage is nil in \(#function)")
+            return nil
+        }
+        
+        return rotatedImage
+// ---------------------------------------------------------------------------------------------
+//        let filteredUIImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.left)
+//        return filteredUIImage
     }
     
     /** Rotates image by 90 degrees. */
