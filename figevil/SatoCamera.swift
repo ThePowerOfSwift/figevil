@@ -462,7 +462,7 @@ class SatoCamera: NSObject {
         cameraOutput?.sampleBufferView?.isHidden = false
         didOutputSampleBufferMethodCallCount = 0
         resultImageView = nil
-        
+        gif = nil
         
         if let cameraOutput = cameraOutput {
             if let outputImageView = cameraOutput.outputImageView {
@@ -693,6 +693,8 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: imageDrawRect)
         videoGLKPreview?.display()
         
+
+        
         DispatchQueue.global(qos: .background).async {
             self.didOutputSampleBufferMethodCallCount += 1
             if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
@@ -700,6 +702,8 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                 //if let resizedCIImage = storeImage.resize(frame: self.frame) {
                 //                if let resizedCIImage = storeImage.resizeWithCGContext(frame: self.frame) {
                 if let deepCopiedCIImage = sampleBuffer.deepCopiedCIImage {
+//                if let copy = pixelBuffer.deepcopy() {
+//                    let deepCopiedCIImage = CIImage(cvPixelBuffer: copy)
 
                     if self.isRecording {
                         self.unfilteredCIImages.append(deepCopiedCIImage)
@@ -840,8 +844,6 @@ extension CIImage {
         return scaledCIImage
         
     }
-    
-    
 }
 
 // https://gist.github.com/valkjsaaa/f9edfc25b4fd592caf82834fafc07759
@@ -868,8 +870,6 @@ extension CVPixelBuffer {
 
 
 extension CMSampleBuffer {
-    
-    
     var deepCopiedCIImage: CIImage? {
         get {
             // Get a CMSampleBuffer's Core Video image buffer for the media data
@@ -928,7 +928,7 @@ extension CMSampleBuffer {
             }
             
             // Create a Quartz image from the pixel data in the bitmap graphics context
-            guard let quartzImage = context.makeImage() else {
+            guard var quartzImage = context.makeImage() else {
                 print("Error creating source image from quatz image")
                 return nil
             }
@@ -948,8 +948,9 @@ extension CMSampleBuffer {
             // 251MB
             //sourceImage = sourceImage.applying(CGAffineTransform(scaleX: scale, y: scale)) // 251MB after snapping
             print("AFTER resizing, extent: \(sourceImage.extent)")
-            
+            //print(MemoryLayout<CIImage>.size)
             return sourceImage
         }
     }
 }
+
