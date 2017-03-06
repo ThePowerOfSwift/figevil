@@ -39,6 +39,10 @@ class Gif: NSObject {
         process()
     }
     
+//    func rotateCIImage(_ ciImage: CIImage) -> CIImage {
+//        
+//    }
+    
     /** Produces a gif image view with specified settings*/
     func process() {
         // getImagesWithNewFPS
@@ -94,7 +98,9 @@ class Gif: NSObject {
         
         for ciImage in ciImages {
             
+            //let newCIImage = ciImage.applying(CGAffineTransform(scaleX: 0.05, y: 0.05))
             
+            //let uiImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right)
             let uiImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right)
             
             guard let rotatedImage = rotate(image: uiImage) else {
@@ -102,6 +108,7 @@ class Gif: NSObject {
                 return nil
             }
             rotatedUIImages.append(rotatedImage)
+            //rotatedUIImages.append(uiImage)
         }
         
         return rotatedUIImages
@@ -111,13 +118,15 @@ class Gif: NSObject {
      Set orientation right or left and rotate it by 90 or -90 degrees to fix rotation. */
     func fixOrientation(ciImage: CIImage) -> UIImage? {
         // set orientation right or left and rotate it by 90 or -90 degrees to fix rotation
-        let filteredUIImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right)
-        guard let rotatedImage = rotate(image: filteredUIImage) else {
-            print("rotatedImage is nil in \(#function)")
-            return nil
-        }
-        
-        return rotatedImage
+        let filteredUIImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.left)
+        //let filteredUIImage = UIImage(ciImage: ciImage)
+//        guard let rotatedImage = rotate(image: filteredUIImage) else {
+//            print("rotatedImage is nil in \(#function)")
+//            return nil
+//        }
+//        
+//        return rotatedImage
+        return filteredUIImage
     }
     
     /** Rotates image by 90 degrees. */
@@ -128,7 +137,7 @@ class Gif: NSObject {
             return nil
         }
         image.draw(at: CGPoint.zero)
-        context.rotate(by: CGFloat(M_PI_2)) // M_PI_2 = pi / 2 = 90 degrees (pi radians = 180 degrees)
+        //context.rotate(by: CGFloat(M_PI_2)) // M_PI_2 = pi / 2 = 90 degrees (pi radians = 180 degrees)
         
         let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()

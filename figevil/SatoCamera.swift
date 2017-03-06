@@ -64,7 +64,7 @@ protocol SatoCameraOutput {
 // imageDrawRect = width: 1920, height: 1078
 
 
-var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
+var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 3, liveGifDuration: 3)
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
@@ -928,7 +928,7 @@ extension CMSampleBuffer {
             }
             
             // Create a Quartz image from the pixel data in the bitmap graphics context
-            guard var quartzImage = context.makeImage() else {
+            guard let quartzImage = context.makeImage() else {
                 print("Error creating source image from quatz image")
                 return nil
             }
