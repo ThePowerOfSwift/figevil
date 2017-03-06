@@ -65,6 +65,7 @@ class Gif: NSObject {
             let scaledImages = createImagesWithNewScale(uiImages: rotatedUIImages, scale: scale)
             // generate gif
             gifImageView = UIImageView.generateGifImageView(with: scaledImages, frame: frame, duration: gifPlayDuration)
+            
         }
     }
     
@@ -172,7 +173,6 @@ class Gif: NSObject {
         }
         return nil
     }
-    
     
     /** Saves output image to camera roll. */
     internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((Bool) -> ())?) {

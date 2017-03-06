@@ -59,6 +59,11 @@ protocol SatoCameraOutput {
 // gifFPS 10 with resizing simultaneausly: 70-80%, +300MB, crash after memory usage reached 300MB. Memory keeps growing because second half of resizing method is not executed in background.
 // gifFPS 10: resizing in main thread, +105%, 50MB, lags, UI not responding
 
+// source CIImage = width: 1920, height: 1080
+// videoGLKPreviewViewBounds = width: 1334, height: 749
+// imageDrawRect = width: 1920, height: 1078
+
+
 var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
@@ -165,8 +170,8 @@ class SatoCamera: NSObject {
         videoGLKPreview.bindDrawable()
         videoGLKPreviewViewBounds = CGRect.zero
         // drawable width The width, in pixels, of the underlying framebuffer object.
-        videoGLKPreviewViewBounds?.size.width = CGFloat(videoGLKPreview.drawableWidth)
-        videoGLKPreviewViewBounds?.size.height = CGFloat(videoGLKPreview.drawableHeight)
+        videoGLKPreviewViewBounds?.size.width = CGFloat(videoGLKPreview.drawableWidth) // 1334 pixels
+        videoGLKPreviewViewBounds?.size.height = CGFloat(videoGLKPreview.drawableHeight) // 749 pixels
         
         ciContext = CIContext(eaglContext: eaglContext)
         setupOpenGL()
@@ -456,6 +461,8 @@ class SatoCamera: NSObject {
         unfilteredCIImages.removeAll()
         cameraOutput?.sampleBufferView?.isHidden = false
         didOutputSampleBufferMethodCallCount = 0
+        resultImageView = nil
+        
         
         if let cameraOutput = cameraOutput {
             if let outputImageView = cameraOutput.outputImageView {
@@ -614,28 +621,30 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     /** Calculate ciimage's extent to be fit to GKLView. */
     func calculateDrawRect(sourceImage: CIImage) -> CGRect {
-        let sourceExtent: CGRect = sourceImage.extent
-        let sourceAspect = sourceExtent.width / sourceExtent.height
-        
-        guard let videoGLKPreviewViewBounds = videoGLKPreviewViewBounds else {
-            print("videoGLKPreviewViewBounds is nil")
-            return frame
-        }
-        
-        // we want to maintain the aspect radio of the screen size, so we clip the video image
-        let previewAspect = videoGLKPreviewViewBounds.width / videoGLKPreviewViewBounds.height
-        
-        var drawRect: CGRect = sourceExtent
-        
-        if sourceAspect > previewAspect {
-            drawRect.origin.x += (drawRect.size.width - drawRect.size.height * previewAspect) / 2.0
-            drawRect.size.width = drawRect.size.height * previewAspect
-        } else {
-            drawRect.origin.y += (drawRect.size.height - drawRect.size.width / previewAspect) / 2.0
-            drawRect.size.height = drawRect.size.width / previewAspect
-        }
-        
-        return drawRect
+//        // sourceExtent = width: 1920, height: 1080
+//        let sourceExtent: CGRect = sourceImage.extent
+//        let sourceAspect = sourceExtent.width / sourceExtent.height
+//        
+//        guard let videoGLKPreviewViewBounds = videoGLKPreviewViewBounds else {
+//            print("videoGLKPreviewViewBounds is nil")
+//            return frame
+//        }
+//        
+//        // we want to maintain the aspect radio of the screen size, so we clip the video image
+//        let previewAspect = videoGLKPreviewViewBounds.width / videoGLKPreviewViewBounds.height
+//        
+//        var drawRect: CGRect = sourceExtent
+//        
+//        if sourceAspect > previewAspect {
+//            drawRect.origin.x += (drawRect.size.width - drawRect.size.height * previewAspect) / 2.0
+//            drawRect.size.width = drawRect.size.height * previewAspect
+//        } else {
+//            drawRect.origin.y += (drawRect.size.height - drawRect.size.width / previewAspect) / 2.0
+//            drawRect.size.height = drawRect.size.width / previewAspect
+//        }
+//        
+//        return drawRect
+        return sourceImage.extent
     }
     
     /** Called about every millisecond. Apply filter here and output video frame to preview view.
@@ -679,45 +688,79 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         if eaglContext != EAGLContext.current() {
             EAGLContext.setCurrent(eaglContext)
         }
-        
+        // videoGLKPreviewViewBounds = width: 1334, height: 749
+        // imageDrawRect = width: 1920, height: 1078 (same as CIImage extent)
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: imageDrawRect)
         videoGLKPreview?.display()
-    
-        guard let copyPixelBuffer = pixelBuffer.deepcopy() else {
-            print("copy pixel buffer is nil")
-            return
-        }
         
-        let storeImage = CIImage(cvPixelBuffer: copyPixelBuffer)
-        
-        // store image in array in background
         DispatchQueue.global(qos: .background).async {
             self.didOutputSampleBufferMethodCallCount += 1
             if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
                 // this is called from many different threads
                 //if let resizedCIImage = storeImage.resize(frame: self.frame) {
                 //                if let resizedCIImage = storeImage.resizeWithCGContext(frame: self.frame) {
-                if self.isRecording {
-                    self.unfilteredCIImages.append(storeImage)
-                } else {
-                    if !self.isGifSnapped {
-                        self.unfilteredCIImages.append(storeImage)
-                        
-                        if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
-                            self.unfilteredCIImages.remove(at: 0)
-                        }
+                if let deepCopiedCIImage = sampleBuffer.deepCopiedCIImage {
+
+                    if self.isRecording {
+                        self.unfilteredCIImages.append(deepCopiedCIImage)
                     } else {
-                        self.unfilteredCIImages.append(storeImage)
-                        if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
-                            DispatchQueue.main.async {
-                                // UI change has to be in main thread
-                                self.stopLiveGif()
+                        if !self.isGifSnapped {
+                            self.unfilteredCIImages.append(deepCopiedCIImage)
+
+                            if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+                                self.unfilteredCIImages.remove(at: 0)
+                            }
+                        } else {
+                            self.unfilteredCIImages.append(deepCopiedCIImage)
+                            if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
+                                DispatchQueue.main.async {
+                                    // UI change has to be in main thread
+                                    self.stopLiveGif()
+                                }
                             }
                         }
                     }
                 }
             }
         }
+
+        
+        
+//        guard let copyPixelBuffer = pixelBuffer.deepcopy() else {
+//            print("copy pixel buffer is nil")
+//            return
+//        }
+//        
+//        let storeImage = CIImage(cvPixelBuffer: copyPixelBuffer)
+//        
+//        // store image in array in background
+//        DispatchQueue.global(qos: .background).async {
+//            self.didOutputSampleBufferMethodCallCount += 1
+//            if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
+//                // this is called from many different threads
+//                //if let resizedCIImage = storeImage.resize(frame: self.frame) {
+//                //                if let resizedCIImage = storeImage.resizeWithCGContext(frame: self.frame) {
+//                if self.isRecording {
+//                    self.unfilteredCIImages.append(storeImage)
+//                } else {
+//                    if !self.isGifSnapped {
+//                        self.unfilteredCIImages.append(storeImage)
+//                        
+//                        if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+//                            self.unfilteredCIImages.remove(at: 0)
+//                        }
+//                    } else {
+//                        self.unfilteredCIImages.append(storeImage)
+//                        if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
+//                            DispatchQueue.main.async {
+//                                // UI change has to be in main thread
+//                                self.stopLiveGif()
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
         
     }
 }
@@ -797,6 +840,8 @@ extension CIImage {
         return scaledCIImage
         
     }
+    
+    
 }
 
 // https://gist.github.com/valkjsaaa/f9edfc25b4fd592caf82834fafc07759
@@ -823,6 +868,8 @@ extension CVPixelBuffer {
 
 
 extension CMSampleBuffer {
+    
+    
     var deepCopiedCIImage: CIImage? {
         get {
             // Get a CMSampleBuffer's Core Video image buffer for the media data
@@ -830,19 +877,45 @@ extension CMSampleBuffer {
                 print("image buffer is nil")
                 return nil
             }
+            
     
             // Lock the base address of the pixel buffer
             CVPixelBufferLockBaseAddress(imageBuffer, CVPixelBufferLockFlags(rawValue: 0))
     
-            // Get the number of bytes per row for the pixel buffer
             let baseAddress = CVPixelBufferGetBaseAddress(imageBuffer)
     
             // Get the number of bytes per row for the pixel buffer
             let bytesPerRow = CVPixelBufferGetBytesPerRow(imageBuffer);
             // Get the pixel buffer width and height
-            let width = CVPixelBufferGetWidth(imageBuffer);
-            let height = CVPixelBufferGetHeight(imageBuffer);
-    
+            
+            let width = CVPixelBufferGetWidth(imageBuffer) // 1920
+            let height = CVPixelBufferGetHeight(imageBuffer) // 1080
+// -------------------------------------------------------------
+//            let width = CVPixelBufferGetWidth(imageBuffer) / 10 // 192
+//            let height = CVPixelBufferGetHeight(imageBuffer) / 10 // 108
+// -------------------------------------------------------------
+//            let bufferWidth = CVPixelBufferGetWidth(imageBuffer);
+//            let bufferHeight = CVPixelBufferGetHeight(imageBuffer);
+//
+//            let screenWidth = Int(UIScreen.main.bounds.width)
+//            let screenHeight = Int(UIScreen.main.bounds.height)
+//            
+//            let widthScale: Double = Double(screenWidth) / Double(bufferWidth)
+//            let heightScale: Double = Double(screenHeight) / Double(bufferHeight)
+//            
+//            let widthDouble = Double(bufferWidth) * widthScale
+//            let heightDouble = Double(bufferHeight) * heightScale
+//            
+//            let width = Int(widthDouble)
+//            let height = Int(heightDouble)
+// -------------------------------------------------------------
+//            let width = Int(imageDrawRect.width) // 1920
+//            let height = Int(imageDrawRect.height) //1078
+// -------------------------------------------------------------
+//            let scale = UIScreen.main.scale
+//            let width = Int(CGFloat(CVPixelBufferGetWidth(imageBuffer)) / scale)
+//            let height = Int(CGFloat(CVPixelBufferGetHeight(imageBuffer)) / scale)
+            
             // Create a device-dependent RGB color space
             let colorSpace = CGColorSpaceCreateDeviceRGB();
     
@@ -853,7 +926,7 @@ extension CMSampleBuffer {
                 print("Error creating context from cvpixelbuffer")
                 return nil
             }
-    
+            
             // Create a Quartz image from the pixel data in the bitmap graphics context
             guard let quartzImage = context.makeImage() else {
                 print("Error creating source image from quatz image")
@@ -862,8 +935,19 @@ extension CMSampleBuffer {
     
             // Unlock the pixel buffer
             CVPixelBufferUnlockBaseAddress(imageBuffer, CVPixelBufferLockFlags(rawValue: 0))
-    
-            let sourceImage = CIImage(cgImage: quartzImage)
+
+            var sourceImage = CIImage(cgImage: quartzImage)
+            
+            print("BEFORE resizing, extent: \(sourceImage.extent)")
+//            let image = UIImage(cgImage: quartzImage, scale: 0.1, orientation: UIImageOrientation.up)
+//            let imageView = UIImageView(image: image)
+//            imageView.frame = UIScreen.main.bounds
+//            let vc = UIViewController()
+//            vc.view.addSubview(imageView)
+            let scale = UIScreen.main.bounds.width / sourceImage.extent.width
+            // 251MB
+            //sourceImage = sourceImage.applying(CGAffineTransform(scaleX: scale, y: scale)) // 251MB after snapping
+            print("AFTER resizing, extent: \(sourceImage.extent)")
             
             return sourceImage
         }
