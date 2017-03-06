@@ -64,7 +64,7 @@ protocol SatoCameraOutput {
 // imageDrawRect = width: 1920, height: 1078
 
 
-var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 3, liveGifDuration: 3)
+var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
@@ -587,7 +587,7 @@ class SatoCamera: NSObject {
         }
         
         cameraOutput?.outputImageView?.addSubview(gifImageView)
-        gifImageView.startAnimating()
+        //gifImageView.startAnimating()
     }
 }
 
@@ -938,7 +938,7 @@ extension CMSampleBuffer {
 
             var sourceImage = CIImage(cgImage: quartzImage)
             
-            print("BEFORE resizing, extent: \(sourceImage.extent)")
+            //print("BEFORE resizing, extent: \(sourceImage.extent)")
 //            let image = UIImage(cgImage: quartzImage, scale: 0.1, orientation: UIImageOrientation.up)
 //            let imageView = UIImageView(image: image)
 //            imageView.frame = UIScreen.main.bounds
@@ -947,7 +947,7 @@ extension CMSampleBuffer {
             let scale = UIScreen.main.bounds.width / sourceImage.extent.width
             // 251MB
             //sourceImage = sourceImage.applying(CGAffineTransform(scaleX: scale, y: scale)) // 251MB after snapping
-            print("AFTER resizing, extent: \(sourceImage.extent)")
+            //print("AFTER resizing, extent: \(sourceImage.extent)")
             //print(MemoryLayout<CIImage>.size)
             return sourceImage
         }
