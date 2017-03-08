@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import Firebase
+//import Firebase
 import AVFoundation
 
 @UIApplicationMain
@@ -17,20 +17,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-//        FIRApp.configure()
+        //FIRApp.configure()
         
         window = UIWindow(frame: UIScreen.main.bounds)
         askUserCameraAccessAuthorization { (authorized: Bool) in
             if authorized {
                 print("camera access authorized")
-                let storyboard = UIStoryboard(name: "Camera", bundle: nil)
-                let cameraViewController = storyboard.instantiateInitialViewController() as! CameraViewController
-                self.window?.rootViewController = cameraViewController
-                self.window?.makeKeyAndVisible()
+                // takes too long if camera view controller is instantiated here
             } else {
                 print("camera access failed to authorize")
             }
         }
+        
+        // this code should be 
+        let storyboard = UIStoryboard(name: "Camera", bundle: nil)
+        let cameraViewController = storyboard.instantiateInitialViewController() as! CameraViewController
+        self.window?.rootViewController = cameraViewController
+        self.window?.makeKeyAndVisible()
 
         return true
     }

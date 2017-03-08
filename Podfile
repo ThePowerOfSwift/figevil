@@ -7,5 +7,4 @@ target 'figevil' do
 
   # Pods for figevil
   pod 'Firebase/Core'
-
 end

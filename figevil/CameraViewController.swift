@@ -126,7 +126,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         selectFirstEffect()
         //satoCamera.start()
         satoCamera.initialStart()
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {

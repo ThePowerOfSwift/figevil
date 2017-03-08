@@ -199,15 +199,24 @@ class Gif: NSObject {
                     print("gif data is nil")
                 }
                 
-                
                 // check authorization status
                 PHPhotoLibrary.requestAuthorization
                     { (status) -> Void in
                         switch (status)
                         {
-                        case .authorized: break
+                        case .authorized:
                             // Permission Granted
                         //print("Photo library usage authorized")
+                        // save data to the url
+                        PHPhotoLibrary.shared().performChanges({
+                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
+                        }, completionHandler: { (saved: Bool, error: Error?) in
+                            if saved {
+                                completion?(true)
+                            } else {
+                                completion?(false)
+                            }
+                        })
                         case .denied:
                             // Permission Denied
                             print("User denied")
@@ -215,17 +224,6 @@ class Gif: NSObject {
                             print("Restricted")
                         }
                 }
-                
-                // save data to the url
-                PHPhotoLibrary.shared().performChanges({
-                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
-                }, completionHandler: { (saved: Bool, error: Error?) in
-                    if saved {
-                        completion?(true)
-                    } else {
-                        completion?(false)
-                    }
-                })
             }
         })
     }
