@@ -94,26 +94,13 @@ class Gif: NSObject {
         // whats the size of ciImages
         for ciImage in ciImages {
             
+            let uiImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right) // 360, 640. The bigger scale is, the image smaller becomes
             
-            // let newCIImage = ciImage.applying(CGAffineTransform(scaleX: 0.05, y: 0.05))
-            // let newCIImage = ciImage.applying(CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
-            // let uiImage = UIImage(ciImage: newCIImage) causes crash when startAnimating()
-            // let uiImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right) // width: 1080, height: 1920, scale: 1.0, orientation: 3
-            // rotatedUIImages.append(uiImage)
-            // --------------------------------------------------------------------------------------
-            print("screen scale \()")
-            // Whats ths size of each uiImage
-            let uiImage = UIImage(ciImage: ciImage, scale: 3, orientation: UIImageOrientation.right) // 360, 640. The bigger scale is, the image smaller becomes
-            
-            
-            // Skip
             guard let rotatedImage = rotate(image: uiImage) else { // width: 1080, height: 1920, scale: 1.0, orientation: 0
                 print("rotatedImage is nil in \(#function)")
                 return nil
             }
             rotatedUIImages.append(rotatedImage)
-            
-            // create a timer that loops through each image to imageView.image every 1 sec
         }
         
         return rotatedUIImages

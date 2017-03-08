@@ -52,6 +52,8 @@ protocol SatoCameraOutput {
     
     /** Show the live preview. GLKView is added to this view. */
     var sampleBufferView: UIView? { get }
+    
+    var cameraAccessAuthorizationStatus: Bool { get set }
 }
 
 // gifFPS 3: CPU 70-80%, memory 61MB
@@ -64,7 +66,7 @@ protocol SatoCameraOutput {
 // imageDrawRect = width: 1920, height: 1078
 
 
-var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
+var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 5, liveGifDuration: 3)
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
@@ -177,9 +179,9 @@ class SatoCamera: NSObject {
         setupOpenGL()
         
         _ = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(printPerSecond), userInfo: nil, repeats: true)
-        initialStart()
+        //initialStart()
     }
-    
+
     func setupOpenGL() {
         // OpenGL official documentation: https://www.khronos.org/registry/OpenGL-Refpages/es2.0/
         // clear eagl view to grey
@@ -199,7 +201,7 @@ class SatoCamera: NSObject {
     }
     
     /** Start running capture session. */
-    private func initialStart() {
+    internal func initialStart() {
         
         // Get video device
         guard let videoDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo) else {
@@ -275,7 +277,6 @@ class SatoCamera: NSObject {
         // Assemble all the settings together
         captureSession.commitConfiguration()
         captureSession.startRunning()
-        //startRecordingGif()
     }
     
     /** Setup frame rate for video device. captureSession.addInput must be called before this method is called. */
@@ -408,7 +409,6 @@ class SatoCamera: NSObject {
         return returnText
     }
     
-    /** */
     internal func toggleTorch() -> String {
         let torchMode = torchOptions[torchOptionIndex.increment()]
         
@@ -652,18 +652,43 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
      In background, store CIImages into array one by one. Resizing should be done in background.*/
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         didOutputSampleBufferCountPerSecond += 1
-
-        //print("\t \(didOutputSampleBufferCountPerSecond) the call")
+        
+        // Store in background thread
+        DispatchQueue.global(qos: .background).async {
+            self.didOutputSampleBufferMethodCallCount += 1
+            if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
+                // get deep copied CIImage from sample buffer so that the ciimage has no reference to sample buffer anymore
+                if let deepCopiedCIImage = sampleBuffer.ciImage {
+                    if self.isRecording {
+                        self.unfilteredCIImages.append(deepCopiedCIImage)
+                    } else {
+                        // detect snap user action
+                        if !self.isGifSnapped {
+                            self.unfilteredCIImages.append(deepCopiedCIImage)
+                            
+                            if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+                                self.unfilteredCIImages.remove(at: 0)
+                            }
+                        } else {
+                            // if snapped, start post-storing
+                            self.unfilteredCIImages.append(deepCopiedCIImage)
+                            if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
+                                DispatchQueue.main.async {
+                                    // UI change has to be in main thread
+                                    self.stopLiveGif()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             print("image buffer is nil")
             return
         }
-        
         let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        //  let storeImage: CIImage = CIImage(cvPixelBuffer: copyPixelBuffer)
-        // sourceImage, storeImage and filteredImage all have the same address 
-        // so I thought applying filter to sourceImage affects storeImage stored in array which I don't want
-        // but it doesn't affect. I just use source image.
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -682,43 +707,9 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         if eaglContext != EAGLContext.current() {
             EAGLContext.setCurrent(eaglContext)
         }
-        // videoGLKPreviewViewBounds = width: 1334, height: 749
-        // imageDrawRect = width: 1920, height: 1078 (same as CIImage extent)
+
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: imageDrawRect)
-        videoGLKPreview?.display()
-        
-        DispatchQueue.global(qos: .background).async {
-            self.didOutputSampleBufferMethodCallCount += 1
-            if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
-                // this is called from many different threads
-                //if let resizedCIImage = storeImage.resize(frame: self.frame) {
-                //                if let resizedCIImage = storeImage.resizeWithCGContext(frame: self.frame) {
-                if let deepCopiedCIImage = sampleBuffer.deepCopiedCIImage {
-//                if let copy = pixelBuffer.deepcopy() {
-//                    let deepCopiedCIImage = CIImage(cvPixelBuffer: copy)
-
-                    if self.isRecording {
-                        self.unfilteredCIImages.append(deepCopiedCIImage)
-                    } else {
-                        if !self.isGifSnapped {
-                            self.unfilteredCIImages.append(deepCopiedCIImage)
-
-                            if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
-                                self.unfilteredCIImages.remove(at: 0)
-                            }
-                        } else {
-                            self.unfilteredCIImages.append(deepCopiedCIImage)
-                            if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
-                                DispatchQueue.main.async {
-                                    // UI change has to be in main thread
-                                    self.stopLiveGif()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        videoGLKPreview?.display()        
     }
 }
 
@@ -819,7 +810,7 @@ extension CVPixelBuffer {
 
 extension CMSampleBuffer {
     /** Make a brand new CIImage from CMSampleBuffer using bitmap. */
-    var deepCopiedCIImage: CIImage? {
+    var ciImage: CIImage? {
         get {
             // Get a CMSampleBuffer's Core Video image buffer for the media data
             guard let imageBuffer: CVImageBuffer = CMSampleBufferGetImageBuffer(self) else {
@@ -838,31 +829,6 @@ extension CMSampleBuffer {
             
             let width = CVPixelBufferGetWidth(imageBuffer) // 1920
             let height = CVPixelBufferGetHeight(imageBuffer) // 1080
-// -------------------------------------------------------------
-//            let width = CVPixelBufferGetWidth(imageBuffer) / 10 // 192
-//            let height = CVPixelBufferGetHeight(imageBuffer) / 10 // 108
-// -------------------------------------------------------------
-//            let bufferWidth = CVPixelBufferGetWidth(imageBuffer);
-//            let bufferHeight = CVPixelBufferGetHeight(imageBuffer);
-//
-//            let screenWidth = Int(UIScreen.main.bounds.width)
-//            let screenHeight = Int(UIScreen.main.bounds.height)
-//            
-//            let widthScale: Double = Double(screenWidth) / Double(bufferWidth)
-//            let heightScale: Double = Double(screenHeight) / Double(bufferHeight)
-//            
-//            let widthDouble = Double(bufferWidth) * widthScale
-//            let heightDouble = Double(bufferHeight) * heightScale
-//            
-//            let width = Int(widthDouble)
-//            let height = Int(heightDouble)
-// -------------------------------------------------------------
-//            let width = Int(imageDrawRect.width) // 1920
-//            let height = Int(imageDrawRect.height) //1078
-// -------------------------------------------------------------
-//            let scale = UIScreen.main.scale
-//            let width = Int(CGFloat(CVPixelBufferGetWidth(imageBuffer)) / scale)
-//            let height = Int(CGFloat(CVPixelBufferGetHeight(imageBuffer)) / scale)
             
             // Create a device-dependent RGB color space
             let colorSpace = CGColorSpaceCreateDeviceRGB();
@@ -884,11 +850,10 @@ extension CMSampleBuffer {
             // Unlock the pixel buffer
             CVPixelBufferUnlockBaseAddress(imageBuffer, CVPixelBufferLockFlags(rawValue: 0))
 
-            var sourceImage = CIImage(cgImage: quartzImage)
-            
-            let scale = UIScreen.main.bounds.width / sourceImage.extent.width
+            let sourceImage = CIImage(cgImage: quartzImage)
             
             // resize
+            //let scale = UIScreen.main.bounds.width / sourceImage.extent.width
             //sourceImage = sourceImage.applying(CGAffineTransform(scaleX: scale, y: scale)) // 251MB after snapping
             return sourceImage
         }

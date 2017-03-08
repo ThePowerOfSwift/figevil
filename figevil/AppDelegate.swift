@@ -8,20 +8,43 @@
 
 import UIKit
 import Firebase
+import AVFoundation
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
-
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
 //        FIRApp.configure()
+        
+        window = UIWindow(frame: UIScreen.main.bounds)
+        askUserCameraAccessAuthorization { (authorized: Bool) in
+            if authorized {
+                print("camera access authorized")
+                let storyboard = UIStoryboard(name: "Camera", bundle: nil)
+                let cameraViewController = storyboard.instantiateInitialViewController() as! CameraViewController
+                self.window?.rootViewController = cameraViewController
+                self.window?.makeKeyAndVisible()
+            } else {
+                print("camera access failed to authorize")
+            }
+        }
 
         return true
     }
 
+    func askUserCameraAccessAuthorization(completion: ((_ authorized: Bool)->())?) {
+        if AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) != AVAuthorizationStatus.authorized {
+            AVCaptureDevice.requestAccess(forMediaType: AVMediaTypeVideo, completionHandler: { (granted :Bool) -> Void in
+                completion?(granted)
+            })
+        } else {
+            completion?(true)
+        }
+    }
+    
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.

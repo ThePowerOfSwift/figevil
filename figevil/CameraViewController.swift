@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import AVFoundation
 
 class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollectionViewControllerDatasource, BubbleMenuCollectionViewControllerDelegate {
     
@@ -75,6 +76,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     var sampleBufferView: UIView? = UIView()
     // Must always be on top of sampleBuffer
     var outputImageView: UIImageView? = UIImageView()
+    
+    var cameraAccessAuthorizationStatus: Bool = false
 
     /**
      View that holds all control views and the active effect tool; always floating.
@@ -109,7 +112,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         // Do any additional setup after loading the view.
         setupSatoCamera()
         setupControlView()
@@ -121,8 +124,9 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         view.bringSubview(toFront: controlView)
         // Must manually select first effect
         selectFirstEffect()
+        //satoCamera.start()
+        satoCamera.initialStart()
         
-        satoCamera.start()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -146,7 +150,18 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     // MARK: Setups
     
+//    func askUserCameraAccessAuthorization(completion: ((_ authorized: Bool)->())?) {
+//        if AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) != AVAuthorizationStatus.authorized {
+//            AVCaptureDevice.requestAccess(forMediaType: AVMediaTypeVideo, completionHandler: { (granted :Bool) -> Void in
+//                completion?(granted)
+//            })
+//        } else {
+//            completion?(true)
+//        }
+//    }
+    
     func setupSatoCamera() {
+        
         if let sampleBufferView = sampleBufferView {
             sampleBufferView.frame = sampleBufferContainerView.bounds
             sampleBufferView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -259,7 +274,11 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         let textImage = textImageEffectView?.textView.imageView.image
         
         satoCamera.save(drawImage: drawImage, textImage: textImage, completion: { (saved: Bool) in
-            print("saved")
+            if saved {
+                print("saved gif to camera roll")
+            } else {
+                print("failed to save gif to camera roll")
+            }
         })
         
         cancel()
