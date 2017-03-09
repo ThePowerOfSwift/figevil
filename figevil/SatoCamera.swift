@@ -543,7 +543,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             print("image buffer is nil")
             return
         }
-        var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
