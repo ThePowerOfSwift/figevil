@@ -149,6 +149,8 @@ class SatoCamera: NSObject {
         glBlendFunc(GLenum(GL_ONE), GLenum(GL_ONE_MINUS_SRC_ALPHA)) // specify pixel arithmetics
     }
     
+    var captureSessionQueue: DispatchQueue = DispatchQueue.main
+    
     /** Start running capture session. */
     internal func initialStart() {
         
@@ -180,7 +182,7 @@ class SatoCamera: NSObject {
         
         // Ensure frames are delivered to the delegate in order
         // http://stackoverflow.com/questions/31775356/modifying-uiview-above-glkview-causing-crashes
-        let captureSessionQueue = DispatchQueue.main
+        //let captureSessionQueue = DispatchQueue.main
         // Set delegate to self for didOutputSampleBuffer
         videoDataOutput.setSampleBufferDelegate(self, queue: captureSessionQueue)
         
