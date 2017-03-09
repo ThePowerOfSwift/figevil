@@ -30,7 +30,7 @@ struct LiveGifPreset {
     
     /** "Play Speed" */
     var gifPlayDuration: TimeInterval {
-        return Double(liveGifDuration/3)
+        return TimeInterval(liveGifDuration)
     }
     var frameCaptureFrequency: Int {
         return Int(sampleBufferFPS) / gifFPS
@@ -38,6 +38,11 @@ struct LiveGifPreset {
     var sampleBufferFPS: Int32 = 30
     var liveGifFrameTotalCount: Int {
         return liveGifDuration * gifFPS
+    }
+    
+    /** The amount of time each frame stays. */
+    var frameDelay: Double {
+        return Double(liveGifDuration) / Double(liveGifFrameTotalCount)
     }
     
     init(gifFPS: Int, liveGifDuration: Int) {
@@ -472,7 +477,7 @@ class SatoCamera: NSObject {
     }
     
     /** Saves output image to camera roll. */
-    internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((Bool) -> ())?) {
+    internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
         
         guard let gif = gif else {
             print("gif is nil in \(#function)")
@@ -567,7 +572,8 @@ class SatoCamera: NSObject {
                       gifPlayDuration: currentLiveGifPreset.gifPlayDuration,
                       scale: 0,
                       frame: frame,
-                      filter: currentFilter)
+                      filter: currentFilter,
+                      frameDelay: currentLiveGifPreset.frameDelay)
         
         guard let gifImageView = gif.gifImageView else {
             print("gif image view is nil")

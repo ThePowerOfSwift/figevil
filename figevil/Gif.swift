@@ -26,8 +26,9 @@ class Gif: NSObject {
     var completion: ((Bool) -> ())?
     var filter: Filter?
     var gifPlayDuration: TimeInterval
+    var frameDelay: Double = 0
     
-    init(originalCIImages: [CIImage], currentGifFPS: Int, newGifFPS: Int,gifPlayDuration: TimeInterval = 1 , scale: Double, frame: CGRect, filter: Filter?) {
+    init(originalCIImages: [CIImage], currentGifFPS: Int, newGifFPS: Int,gifPlayDuration: TimeInterval = 1 , scale: Double, frame: CGRect, filter: Filter?, frameDelay: Double) {
         self.originalCIImages = originalCIImages
         self.currentGifFPS = currentGifFPS
         self.newGifFPS = newGifFPS
@@ -35,6 +36,7 @@ class Gif: NSObject {
         self.scale = scale
         self.frame = frame
         self.filter = filter
+        self.frameDelay = frameDelay
         super.init()
         process()
     }
@@ -94,7 +96,7 @@ class Gif: NSObject {
         // whats the size of ciImages
         for ciImage in ciImages {
             
-            let uiImage = UIImage(ciImage: ciImage, scale: 0, orientation: UIImageOrientation.right) // 360, 640. The bigger scale is, the image smaller becomes
+            let uiImage = UIImage(ciImage: ciImage, scale: 2, orientation: UIImageOrientation.right) // 360, 640. The bigger scale is, the image smaller becomes
             
             guard let rotatedImage = rotate(image: uiImage) else { // width: 1080, height: 1920, scale: 1.0, orientation: 0
                 print("rotatedImage is nil in \(#function)")
@@ -177,14 +179,14 @@ class Gif: NSObject {
     }
     
     /** Saves output image to camera roll. */
-    internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((Bool) -> ())?) {
+    internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
         // render gif
         guard let renderedGifImageView = render(drawImage: drawImage, textImage: textImage) else {
             print("rendered gif image view is nil")
             return
         }
         
-        renderedGifImageView.saveGifToDisk(completion: { (url: URL?, error: Error?) in
+        renderedGifImageView.saveGifToDisk(frameDelay: frameDelay, completion: { (url: URL?, error: Error?) in
             if error != nil {
                 print("\(error?.localizedDescription)")
             } else if let url = url {
@@ -192,7 +194,6 @@ class Gif: NSObject {
                 if let gifData = NSData(contentsOf: url) {
                     let gifSize = Double(gifData.length)
                     let gifSizeKB = gifSize / 1024.0
-                    print("size of gif in KB: ", gifSizeKB)
                     self.filesize = gifSizeKB
                     self.filesizeString = String(format: "%.2fKB", gifSizeKB)
                 } else {
@@ -212,9 +213,9 @@ class Gif: NSObject {
                             PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
                         }, completionHandler: { (saved: Bool, error: Error?) in
                             if saved {
-                                completion?(true)
+                                completion?(saved, self.filesizeString)
                             } else {
-                                completion?(false)
+                                completion?(saved, nil)
                             }
                         })
                         case .denied:
@@ -291,7 +292,7 @@ extension UIImageView {
     }
     
     /** Creates gif data from [UIImage] and generate URL. */
-    func saveGifToDisk(loopCount: Int = 0, frameDelay: Double = 0, completion: (_ data: URL?, _ error: Error?) -> ()) {
+    func saveGifToDisk(loopCount: Int = 0, frameDelay: Double , completion: (_ data: URL?, _ error: Error?) -> ()) {
         guard let animationImages = animationImages else {
             print("animation images is nil")
             return

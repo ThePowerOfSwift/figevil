@@ -272,9 +272,15 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         textImageEffectView?.textView.render()
         let textImage = textImageEffectView?.textView.imageView.image
         
-        satoCamera.save(drawImage: drawImage, textImage: textImage, completion: { (saved: Bool) in
+        satoCamera.save(drawImage: drawImage, textImage: textImage, completion: { (saved: Bool, fileSize: String?) in
             if saved {
                 print("saved gif to camera roll")
+                if var fileSize = fileSize {
+                    let alertController = UIAlertController(title: "Saved", message: fileSize, preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alertController.addAction(okAction)
+                    self.present(alertController, animated: true, completion: nil)
+                }
             } else {
                 print("failed to save gif to camera roll")
             }
