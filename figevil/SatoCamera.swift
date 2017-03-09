@@ -8,118 +8,64 @@
 
 import UIKit
 import AVFoundation
-import GLKit // OpenGL
-
+import GLKit
 // For saving gif to camera roll
 import ImageIO
 import MobileCoreServices
 import Photos
 
-// TODO: check camera device is available
-
 /** Indicate camera state. */
-enum CameraState {
+enum CameraFace {
     case Back
     case Front
-}
-
-struct LiveGifPreset {
-    /** has to be 0 < gifFPS <= 15 and 30 */
-    var gifFPS: Int
-    var liveGifDuration: Int
-    
-    /** "Play Speed" */
-    var gifPlayDuration: TimeInterval {
-        return TimeInterval(liveGifDuration)
-    }
-    var frameCaptureFrequency: Int {
-        return Int(sampleBufferFPS) / gifFPS
-    }
-    var sampleBufferFPS: Int32 = 30
-    var liveGifFrameTotalCount: Int {
-        return liveGifDuration * gifFPS
-    }
-    
-    /** The amount of time each frame stays. */
-    var frameDelay: Double {
-        return Double(liveGifDuration) / Double(liveGifFrameTotalCount)
-    }
-    
-    init(gifFPS: Int, liveGifDuration: Int) {
-        self.gifFPS = gifFPS
-        self.liveGifDuration = liveGifDuration
-    }
 }
 
 protocol SatoCameraOutput {
     /** Show the filtered output image view. */
     var outputImageView: UIImageView? { get set }
-    
     /** Show the live preview. GLKView is added to this view. */
-    var sampleBufferView: UIView? { get }
-    
-    var cameraAccessAuthorizationStatus: Bool { get set }
+    var sampleBufferView: UIView? { get }    
 }
 
-// gifFPS 3: CPU 70-80%, memory 61MB
-// gifFPS 10: 70-80%, 150MB , connection sometimes lost when snapped. if succeeded, memory is 280MB
-// gifFPS 10 with resizing simultaneausly: 70-80%, +300MB, crash after memory usage reached 300MB. Memory keeps growing because second half of resizing method is not executed in background.
-// gifFPS 10: resizing in main thread, +105%, 50MB, lags, UI not responding
-
-// source CIImage = width: 1920, height: 1080
-// videoGLKPreviewViewBounds = width: 1334, height: 749
-// imageDrawRect = width: 1920, height: 1078
-
-
+// Gif setting
 var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 5, liveGifDuration: 3)
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
     
-    /** view where CIImage created from sample buffer in didOutputSampleBuffer() is shown. Updated real time. */
+    // MARK: Basic Configuration for capturing
     fileprivate var videoGLKPreview: GLKView?
     fileprivate var videoDevice: AVCaptureDevice?
     fileprivate var videoDeviceInput: AVCaptureDeviceInput?
-    /** needed for real time image processing. instantiated with EAGLContext. */
     fileprivate var ciContext: CIContext?
     fileprivate var eaglContext: EAGLContext?
     /** stores GLKView's drawableWidth (The width, in pixels, of the underlying framebuffer object.) */
     fileprivate var videoGLKPreviewViewBounds: CGRect?
     fileprivate var captureSession: AVCaptureSession?
-    fileprivate var photoOutput: AVCapturePhotoOutput?
-    
-    /** array of unfiltered CIImage from didOutputSampleBuffer.
-     Filter should be applied when stop recording gif but not real time
-     because that slows down preview. */
-    fileprivate var unfilteredCIImages: [CIImage] = [CIImage]()
-    
-    /** count variable to count how many times the method gets called */
-    fileprivate var didOutputSampleBufferMethodCallCount: Int = 0
-    /** video frame will be captured once in the frequency how many times didOutputSample buffer is called. */
-    
-    /** Frame of preview view in a client. Should be set when being initialized. */
+    /** Frame of sampleBufferView of CameraOutput delegate. Should be set when being initialized. */
     fileprivate var frame: CGRect
     
-    /** Indicates current flash state. Default is off. (off, on, auto) */
-    internal var flashState: AVCaptureFlashMode = AVCaptureFlashMode.off
-    /** Indicates current torch state. Default is off. (off, on, auto) */
-    internal var torchState: AVCaptureTorchMode = AVCaptureTorchMode.off
+    // MARK: State
+    fileprivate var cameraFace: CameraFace = .Back
+    fileprivate var currentFilter: Filter = Filter.list()[0]
+    fileprivate var light = Light()
+
+    // MARK: Results
+    /** Stores the result gif object. */
+    fileprivate var gif: Gif?
+    /** Stores captured CIImages*/
+    fileprivate var unfilteredCIImages: [CIImage] = [CIImage]()
+    /** count variable to count how many times the method gets called */
+    fileprivate var didOutputSampleBufferMethodCallCount: Int = 0
     
-    fileprivate var flashOptions: [AVCaptureFlashMode] = [AVCaptureFlashMode.off, AVCaptureFlashMode.on, AVCaptureFlashMode.auto]
-    fileprivate var torchOptions: [AVCaptureTorchMode] = [AVCaptureTorchMode.off, AVCaptureTorchMode.on, AVCaptureTorchMode.auto]
+    // MARK: User action state
+    /** Indicates if SatoCamera is recording gif.*/
+    fileprivate var isRecording: Bool = false
+    /** Detect if user click the snap button. */
+    var isSnappedGif: Bool = false
     
-    fileprivate var flashOptionIndex: Index = Index(numOfElement: 3)
-    fileprivate var torchOptionIndex: Index = Index(numOfElement: 3)
-    
-    fileprivate var resultImageView: UIImageView?
-    
-    /** Store the result gif object. */
-    var gif: Gif?
-    
-    /** Indicates the current camera state. */
-    var cameraState: CameraState = .Back
-    
-    /** Can be set after initialization. videoGLKPreview will be added subview to sampleBufferOutput in dataSource. */
+    // MARK: Delegate
+    /** Delegate for SatoCamera. videoGLKPreview will be added subview to sampleBufferOutput in dataSource. */
     var cameraOutput: SatoCameraOutput? {
         didSet {
             
@@ -141,12 +87,7 @@ class SatoCamera: NSObject {
         }
     }
     
-    /** Store filter name. Changed by a client through change(filterName:). */
-    private var filterName: String = "CISepiaTone"
-    
-    /** Holds the current filter. */
-    var currentFilter: Filter = Filter.list()[0]
-    
+    // MARK: - Setups
     init(frame: CGRect) {
         self.frame = frame
         //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
@@ -183,8 +124,7 @@ class SatoCamera: NSObject {
         ciContext = CIContext(eaglContext: eaglContext)
         setupOpenGL()
         
-        _ = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(printPerSecond), userInfo: nil, repeats: true)
-        //initialStart()
+        initialStart()
     }
 
     func setupOpenGL() {
@@ -195,14 +135,6 @@ class SatoCamera: NSObject {
         // set the blend mode to "source over" so that CI will use that
         glEnable(GLenum(GL_BLEND)) // glEnable — enable or disable server-side GL capabilities
         glBlendFunc(GLenum(GL_ONE), GLenum(GL_ONE_MINUS_SRC_ALPHA)) // specify pixel arithmetics
-    }
-    
-    var time = 0
-    var didOutputSampleBufferCountPerSecond = 0
-    func printPerSecond() {
-        time += 1
-        didOutputSampleBufferCountPerSecond = 0
-        //print("\(time) second passed -------------------------------------------------------------------------------------")
     }
     
     /** Start running capture session. */
@@ -243,9 +175,6 @@ class SatoCamera: NSObject {
         // Discard late video frames not to cause lag and be slow
         videoDataOutput.alwaysDiscardsLateVideoFrames = true
         
-        // add still image output
-        photoOutput = AVCapturePhotoOutput()
-        
         // Configure input object with device
         // THIS CODE HAS TO BE BEFORE THE FRAME RATE  CONFIG
         // http://stackoverflow.com/questions/20330174/avcapture-capturing-and-getting-framebuffer-at-60-fps-in-ios-7
@@ -268,7 +197,8 @@ class SatoCamera: NSObject {
         if videoDevice.hasTorch && videoDevice.isTorchAvailable {
             do {
                 try videoDevice.lockForConfiguration()
-                videoDevice.torchMode = torchState
+                //videoDevice.torchMode = torchState
+                videoDevice.torchMode = light.torchState
                 videoDevice.unlockForConfiguration()
             } catch {
                 
@@ -277,7 +207,6 @@ class SatoCamera: NSObject {
         
         // Add output object to session
         captureSession.addOutput(videoDataOutput)
-        captureSession.addOutput(photoOutput)
         
         // Assemble all the settings together
         captureSession.commitConfiguration()
@@ -382,111 +311,15 @@ class SatoCamera: NSObject {
         })
     }
     
+    // MARK: - Camera Settings
     internal func toggleFlash() -> String {
-        let flashMode = flashOptions[flashOptionIndex.increment()]
-        let torchMode = torchOptions[torchOptionIndex.increment()]
-        
-        guard let videoDevice = videoDevice else {
-            print("video device or photo settings is nil")
-            return "Error happened in \(#function): video device or photo settings is nil"
-        }
-        
-        if videoDevice.hasFlash && videoDevice.isFlashAvailable && videoDevice.hasTorch && videoDevice.isTorchAvailable {
-            do {
-                try videoDevice.lockForConfiguration()
-                flashState = flashMode
-                torchState = torchMode
-                videoDevice.unlockForConfiguration()
-            } catch {
-                
-            }
-        }
-        var returnText = ""
-        switch flashState {
-        case AVCaptureFlashMode.off:
-            returnText = "Off"
-        case AVCaptureFlashMode.on:
-            returnText = "On"
-        case AVCaptureFlashMode.auto:
-            returnText = "Auto"
-        }
-        
-        return returnText
+        return light.toggleFlash(videoDevice: videoDevice)
     }
     
     internal func toggleTorch() -> String {
-        let torchMode = torchOptions[torchOptionIndex.increment()]
-        
-        guard let videoDevice = videoDevice else {
-            print("video device or photo settings is nil")
-            return "Error happened in \(#function): video device or photo settings is nil"
-        }
-        
-        if videoDevice.hasTorch && videoDevice.isTorchAvailable {
-            do {
-                try videoDevice.lockForConfiguration()
-                videoDevice.torchMode = torchMode
-                torchState = torchMode
-                videoDevice.unlockForConfiguration()
-            } catch {
-                
-            }
-        }
-        
-        var returnText = ""
-        switch torchState {
-        case AVCaptureTorchMode.off:
-            returnText = "Off"
-        case AVCaptureTorchMode.on:
-            returnText = "On"
-        case AVCaptureTorchMode.auto:
-            returnText = "Auto"
-        }
-        return returnText
+        return light.toggleTorch(videoDevice: videoDevice)
     }
     
-    /** Resumes camera. */
-    internal func start() {
-        captureSession?.startRunning()
-        //startRecordingGif()
-    }
-    
-    /** */
-    internal func stop() {
-        cameraOutput?.sampleBufferView?.isHidden = true
-        captureSession?.stopRunning()
-    }
-    
-    /** Set to the initial state. */
-    internal func reset() {
-        unfilteredCIImages.removeAll()
-        cameraOutput?.sampleBufferView?.isHidden = false
-        didOutputSampleBufferMethodCallCount = 0
-        resultImageView = nil
-        gif = nil
-        
-        if let cameraOutput = cameraOutput {
-            if let outputImageView = cameraOutput.outputImageView {
-                outputImageView.isHidden = false
-                for subview in outputImageView.subviews {
-                    subview.removeFromSuperview()
-                }
-            }
-        }
-        start()
-    }
-    
-    /** Saves output image to camera roll. */
-    internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
-        
-        guard let gif = gif else {
-            print("gif is nil in \(#function)")
-            return
-        }
-        
-        gif.save(drawImage: drawImage, textImage: textImage, completion: completion)
-    }
-
     /** Toggles back camera or front camera. */
     internal func toggleCamera() {
         let cameraDevice = getCameraDevice()
@@ -519,25 +352,57 @@ class SatoCamera: NSObject {
     /** Get camera device based on cameraState. */
     private func getCameraDevice() -> AVCaptureDevice {
         var cameraDevice: AVCaptureDevice
-        switch cameraState {
+        switch cameraFace {
         case .Back:
             cameraDevice = AVCaptureDevice.defaultDevice(withDeviceType: AVCaptureDeviceType.builtInWideAngleCamera, mediaType: AVMediaTypeVideo, position: AVCaptureDevicePosition.front)
-            cameraState = .Front
+            cameraFace = .Front
         case .Front:
             cameraDevice = AVCaptureDevice.defaultDevice(withDeviceType: AVCaptureDeviceType.builtInWideAngleCamera, mediaType: AVMediaTypeVideo, position: AVCaptureDevicePosition.back)
-            cameraState = .Back
+            cameraFace = .Back
         }
         return cameraDevice
     }
     
-    /** Store CIImage captured in didOutputSampleBuffer into array */
-    fileprivate func store(image: CIImage, to images: inout [CIImage]) {
-        images.append(image)
+    // MARK: - Camera Controls
+    internal func start() {
+        captureSession?.startRunning()
     }
     
-    /** Indicates if SatoCamera is recording gif.*/
-    fileprivate var isRecording: Bool = false
+    internal func stop() {
+        cameraOutput?.sampleBufferView?.isHidden = true
+        captureSession?.stopRunning()
+    }
     
+    /** Set to the initial state. */
+    internal func reset() {
+        unfilteredCIImages.removeAll()
+        cameraOutput?.sampleBufferView?.isHidden = false
+        didOutputSampleBufferMethodCallCount = 0
+        gif = nil
+        
+        if let cameraOutput = cameraOutput {
+            if let outputImageView = cameraOutput.outputImageView {
+                outputImageView.isHidden = false
+                for subview in outputImageView.subviews {
+                    subview.removeFromSuperview()
+                }
+            }
+        }
+        start()
+    }
+    
+    /** Saves output image to camera roll. */
+    internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
+        
+        guard let gif = gif else {
+            print("gif is nil in \(#function)")
+            return
+        }
+        
+        gif.save(drawImage: drawImage, textImage: textImage, completion: completion)
+    }
+    
+    // MARK: - Gif Controls
     /** Starts recording gif.*/
     internal func startRecordingGif() {
         isRecording = true
@@ -550,30 +415,21 @@ class SatoCamera: NSObject {
         showGif()
     }
     
-    var isGifSnapped: Bool = false
-    
     /** Snaps live gif. Starts image post-storing. */
     internal func snapLiveGif() {
-        isGifSnapped = true
+        isSnappedGif = true
     }
     
     /** Stops image post-storing. Calls showGif to show gif.*/
     fileprivate func stopLiveGif() {
-        isGifSnapped = false
+        isSnappedGif = false
         stop()
         showGif()
     }
     
     /** Creates an image view with images for animation. Show the image view on output image view. */
     func showGif() {
-        let gif = Gif(originalCIImages: unfilteredCIImages,
-                      currentGifFPS: currentLiveGifPreset.gifFPS,
-                      newGifFPS: currentLiveGifPreset.gifFPS,
-                      gifPlayDuration: currentLiveGifPreset.gifPlayDuration,
-                      scale: 0,
-                      frame: frame,
-                      filter: currentFilter,
-                      frameDelay: currentLiveGifPreset.frameDelay)
+        let gif = Gif(originalCIImages: unfilteredCIImages, scale: 5, frame: frame, filter: currentFilter, preset: currentLiveGifPreset)
         
         guard let gifImageView = gif.gifImageView else {
             print("gif image view is nil")
@@ -589,12 +445,12 @@ class SatoCamera: NSObject {
                 }
             }
         }
-        
         cameraOutput?.outputImageView?.addSubview(gifImageView)
         gifImageView.startAnimating()
     }
 }
 
+// MARK: - FilterImageEffectDelegate
 extension SatoCamera: FilterImageEffectDelegate {
     
     /** Changes the current filter. If camera is live, applies filter to the live preview. 
@@ -621,61 +477,34 @@ extension SatoCamera: FilterImageEffectDelegate {
     }
 }
 
-var imageDrawRect: CGRect!
-
+// MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
 extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
-    
-    /** Calculate ciimage's extent to be fit to GKLView. */
-    func calculateDrawRect(sourceImage: CIImage) -> CGRect {
-//        // sourceExtent = width: 1920, height: 1080
-//        let sourceExtent: CGRect = sourceImage.extent
-//        let sourceAspect = sourceExtent.width / sourceExtent.height
-//        
-//        guard let videoGLKPreviewViewBounds = videoGLKPreviewViewBounds else {
-//            print("videoGLKPreviewViewBounds is nil")
-//            return frame
-//        }
-//        
-//        // we want to maintain the aspect radio of the screen size, so we clip the video image
-//        let previewAspect = videoGLKPreviewViewBounds.width / videoGLKPreviewViewBounds.height
-//        
-//        var drawRect: CGRect = sourceExtent
-//        
-//        if sourceAspect > previewAspect {
-//            drawRect.origin.x += (drawRect.size.width - drawRect.size.height * previewAspect) / 2.0
-//            drawRect.size.width = drawRect.size.height * previewAspect
-//        } else {
-//            drawRect.origin.y += (drawRect.size.height - drawRect.size.width / previewAspect) / 2.0
-//            drawRect.size.height = drawRect.size.width / previewAspect
-//        }
-//        
-//        return drawRect
-        return sourceImage.extent
-    }
     
     /** Called the specified times (FPS) every second. Converts sample buffer into CIImage. 
      Applies filter to it. Draw the CIImage into CIContext to update GLKView.
      In background, store CIImages into array one by one. Resizing should be done in background.*/
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-        didOutputSampleBufferCountPerSecond += 1
         
         // Store in background thread
         DispatchQueue.global(qos: .background).async {
             self.didOutputSampleBufferMethodCallCount += 1
             if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
+                
                 // get deep copied CIImage from sample buffer so that the ciimage has no reference to sample buffer anymore
                 if let deepCopiedCIImage = sampleBuffer.ciImage {
                     if self.isRecording {
                         self.unfilteredCIImages.append(deepCopiedCIImage)
                     } else {
+                        
                         // detect snap user action
-                        if !self.isGifSnapped {
+                        if !self.isSnappedGif {
                             self.unfilteredCIImages.append(deepCopiedCIImage)
                             
                             if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                                 self.unfilteredCIImages.remove(at: 0)
                             }
                         } else {
+                            
                             // if snapped, start post-storing
                             self.unfilteredCIImages.append(deepCopiedCIImage)
                             if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
@@ -702,11 +531,6 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         
-        // execute the first time this method gets called.
-        if didOutputSampleBufferMethodCallCount == 0 {
-            imageDrawRect = calculateDrawRect(sourceImage: sourceImage)
-        }
-
         videoGLKPreview?.bindDrawable()
         
         // Prepare CIContext with EAGLContext
@@ -714,23 +538,21 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             EAGLContext.setCurrent(eaglContext)
         }
 
-        ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: imageDrawRect)
+        ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: sourceImage.extent)
         videoGLKPreview?.display()        
     }
 }
 
+// MARK: - Other Extensions
 extension CIImage {
 
     /** Resize CIImage using CIContext. Worst performance according to NSHipster. http://nshipster.com/image-resizing/. */
-    func resize(frame: CGRect) -> CIImage? {
+    func resizeWithCIContext(frame: CGRect) -> CIImage? {
         print("BEFORE scaled CIImage extent: \(self.extent) in \(#function)")
 
         let scale = frame.width / self.extent.width
         
         let filter = CIFilter(name: "CILanczosScaleTransform")!
-        //let rectFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height)
-        //let vectorFrame = CIVector(cgRect: frame)
-        //filter.setValue(vectorFrame, forKey: kCIInputExtentKey) // CILanczosScaleTransform doesn't accept vector frame
         filter.setValue(self, forKey: kCIInputImageKey)
         filter.setValue(scale, forKey: kCIInputScaleKey)
         filter.setValue(1.0, forKey: kCIInputAspectRatioKey)
@@ -865,3 +687,11 @@ extension CMSampleBuffer {
         }
     }
 }
+
+// gifFPS 3: CPU 70-80%, memory 61MB
+// gifFPS 10: 70-80%, 150MB , connection sometimes lost when snapped. if succeeded, memory is 280MB
+// gifFPS 10 with resizing simultaneausly: 70-80%, +300MB, crash after memory usage reached 300MB. Memory keeps growing because second half of resizing method is not executed in background.
+// gifFPS 10: resizing in main thread, +105%, 50MB, lags, UI not responding
+// source CIImage = width: 1920, height: 1080
+// videoGLKPreviewViewBounds = width: 1334, height: 749
+// imageDrawRect = width: 1920, height: 1078

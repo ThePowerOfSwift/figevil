@@ -37,6 +37,7 @@
 		78B5DD1D1E675EC500192135 /* back.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD151E675EC500192135 /* back.png */; };
 		78B5DD1E1E675EC500192135 /* flash.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD161E675EC500192135 /* flash.png */; };
 		78B5DD1F1E675EC500192135 /* circle.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD171E675EC500192135 /* circle.png */; };
+		E335FE701E70E89F00A5BAD2 /* Light.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE6F1E70E89F00A5BAD2 /* Light.swift */; };
 		E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B491491E68E16B007C8F29 /* Gif.swift */; };
 /* End PBXBuildFile section */
 
@@ -75,6 +76,7 @@
 		78B5DD171E675EC500192135 /* circle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = circle.png; sourceTree = "<group>"; };
 		C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-figevil.release.xcconfig"; path = "Pods/Target Support Files/Pods-figevil/Pods-figevil.release.xcconfig"; sourceTree = "<group>"; };
 		C710722E2727E087354024E4 /* Pods_figevil.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_figevil.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E335FE6F1E70E89F00A5BAD2 /* Light.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Light.swift; sourceTree = "<group>"; };
 		E3B491491E68E16B007C8F29 /* Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Gif.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -125,6 +127,7 @@
 				7854B9E51E64F98300591255 /* LaunchScreen.storyboard */,
 				7854B9E81E64F98300591255 /* Info.plist */,
 				7854B9F21E64FD5B00591255 /* SatoCamera.swift */,
+				E335FE6F1E70E89F00A5BAD2 /* Light.swift */,
 				E3B491491E68E16B007C8F29 /* Gif.swift */,
 				7854BA0D1E65005600591255 /* Index.swift */,
 				7854B9F41E64FD7D00591255 /* Camera.storyboard */,
@@ -314,6 +317,7 @@
 				7854BA081E64FD7D00591255 /* DrawView.swift in Sources */,
 				7854BA011E64FD7D00591255 /* CameraViewController.swift in Sources */,
 				7854BA031E64FD7D00591255 /* TextImageEffectView.swift in Sources */,
+				E335FE701E70E89F00A5BAD2 /* Light.swift in Sources */,
 				7854BA041E64FD7D00591255 /* TextView.swift in Sources */,
 				7854BA0E1E65005600591255 /* Index.swift in Sources */,
 				7854BA021E64FD7D00591255 /* Color.swift in Sources */,

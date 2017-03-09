@@ -77,8 +77,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // Must always be on top of sampleBuffer
     var outputImageView: UIImageView? = UIImageView()
     
-    var cameraAccessAuthorizationStatus: Bool = false
-
     /**
      View that holds all control views and the active effect tool; always floating.
      When an effect is active, the effect is moved to be above flashView (under control containers)
@@ -124,8 +122,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         view.bringSubview(toFront: controlView)
         // Must manually select first effect
         selectFirstEffect()
-        //satoCamera.start()
-        satoCamera.initialStart()
+        satoCamera.start()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -148,16 +145,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     // MARK: Setups
-    
-//    func askUserCameraAccessAuthorization(completion: ((_ authorized: Bool)->())?) {
-//        if AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) != AVAuthorizationStatus.authorized {
-//            AVCaptureDevice.requestAccess(forMediaType: AVMediaTypeVideo, completionHandler: { (granted :Bool) -> Void in
-//                completion?(granted)
-//            })
-//        } else {
-//            completion?(true)
-//        }
-//    }
     
     func setupSatoCamera() {
         
@@ -275,7 +262,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         satoCamera.save(drawImage: drawImage, textImage: textImage, completion: { (saved: Bool, fileSize: String?) in
             if saved {
                 print("saved gif to camera roll")
-                if var fileSize = fileSize {
+                if let fileSize = fileSize {
                     let alertController = UIAlertController(title: "Saved", message: fileSize, preferredStyle: .alert)
                     let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
                     alertController.addAction(okAction)

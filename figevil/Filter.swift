@@ -26,7 +26,7 @@ class Filter: NSObject {
         }
     }
     
-    func generateFilteredCIImages(sourceImages: [CIImage]) -> [CIImage]? {
+    func generateFilteredCIImages(sourceImages: [CIImage]) -> [CIImage] {
         var filteredCIImages = [CIImage]()
         for sourceImage in sourceImages {
             if let filter = filter {
