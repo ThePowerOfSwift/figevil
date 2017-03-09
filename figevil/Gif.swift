@@ -7,34 +7,10 @@
 //
 
 // For saving gif to camera roll
-import ImageIO
-import MobileCoreServices
+//import ImageIO
+//import MobileCoreServices
 import Photos
 import UIKit
-
-struct LiveGifPreset {
-    /** has to be 0 < gifFPS <= 15 and 30 */
-    var gifFPS: Int
-    var liveGifDuration: TimeInterval
-    
-    var frameCaptureFrequency: Int {
-        return Int(sampleBufferFPS) / gifFPS
-    }
-    var sampleBufferFPS: Int32 = 30
-    var liveGifFrameTotalCount: Int {
-        return Int(liveGifDuration * Double(gifFPS))
-    }
-    
-    /** The amount of time each frame stays. */
-    var frameDelay: Double {
-        return Double(liveGifDuration) / Double(liveGifFrameTotalCount)
-    }
-    
-    init(gifFPS: Int, liveGifDuration: TimeInterval) {
-        self.gifFPS = gifFPS
-        self.liveGifDuration = liveGifDuration
-    }
-}
 
 class Gif: NSObject {
     var originalCIImages: [CIImage]
@@ -74,7 +50,7 @@ class Gif: NSObject {
             return
         }
         
-        gifImageView = generateGifImageView(with: uiImages, frame: frame, duration: preset.liveGifDuration)
+        gifImageView = createGifImageView(with: uiImages, frame: frame, duration: preset.liveGifDuration)
 
     }
     
@@ -196,7 +172,7 @@ class Gif: NSObject {
             }
             UIGraphicsEndImageContext()
         }
-        guard let renderedGifImageView = generateGifImageView(with: renderedAnimationImages, frame: frame, duration: preset.liveGifDuration) else {
+        guard let renderedGifImageView = createGifImageView(with: renderedAnimationImages, frame: frame, duration: preset.liveGifDuration) else {
             print("rendered gif image view is nil in \(#function)")
             return nil
         }
@@ -204,7 +180,7 @@ class Gif: NSObject {
     }
     
     /** Generate animated image view with UIImages for gif. Call startAnimating() to play. */
-    func generateGifImageView(with images: [UIImage]?, frame: CGRect, duration: TimeInterval) -> UIImageView? {
+    func createGifImageView(with images: [UIImage]?, frame: CGRect, duration: TimeInterval) -> UIImageView? {
         guard let images = images else {
             print("images are nil")
             return nil
@@ -217,48 +193,5 @@ class Gif: NSObject {
         gifImageView.animationRepeatCount = 0
         gifImageView.frame = frame
         return gifImageView
-    }
-}
-
-extension UIImageView {
-    
-    /** Creates gif data from [UIImage] and generate URL. */
-    func saveGifToDisk(loopCount: Int = 0, frameDelay: Double , completion: (_ data: URL?, _ error: Error?) -> ()) {
-        guard let animationImages = animationImages else {
-            print("animation images is nil")
-            return
-        }
-        if animationImages.isEmpty {
-            print("animationImages is empty")
-            return
-        }
-        
-        let fileProperties = [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFLoopCount as String: loopCount]]
-        let frameProperties = [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFDelayTime as String: frameDelay]]
-        let documentsDirectory = NSTemporaryDirectory()
-        let url = URL(fileURLWithPath: documentsDirectory).appendingPathComponent(getRandomGifFileName())
-        
-        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeGIF, animationImages.count, nil) else {
-            print("destination is nil")
-            return
-        }
-        
-        CGImageDestinationSetProperties(destination, fileProperties as CFDictionary?)
-        
-        for i in 0..<animationImages.count {
-            CGImageDestinationAddImage(destination, animationImages[i].cgImage!, frameProperties as CFDictionary?)
-        }
-        
-        if CGImageDestinationFinalize(destination) {
-            completion(url, nil)
-        } else {
-            completion(nil, NSError())
-        }
-    }
-    
-    /** Creates gif name from time interval since 1970. */
-    private func getRandomGifFileName() -> String {
-        let gifName = String(Date().timeIntervalSince1970) + ".gif"
-        return gifName
     }
 }

@@ -38,6 +38,11 @@
 		78B5DD1E1E675EC500192135 /* flash.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD161E675EC500192135 /* flash.png */; };
 		78B5DD1F1E675EC500192135 /* circle.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD171E675EC500192135 /* circle.png */; };
 		E335FE701E70E89F00A5BAD2 /* Light.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE6F1E70E89F00A5BAD2 /* Light.swift */; };
+		E335FE721E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE711E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift */; };
+		E335FE741E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE731E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift */; };
+		E335FE761E70EEBC00A5BAD2 /* CIImage+Resize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE751E70EEBC00A5BAD2 /* CIImage+Resize.swift */; };
+		E335FE781E70EEFE00A5BAD2 /* UIImageView+Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE771E70EEFE00A5BAD2 /* UIImageView+Gif.swift */; };
+		E335FE7E1E70F08B00A5BAD2 /* LiveGifPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE7D1E70F08B00A5BAD2 /* LiveGifPreset.swift */; };
 		E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B491491E68E16B007C8F29 /* Gif.swift */; };
 /* End PBXBuildFile section */
 
@@ -77,6 +82,11 @@
 		C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-figevil.release.xcconfig"; path = "Pods/Target Support Files/Pods-figevil/Pods-figevil.release.xcconfig"; sourceTree = "<group>"; };
 		C710722E2727E087354024E4 /* Pods_figevil.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_figevil.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E335FE6F1E70E89F00A5BAD2 /* Light.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Light.swift; sourceTree = "<group>"; };
+		E335FE711E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CMSampleBuffer+CIImage.swift"; sourceTree = "<group>"; };
+		E335FE731E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CVPixelBuffer+DeepCopy.swift"; sourceTree = "<group>"; };
+		E335FE751E70EEBC00A5BAD2 /* CIImage+Resize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CIImage+Resize.swift"; sourceTree = "<group>"; };
+		E335FE771E70EEFE00A5BAD2 /* UIImageView+Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImageView+Gif.swift"; sourceTree = "<group>"; };
+		E335FE7D1E70F08B00A5BAD2 /* LiveGifPreset.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveGifPreset.swift; sourceTree = "<group>"; };
 		E3B491491E68E16B007C8F29 /* Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Gif.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -127,9 +137,11 @@
 				7854B9E51E64F98300591255 /* LaunchScreen.storyboard */,
 				7854B9E81E64F98300591255 /* Info.plist */,
 				7854B9F21E64FD5B00591255 /* SatoCamera.swift */,
+				E335FE7D1E70F08B00A5BAD2 /* LiveGifPreset.swift */,
 				E335FE6F1E70E89F00A5BAD2 /* Light.swift */,
 				E3B491491E68E16B007C8F29 /* Gif.swift */,
 				7854BA0D1E65005600591255 /* Index.swift */,
+				E335FE7F1E70F19500A5BAD2 /* Camera Extentions */,
 				7854B9F41E64FD7D00591255 /* Camera.storyboard */,
 				7854B9F51E64FD7D00591255 /* CameraViewController.swift */,
 				7854B9F61E64FD7D00591255 /* Color.swift */,
@@ -172,6 +184,17 @@
 				C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */,
 			);
 			name = Pods;
+			sourceTree = "<group>";
+		};
+		E335FE7F1E70F19500A5BAD2 /* Camera Extentions */ = {
+			isa = PBXGroup;
+			children = (
+				E335FE751E70EEBC00A5BAD2 /* CIImage+Resize.swift */,
+				E335FE731E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift */,
+				E335FE711E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift */,
+				E335FE771E70EEFE00A5BAD2 /* UIImageView+Gif.swift */,
+			);
+			name = "Camera Extentions";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -314,7 +337,10 @@
 				7854BA0A1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift in Sources */,
 				7854BA051E64FD7D00591255 /* FilterImageEffect.swift in Sources */,
 				7854B9F31E64FD5B00591255 /* SatoCamera.swift in Sources */,
+				E335FE7E1E70F08B00A5BAD2 /* LiveGifPreset.swift in Sources */,
+				E335FE761E70EEBC00A5BAD2 /* CIImage+Resize.swift in Sources */,
 				7854BA081E64FD7D00591255 /* DrawView.swift in Sources */,
+				E335FE741E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift in Sources */,
 				7854BA011E64FD7D00591255 /* CameraViewController.swift in Sources */,
 				7854BA031E64FD7D00591255 /* TextImageEffectView.swift in Sources */,
 				E335FE701E70E89F00A5BAD2 /* Light.swift in Sources */,
@@ -324,7 +350,9 @@
 				7854BA071E64FD7D00591255 /* DrawImageEffectView.swift in Sources */,
 				7854BA061E64FD7D00591255 /* Filter.swift in Sources */,
 				7854B9DD1E64F98300591255 /* AppDelegate.swift in Sources */,
+				E335FE721E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift in Sources */,
 				E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */,
+				E335FE781E70EEFE00A5BAD2 /* UIImageView+Gif.swift in Sources */,
 				7854BA091E64FD7D00591255 /* BubbleMenuCollectionViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
