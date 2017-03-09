@@ -506,7 +506,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         // Store in background thread
-        DispatchQueue.global(qos: .background).async {
+        DispatchQueue.global(qos: .utility).async {
             self.didOutputSampleBufferMethodCallCount += 1
             if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
                 
