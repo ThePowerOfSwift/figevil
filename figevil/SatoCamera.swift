@@ -10,6 +10,8 @@ import UIKit
 import AVFoundation
 import GLKit
 
+import QuartzCore
+
 /** Indicate camera state. */
 enum CameraFace {
     case Back
@@ -83,6 +85,20 @@ class SatoCamera: NSObject {
         }
     }
     
+    // MARK: Transform
+    /** CGAffineTransfrom when it's back camera. */
+    var backCameraTransform: CGAffineTransform {
+        return CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
+    }
+    
+    /** CGAffineTransfrom when it's front camera. */
+    var frontCameraTransform: CGAffineTransform {
+        let rotation = CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
+        let flip = CGAffineTransform(scaleX: -1.0, y: 1.0)
+        let transform = rotation.concatenating(flip)
+        return transform
+    }
+    
     // MARK: - Setups
     init(frame: CGRect) {
         self.frame = frame
@@ -106,11 +122,11 @@ class SatoCamera: NSObject {
         videoGLKPreview.enableSetNeedsDisplay = false
         
         // the original video image from the back SatoCamera is landscape. apply 90 degree transform
-        videoGLKPreview.transform = CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
+        videoGLKPreview.transform = backCameraTransform
         
         // Always set frame after transformation
         videoGLKPreview.frame = frame
-        
+
         videoGLKPreview.bindDrawable()
         videoGLKPreviewViewBounds = CGRect.zero
         // drawable width The width, in pixels, of the underlying framebuffer object.
@@ -481,6 +497,12 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
      In background, store CIImages into array one by one. Resizing should be done in background.*/
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
+        if cameraFace == CameraFace.Back {
+            videoGLKPreview?.transform = backCameraTransform
+        } else {
+            videoGLKPreview?.transform = frontCameraTransform
+        }
+        
         // Store in background thread
         DispatchQueue.global(qos: .background).async {
             self.didOutputSampleBufferMethodCallCount += 1
@@ -519,7 +541,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             print("image buffer is nil")
             return
         }
-        let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
+        var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
