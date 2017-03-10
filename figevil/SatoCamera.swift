@@ -279,17 +279,16 @@ class SatoCamera: NSObject {
     internal func tapToFocusAndExposure(touch: UITouch) {
         // http://stackoverflow.com/questions/15838443/iphone-camera-show-focus-rectangle
         let touchPoint = touch.location(in: videoGLKPreview)
-        
-        //print("tap to focus: (x: \(String(format: "%.0f", touchPoint.x)), y: \(String(format: "%.0f", touchPoint.y))) in \(self)")
         let adjustedCoordinatePoint = CGPoint(x: frame.width - touchPoint.y, y: touchPoint.x)
-//        print("adjusted coordinate point: (x: \(String(format: "%.0f", adjustedCoordinatePoint.x)) y: \(String(format: "%.0f", adjustedCoordinatePoint.y)))")
-//        print("videoGLKPreview.frame: \(videoGLKPreview!.frame)")
-        
+
         guard let videoDevice = videoDevice else {
             print("video device is nil")
             return
         }
         
+        // (1 - ) changes the origin to top, right
+        // You pass a CGPoint where {0,0} represents the top left of the picture area, and {1,1} represents the bottom right in landscape mode with the home button on the right—this applies even if the device is in portrait mode.
+        // https://developer.apple.com/library/content/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/04_MediaCapture.html
         let adjustedPoint = CGPoint(x: 1 - adjustedCoordinatePoint.x / frame.width, y: adjustedCoordinatePoint.y / frame.height)
         
         print("adjusted point: \(adjustedPoint)")
@@ -328,9 +327,6 @@ class SatoCamera: NSObject {
                 feedbackView.removeFromSuperview()
             })
         }
-
-        
-
     }
     
     // MARK: - Camera Settings
