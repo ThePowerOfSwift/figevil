@@ -25,9 +25,6 @@ protocol SatoCameraOutput {
     var sampleBufferView: UIView? { get }    
 }
 
-// Gif setting
-var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 5, liveGifDuration: 3)
-
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
     
@@ -98,6 +95,9 @@ class SatoCamera: NSObject {
         let transform = rotation.concatenating(flip)
         return transform
     }
+    
+    // Gif setting
+    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 5, liveGifDuration: 3)
     
     // MARK: - Setups
     init(frame: CGRect) {
@@ -280,49 +280,57 @@ class SatoCamera: NSObject {
         // http://stackoverflow.com/questions/15838443/iphone-camera-show-focus-rectangle
         let touchPoint = touch.location(in: videoGLKPreview)
         
-        print("tap to focus: (x: \(String(format: "%.0f", touchPoint.x)), y: \(String(format: "%.0f", touchPoint.y))) in \(self)")
+        //print("tap to focus: (x: \(String(format: "%.0f", touchPoint.x)), y: \(String(format: "%.0f", touchPoint.y))) in \(self)")
         let adjustedCoordinatePoint = CGPoint(x: frame.width - touchPoint.y, y: touchPoint.x)
-        print("adjusted point: (x: \(String(format: "%.0f", adjustedCoordinatePoint.x)) y: \(String(format: "%.0f", adjustedCoordinatePoint.y)))")
+//        print("adjusted coordinate point: (x: \(String(format: "%.0f", adjustedCoordinatePoint.x)) y: \(String(format: "%.0f", adjustedCoordinatePoint.y)))")
+//        print("videoGLKPreview.frame: \(videoGLKPreview!.frame)")
         
         guard let videoDevice = videoDevice else {
             print("video device is nil")
             return
         }
         
-        let adjustedPoint = CGPoint(x: adjustedCoordinatePoint.x / frame.width, y: adjustedCoordinatePoint.y / frame.height)
+        let adjustedPoint = CGPoint(x: 1 - adjustedCoordinatePoint.x / frame.width, y: adjustedCoordinatePoint.y / frame.height)
         
-        if videoDevice.isFocusPointOfInterestSupported && videoDevice.isFocusModeSupported(AVCaptureFocusMode.autoFocus) && videoDevice.isExposureModeSupported(AVCaptureExposureMode.autoExpose) {
-            do {
-                // lock device to change
-                try videoDevice.lockForConfiguration()
-                // https://developer.apple.com/reference/avfoundation/avcapturedevice/1385853-focuspointofinterest
-                
-                // set point
-                videoDevice.focusPointOfInterest = adjustedPoint
-                videoDevice.exposurePointOfInterest = adjustedPoint
-                
-                // execute operation now
-                videoDevice.focusMode = AVCaptureFocusMode.autoFocus
-                videoDevice.exposureMode = AVCaptureExposureMode.continuousAutoExposure
-                
-                videoDevice.unlockForConfiguration()
-            } catch let error as NSError {
-                print(error.localizedDescription)
+        print("adjusted point: \(adjustedPoint)")
+        
+        captureSessionQueue.async { [unowned self] in
+            if videoDevice.isFocusPointOfInterestSupported && videoDevice.isFocusModeSupported(AVCaptureFocusMode.autoFocus) && videoDevice.isExposureModeSupported(AVCaptureExposureMode.autoExpose) {
+                do {
+                    // lock device to change
+                    try videoDevice.lockForConfiguration()
+                    // https://developer.apple.com/reference/avfoundation/avcapturedevice/1385853-focuspointofinterest
+                    
+                    // set point
+                    videoDevice.focusPointOfInterest = adjustedPoint
+                    videoDevice.exposurePointOfInterest = adjustedPoint
+                    
+                    // execute operation now
+                    videoDevice.focusMode = AVCaptureFocusMode.autoFocus
+                    videoDevice.exposureMode = AVCaptureExposureMode.autoExpose
+                    videoDevice.isSubjectAreaChangeMonitoringEnabled = true
+                    
+                    videoDevice.unlockForConfiguration()
+                } catch let error as NSError {
+                    print(error.localizedDescription)
+                }
             }
+            
+            // feedback rect view
+            let feedbackView = UIView(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 50)))
+            feedbackView.center = adjustedCoordinatePoint
+            feedbackView.layer.borderColor = UIColor.white.cgColor
+            feedbackView.layer.borderWidth = 2.0
+            feedbackView.backgroundColor = UIColor.clear
+            self.cameraOutput?.sampleBufferView?.addSubview(feedbackView)
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+                // Put your code which should be executed with a delay here
+                feedbackView.removeFromSuperview()
+            })
         }
+
         
-        // feedback rect view
-        let feedbackView = UIView(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 50)))
-        feedbackView.center = adjustedCoordinatePoint
-        feedbackView.layer.borderColor = UIColor.white.cgColor
-        feedbackView.layer.borderWidth = 2.0
-        feedbackView.backgroundColor = UIColor.clear
-        cameraOutput?.sampleBufferView?.addSubview(feedbackView)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
-            // Put your code which should be executed with a delay here
-            feedbackView.removeFromSuperview()
-        })
+
     }
     
     // MARK: - Camera Settings
@@ -506,9 +514,9 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         // Store in background thread
-        DispatchQueue.global(qos: .utility).async {
+        DispatchQueue.global(qos: .utility).async { [unowned self] in
             self.didOutputSampleBufferMethodCallCount += 1
-            if self.didOutputSampleBufferMethodCallCount % currentLiveGifPreset.frameCaptureFrequency == 0 {
+            if self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0 {
                 
                 // get deep copied CIImage from sample buffer so that the ciimage has no reference to sample buffer anymore
                 if let deepCopiedCIImage = sampleBuffer.ciImage {
@@ -520,15 +528,15 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                         if !self.isSnappedGif {
                             self.unfilteredCIImages.append(deepCopiedCIImage)
                             
-                            if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+                            if self.unfilteredCIImages.count == self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                                 self.unfilteredCIImages.remove(at: 0)
                             }
                         } else {
                             
                             // if snapped, start post-storing
                             self.unfilteredCIImages.append(deepCopiedCIImage)
-                            if self.unfilteredCIImages.count == currentLiveGifPreset.liveGifFrameTotalCount {
-                                DispatchQueue.main.async {
+                            if self.unfilteredCIImages.count == self.currentLiveGifPreset.liveGifFrameTotalCount {
+                                DispatchQueue.main.async { [unowned self] in
                                     // UI change has to be in main thread
                                     self.stopLiveGif()
                                 }
