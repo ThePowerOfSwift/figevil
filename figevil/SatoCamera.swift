@@ -291,8 +291,6 @@ class SatoCamera: NSObject {
         // https://developer.apple.com/library/content/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/04_MediaCapture.html
         let adjustedPoint = CGPoint(x: 1 - adjustedCoordinatePoint.x / frame.width, y: adjustedCoordinatePoint.y / frame.height)
         
-        print("adjusted point: \(adjustedPoint)")
-        
         captureSessionQueue.async { [unowned self] in
             if videoDevice.isFocusPointOfInterestSupported && videoDevice.isFocusModeSupported(AVCaptureFocusMode.autoFocus) && videoDevice.isExposureModeSupported(AVCaptureExposureMode.autoExpose) {
                 do {
@@ -307,7 +305,6 @@ class SatoCamera: NSObject {
                     // execute operation now
                     videoDevice.focusMode = AVCaptureFocusMode.autoFocus
                     videoDevice.exposureMode = AVCaptureExposureMode.autoExpose
-                    videoDevice.isSubjectAreaChangeMonitoringEnabled = true
                     
                     videoDevice.unlockForConfiguration()
                 } catch let error as NSError {
@@ -447,7 +444,7 @@ class SatoCamera: NSObject {
     
     /** Creates an image view with images for animation. Show the image view on output image view. */
     func showGif() {
-        let gif = Gif(originalCIImages: unfilteredCIImages, scale: 5, frame: frame, filter: currentFilter, preset: currentLiveGifPreset)
+        let gif = Gif(originalCIImages: unfilteredCIImages, scale: 0, frame: frame, filter: currentFilter, preset: currentLiveGifPreset)
         
         guard let gifImageView = gif.gifImageView else {
             print("gif image view is nil")
@@ -563,14 +560,6 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
 
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: sourceImage.extent)
-        videoGLKPreview?.display()        
+        videoGLKPreview?.display()
     }
 }
-
-// gifFPS 3: CPU 70-80%, memory 61MB
-// gifFPS 10: 70-80%, 150MB , connection sometimes lost when snapped. if succeeded, memory is 280MB
-// gifFPS 10 with resizing simultaneausly: 70-80%, +300MB, crash after memory usage reached 300MB. Memory keeps growing because second half of resizing method is not executed in background.
-// gifFPS 10: resizing in main thread, +105%, 50MB, lags, UI not responding
-// source CIImage = width: 1920, height: 1080
-// videoGLKPreviewViewBounds = width: 1334, height: 749
-// imageDrawRect = width: 1920, height: 1078
