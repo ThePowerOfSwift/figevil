@@ -206,8 +206,11 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         layout.itemSize = CGSize(width: 77, height: 77)
 
         effectToolBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: layout)
+        effectToolBubbleCVC.collectionView?.collectionViewLayout = layout
         effectToolBubbleCVC.datasource = self
         effectToolBubbleCVC.delegate = self
+        print("effect tool bubble collection view: \(effectToolBubbleCVC.collectionView!)")
+        print("collection veiw layout for effect tool bubbles: \(effectToolBubbleCVC.collectionView!.collectionViewLayout)")
         
         addChildViewController(effectToolBubbleCVC)
         effectToolView.addSubview(effectToolBubbleCVC.view)
@@ -228,7 +231,9 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 
         let circularLayout = CircularCollectionViewLayout()
         effectOptionBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: circularLayout)
-        effectToolBubbleCVC.collectionView?.collectionViewLayout = circularLayout
+        effectOptionBubbleCVC.collectionView?.collectionViewLayout = circularLayout
+        print("effect option bubble collection view: \(effectOptionBubbleCVC.collectionView!)")
+        print("collection veiw layout for effect option bubbles: \(effectOptionBubbleCVC.collectionView!.collectionViewLayout)")
         effectOptionBubbleCVC.datasource = self
         effectOptionBubbleCVC.delegate = self
         //effectToolBubbleCVC.collectionView?.isPrefetchingEnabled = false
@@ -332,7 +337,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
      
     func loadToolOptions() {
-        effectOptionBubbleCVC.collectionView?.collectionViewLayout.invalidateLayout()
+        //effectOptionBubbleCVC.collectionView?.collectionViewLayout.invalidateLayout()
         effectOptionBubbleCVC.collectionView?.reloadData()
     }
     

@@ -84,6 +84,8 @@ class CircularCollectionViewLayout: UICollectionViewLayout {
     /** Called the first time collection view appears on screen. Also called when the layout is invalidated. */
     override func prepare() {
         super.prepare()
+        
+        print("collection view in layout class: \(collectionView)")
         // http://stackoverflow.com/questions/27515673/whats-causing-this-ios-crash-uicollectionview-received-layout-attributes-for-a
         attributesList.removeAll()
         let centerX = collectionView!.contentOffset.x + collectionView!.bounds.width / 2.0
@@ -92,13 +94,14 @@ class CircularCollectionViewLayout: UICollectionViewLayout {
         attributesList = (0..<collectionView!.numberOfItems(inSection: 0)).map({ (i) -> CircularCollectionViewLayoutAttributes in
             let attributes = CircularCollectionViewLayoutAttributes(forCellWith: IndexPath(item: i, section: 0))
             attributes.size = self.itemSize
-            attributes.center = CGPoint(x: centerX, y: collectionView!.bounds.height / 2)
+            // cell Y position
+//            attributes.center = CGPoint(x: centerX, y: collectionView!.bounds.height / 5)
+            attributes.center = CGPoint(x: centerX, y: 10.0)
             attributes.angle = self.angle + (anglePerItem * CGFloat(i))
             
             // anchor point is a property of CALayer defined in unit coordinate system
             // thus dividing by itemSize.height is nessesary. result is over 1
-            let anchorPointY = ((itemSize.height / 2.0) + radius) / itemSize.height
-            
+            let anchorPointY = ((itemSize.height / 2.0) + radius) / itemSize.height - 1
             // anchor point by default is (0.5, 0.5) which is the center of the layer's bounds rectangle.
             attributes.anchorPoint = CGPoint(x: 0.5, y: anchorPointY)
             
@@ -117,7 +120,7 @@ class CircularCollectionViewLayout: UICollectionViewLayout {
 //                let indexPath = IndexPath(item: k, section: i)
 //                attr.append(layoutAttributesForItem(at: indexPath) as! CircularCollectionViewLayoutAttributes)
 //            }
-            for k in 0..<2 {
+            for k in 0..<3 {
                 let indexPath = IndexPath(item: k, section: i)
                 attr.append(layoutAttributesForItem(at: indexPath) as! CircularCollectionViewLayoutAttributes)
             }
