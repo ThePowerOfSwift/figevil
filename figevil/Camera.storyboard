@@ -38,10 +38,10 @@
                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                     </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vlY-ax-210">
-                                        <rect key="frame" x="0.0" y="501" width="375" height="77"/>
+                                        <rect key="frame" x="0.0" y="478" width="375" height="100"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
-                                            <constraint firstAttribute="height" constant="77" id="7pK-6U-0th"/>
+                                            <constraint firstAttribute="height" constant="100" id="7pK-6U-0th"/>
                                         </constraints>
                                     </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="iU0-LW-1qw">

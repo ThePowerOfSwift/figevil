@@ -137,6 +137,14 @@ class BubbleMenuCollectionViewCell: UICollectionViewCell {
     // Performed on highlight
     private func didHighlight() {
     }
+    
+    override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
+        super.apply(layoutAttributes)
+        let circularLayoutAttributes = layoutAttributes as! CircularCollectionViewLayoutAttributes
+        self.layer.anchorPoint = circularLayoutAttributes.anchorPoint
+        self.center.y += (circularLayoutAttributes.anchorPoint.y - 0.5) * self.bounds.height
+        print("cell center y: \(self.center.y)")
+    }
 }
 
 /** Model for BubbleMenuCollectionViewCell */

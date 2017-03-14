@@ -30,7 +30,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             if authorized {
                 print("camera access authorized")
                 cameraViewController.satoCamera.captureSessionQueue.resume()
-                // takes too long if camera view controller is instantiated here
             } else {
                 print("camera access failed to authorize")
             }

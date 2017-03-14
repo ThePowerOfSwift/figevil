@@ -35,6 +35,8 @@ class BubbleMenuCollectionViewController: UICollectionViewController, UICollecti
     // MARK: UICollectionViewDataSource
 
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
+        collectionView.collectionViewLayout.invalidateLayout()
+
         if let _ = datasource {
             return 1
         }
@@ -44,7 +46,9 @@ class BubbleMenuCollectionViewController: UICollectionViewController, UICollecti
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if let datasource = datasource {
-            return datasource.bubbleMenuContent(for: self).count
+            let count = datasource.bubbleMenuContent(for: self).count
+            return count
+            //return 3
         }
         return 0
     }

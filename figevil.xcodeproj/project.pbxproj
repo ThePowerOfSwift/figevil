@@ -43,6 +43,7 @@
 		E335FE761E70EEBC00A5BAD2 /* CIImage+Resize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE751E70EEBC00A5BAD2 /* CIImage+Resize.swift */; };
 		E335FE781E70EEFE00A5BAD2 /* UIImageView+Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE771E70EEFE00A5BAD2 /* UIImageView+Gif.swift */; };
 		E335FE7E1E70F08B00A5BAD2 /* LiveGifPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE7D1E70F08B00A5BAD2 /* LiveGifPreset.swift */; };
+		E36FA67E1E7714AC00F70925 /* CircularCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36FA67D1E7714AC00F70925 /* CircularCollectionViewLayout.swift */; };
 		E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B491491E68E16B007C8F29 /* Gif.swift */; };
 /* End PBXBuildFile section */
 
@@ -87,6 +88,7 @@
 		E335FE751E70EEBC00A5BAD2 /* CIImage+Resize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CIImage+Resize.swift"; sourceTree = "<group>"; };
 		E335FE771E70EEFE00A5BAD2 /* UIImageView+Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImageView+Gif.swift"; sourceTree = "<group>"; };
 		E335FE7D1E70F08B00A5BAD2 /* LiveGifPreset.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveGifPreset.swift; sourceTree = "<group>"; };
+		E36FA67D1E7714AC00F70925 /* CircularCollectionViewLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularCollectionViewLayout.swift; sourceTree = "<group>"; };
 		E3B491491E68E16B007C8F29 /* Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Gif.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -153,6 +155,7 @@
 				7854B9FC1E64FD7D00591255 /* DrawView.swift */,
 				7854B9FD1E64FD7D00591255 /* BubbleMenuCollectionViewController.swift */,
 				7854B9FE1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift */,
+				E36FA67D1E7714AC00F70925 /* CircularCollectionViewLayout.swift */,
 				7854B9FF1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib */,
 				78B5DD0F1E675E7F00192135 /* TBD */,
 			);
@@ -352,6 +355,7 @@
 				7854B9DD1E64F98300591255 /* AppDelegate.swift in Sources */,
 				E335FE721E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift in Sources */,
 				E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */,
+				E36FA67E1E7714AC00F70925 /* CircularCollectionViewLayout.swift in Sources */,
 				E335FE781E70EEFE00A5BAD2 /* UIImageView+Gif.swift in Sources */,
 				7854BA091E64FD7D00591255 /* BubbleMenuCollectionViewController.swift in Sources */,
 			);

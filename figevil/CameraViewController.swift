@@ -121,7 +121,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         // Finalize setup
         view.bringSubview(toFront: controlView)
         // Must manually select first effect
-        selectFirstEffect()
+        //selectFirstEffect()
         satoCamera.start()
     }
     
@@ -177,6 +177,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 effect.delegate = satoCamera
             }
         }
+        selectFirstEffect()
     }
     
     func setupControlView() {
@@ -216,16 +217,21 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     func setupEffectOptionBubbles() {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = UICollectionViewScrollDirection.horizontal
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 0
-        layout.itemSize = CGSize(width: 77, height: 77)
+//        let layout = UICollectionViewFlowLayout()
+//        layout.scrollDirection = UICollectionViewScrollDirection.horizontal
+//        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+//        layout.minimumInteritemSpacing = 0
+//        layout.minimumLineSpacing = 0
+//        layout.itemSize = CGSize(width: 77, height: 77)
+        selectedEffect = 0
+        lastSelectedEffect = 0 
 
-        effectOptionBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: layout)
+        let circularLayout = CircularCollectionViewLayout()
+        effectOptionBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: circularLayout)
+        effectToolBubbleCVC.collectionView?.collectionViewLayout = circularLayout
         effectOptionBubbleCVC.datasource = self
         effectOptionBubbleCVC.delegate = self
+        //effectToolBubbleCVC.collectionView?.isPrefetchingEnabled = false
         
         addChildViewController(effectOptionBubbleCVC)
         effectOptionView.addSubview(effectOptionBubbleCVC.view)
@@ -290,7 +296,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     /** Select the first tool.  Usually used during setup */
     func selectFirstEffect() {
-        let indexPath = IndexPath(row: 0, section: 0)
+        //let indexPath = IndexPath(row: 0, section: 0)
+        let indexPath = IndexPath(item: 0, section: 0)
         // Show selection
         effectToolBubbleCVC.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: .left)
         // Trigger selection action
@@ -301,9 +308,9 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     func didSelectEffect(at indexPath: IndexPath) {
         
         // If it's the same selection, do nothing
-        if selectedEffect != indexPath.row {
+        if selectedEffect != indexPath.item {
             lastSelectedEffect = selectedEffect
-            selectedEffect = indexPath.row
+            selectedEffect = indexPath.item
         }
         
         // Move selected effect view to fore
@@ -325,6 +332,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
      
     func loadToolOptions() {
+        effectOptionBubbleCVC.collectionView?.collectionViewLayout.invalidateLayout()
         effectOptionBubbleCVC.collectionView?.reloadData()
     }
     
@@ -346,10 +354,15 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             return iconBubbleContents
         } else if (bubbleMenuCollectionViewController == effectOptionBubbleCVC) {
             // Return the options for the selected effect
-            if let effect = effects[selectedEffect] as? CameraViewBubbleMenu {
-                return effect.menuContent
+            
+            // selectedEffect is -1 causing crash
+            if selectedEffect >= 0 {
+                if let effect = effects[selectedEffect] as? CameraViewBubbleMenu {
+                    return effect.menuContent
+                }
             }
         }
+        
         print("Error: BubbleMenu CVC not recognized; cannot provide menu content")
         return []
     }
@@ -365,8 +378,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         }
         // Selection made on options menu
         else if (bubbleMenuCollectionViewController == effectOptionBubbleCVC) {
-            if let effect = effects[selectedEffect] as? CameraViewBubbleMenu {
-                effect.menu(bubbleMenuCollectionViewController, didSelectItemAt: indexPath)
+            if selectedEffect >= 0 {
+                if let effect = effects[selectedEffect] as? CameraViewBubbleMenu {
+                    effect.menu(bubbleMenuCollectionViewController, didSelectItemAt: indexPath)
+                }
             }
         }
     }
