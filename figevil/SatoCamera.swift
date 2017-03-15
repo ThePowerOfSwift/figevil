@@ -172,15 +172,14 @@ class SatoCamera: NSObject {
             session.sessionPreset = AVCaptureSessionPresetLow
         }
         
+
+        let videoDataOutput = AVCaptureVideoDataOutput()
         // Configure video output setting
         let outputSettings: [AnyHashable : Any] = [kCVPixelBufferPixelFormatTypeKey as AnyHashable : Int(kCVPixelFormatType_32BGRA)]
-        let videoDataOutput = AVCaptureVideoDataOutput()
         videoDataOutput.videoSettings = outputSettings
-        
         // Ensure frames are delivered to the delegate in order
         // http://stackoverflow.com/questions/31775356/modifying-uiview-above-glkview-causing-crashes
         videoDataOutput.setSampleBufferDelegate(self, queue: sessionQueue)
-        
         videoDataOutput.alwaysDiscardsLateVideoFrames = true
         
         // Configure input object with device
@@ -188,19 +187,19 @@ class SatoCamera: NSObject {
         // http://stackoverflow.com/questions/20330174/avcapture-capturing-and-getting-framebuffer-at-60-fps-in-ios-7
         do {
             videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
-            // Add it to session
-            session.addInput(videoDeviceInput)
+            
+            if session.canAddInput(videoDeviceInput) {
+                session.addInput(videoDeviceInput)
+            } else {
+                print("video device input cannot be added to session.")
+            }
+            
         } catch {
             print("Failed to instantiate input object")
         }
         
         // Minimize visibility or inconsistency of state
         session.beginConfiguration()
-        
-        if !session.canAddOutput(videoDataOutput) {
-            print("cannot add video data output")
-            return
-        }
         
         if videoDevice.hasTorch && videoDevice.isTorchAvailable {
             do {
@@ -214,7 +213,11 @@ class SatoCamera: NSObject {
         }
         
         // Add output object to session
-        session.addOutput(videoDataOutput)
+        if session.canAddOutput(videoDataOutput) {
+            session.addOutput(videoDataOutput)
+        } else {
+            print("cannot add video data output")
+        }
         
         // Assemble all the settings together
         session.commitConfiguration()
