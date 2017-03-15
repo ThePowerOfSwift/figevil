@@ -396,6 +396,9 @@ class SatoCamera: NSObject {
     // MARK: - Camera Controls
     internal func start() {
         session.startRunning()
+        if !session.isRunning {
+            print("camera failed to run.")
+        }
     }
     
     internal func stop() {
