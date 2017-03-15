@@ -104,11 +104,22 @@ class SatoCamera: NSObject {
 
     private enum SessionSetupResult {
         case success
-        case failed
+        case configurationFailed
+        case notAuthorized
     }
     
     private var setupResult: SessionSetupResult = .success
 
+    
+    func askUserCameraAccessAuthorization(completion: ((_ authorized: Bool)->())?) {
+        if AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) != AVAuthorizationStatus.authorized {
+            AVCaptureDevice.requestAccess(forMediaType: AVMediaTypeVideo, completionHandler: { (granted :Bool) -> Void in
+                completion?(granted)
+            })
+        } else {
+            completion?(true)
+        }
+    }
     
     // MARK: - Setups
     init(frame: CGRect) {
@@ -119,7 +130,7 @@ class SatoCamera: NSObject {
         // EAGLContext object manages an OpenGL ES rendering context
         guard let eaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
             print("eaglContext is nil")
-            setupResult = .failed
+            setupResult = .configurationFailed
             return
         }
         self.eaglContext = eaglContext
@@ -141,7 +152,7 @@ class SatoCamera: NSObject {
         ciContext = CIContext(eaglContext: eaglContext)
         setupOpenGL()
         
-        initialStart()
+        configureSession()
     }
 
     func setupOpenGL() {
@@ -155,13 +166,13 @@ class SatoCamera: NSObject {
     }
     
     /** Start running capture session. */
-    internal func initialStart() {
+    internal func configureSession() {
         
         print("status bar orientation is landscape?: \(UIApplication.shared.statusBarOrientation.isLandscape)")
         // Get video device
         guard let videoDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo) else {
             print("video device is nil")
-            setupResult = .failed
+            setupResult = .configurationFailed
             return
         }
         
@@ -196,12 +207,12 @@ class SatoCamera: NSObject {
                 session.addInput(videoDeviceInput)
             } else {
                 print("video device input cannot be added to session.")
-                setupResult = .failed
+                setupResult = .configurationFailed
             }
             
         } catch {
             print("Failed to instantiate input object")
-            setupResult = .failed
+            setupResult = .configurationFailed
         }
         
         // Minimize visibility or inconsistency of state
@@ -215,7 +226,7 @@ class SatoCamera: NSObject {
                 videoDevice.unlockForConfiguration()
             } catch {
                 print("failed to lock device")
-                setupResult = .failed
+                setupResult = .configurationFailed
             }
         }
         
@@ -224,7 +235,7 @@ class SatoCamera: NSObject {
             session.addOutput(videoDataOutput)
         } else {
             print("cannot add video data output")
-            setupResult = .failed
+            setupResult = .configurationFailed
         }
         
         // Assemble all the settings together
@@ -323,11 +334,14 @@ class SatoCamera: NSObject {
             feedbackView.layer.borderColor = UIColor.white.cgColor
             feedbackView.layer.borderWidth = 2.0
             feedbackView.backgroundColor = UIColor.clear
-            self.cameraOutput?.sampleBufferView?.addSubview(feedbackView)
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
-                // Put your code which should be executed with a delay here
-                feedbackView.removeFromSuperview()
-            })
+            
+            DispatchQueue.main.async {
+                self.cameraOutput?.sampleBufferView?.addSubview(feedbackView)
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+                    // Put your code which should be executed with a delay here
+                    feedbackView.removeFromSuperview()
+                })
+            }
         }
     }
     
