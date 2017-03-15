@@ -25,11 +25,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let cameraViewController = storyboard.instantiateInitialViewController() as! CameraViewController
         self.window?.rootViewController = cameraViewController
         self.window?.makeKeyAndVisible()
-        cameraViewController.satoCamera.captureSessionQueue.suspend()
+        cameraViewController.satoCamera.sessionQueue.suspend()
         askUserCameraAccessAuthorization { (authorized: Bool) in
             if authorized {
                 print("camera access authorized")
-                cameraViewController.satoCamera.captureSessionQueue.resume()
+                cameraViewController.satoCamera.sessionQueue.resume()
             } else {
                 print("camera access failed to authorize")
             }

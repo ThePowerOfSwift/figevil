@@ -145,9 +145,7 @@ class BubbleMenuCollectionViewCell: UICollectionViewCell {
         if let circularLayoutAttributes = layoutAttributes as? CircularCollectionViewLayoutAttributes {
             self.layer.anchorPoint = circularLayoutAttributes.anchorPoint
             self.center.y += (circularLayoutAttributes.anchorPoint.y - 0.5) * self.bounds.height
-            print("layout attibutes: \(layoutAttributes.transform)")
         }
-        
     }
 }
 

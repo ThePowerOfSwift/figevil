@@ -36,7 +36,9 @@ class SatoCamera: NSObject {
     fileprivate var eaglContext: EAGLContext?
     /** stores GLKView's drawableWidth (The width, in pixels, of the underlying framebuffer object.) */
     fileprivate var videoGLKPreviewViewBounds: CGRect?
-    fileprivate var captureSession: AVCaptureSession?
+    fileprivate var session = AVCaptureSession()
+    internal var sessionQueue: DispatchQueue = DispatchQueue.main
+
     /** Frame of sampleBufferView of CameraOutput delegate. Should be set when being initialized. */
     fileprivate var frame: CGRect
     
@@ -149,11 +151,10 @@ class SatoCamera: NSObject {
         glBlendFunc(GLenum(GL_ONE), GLenum(GL_ONE_MINUS_SRC_ALPHA)) // specify pixel arithmetics
     }
     
-    var captureSessionQueue: DispatchQueue = DispatchQueue.main
-    
     /** Start running capture session. */
     internal func initialStart() {
         
+        print("status bar orientation is landscape?: \(UIApplication.shared.statusBarOrientation.isLandscape)")
         // Get video device
         guard let videoDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo) else {
             print("video device is nil")
@@ -163,17 +164,13 @@ class SatoCamera: NSObject {
         self.videoDevice = videoDevice
         
         // If the video device support high preset, set the preset to capture session
-        let preset = AVCaptureSessionPresetHigh
-        if videoDevice.supportsAVCaptureSessionPreset(preset) {
-            captureSession = AVCaptureSession()
+        if videoDevice.supportsAVCaptureSessionPreset(AVCaptureSessionPresetHigh) {
+            session.sessionPreset = AVCaptureSessionPresetHigh
+        } else if videoDevice.supportsAVCaptureSessionPreset(AVCaptureSessionPresetMedium) {
+            session.sessionPreset = AVCaptureSessionPresetMedium
+        } else {
+            session.sessionPreset = AVCaptureSessionPresetLow
         }
-        
-        guard let captureSession = captureSession else {
-            print("capture session is nil")
-            return
-        }
-        
-        captureSession.sessionPreset = preset
         
         // Configure video output setting
         let outputSettings: [AnyHashable : Any] = [kCVPixelBufferPixelFormatTypeKey as AnyHashable : Int(kCVPixelFormatType_32BGRA)]
@@ -182,11 +179,8 @@ class SatoCamera: NSObject {
         
         // Ensure frames are delivered to the delegate in order
         // http://stackoverflow.com/questions/31775356/modifying-uiview-above-glkview-causing-crashes
-        //let captureSessionQueue = DispatchQueue.main
-        // Set delegate to self for didOutputSampleBuffer
-        videoDataOutput.setSampleBufferDelegate(self, queue: captureSessionQueue)
+        videoDataOutput.setSampleBufferDelegate(self, queue: sessionQueue)
         
-        // Discard late video frames not to cause lag and be slow
         videoDataOutput.alwaysDiscardsLateVideoFrames = true
         
         // Configure input object with device
@@ -195,15 +189,15 @@ class SatoCamera: NSObject {
         do {
             videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
             // Add it to session
-            captureSession.addInput(videoDeviceInput)
+            session.addInput(videoDeviceInput)
         } catch {
             print("Failed to instantiate input object")
         }
         
         // Minimize visibility or inconsistency of state
-        captureSession.beginConfiguration()
+        session.beginConfiguration()
         
-        if !captureSession.canAddOutput(videoDataOutput) {
+        if !session.canAddOutput(videoDataOutput) {
             print("cannot add video data output")
             return
         }
@@ -220,11 +214,11 @@ class SatoCamera: NSObject {
         }
         
         // Add output object to session
-        captureSession.addOutput(videoDataOutput)
+        session.addOutput(videoDataOutput)
         
         // Assemble all the settings together
-        captureSession.commitConfiguration()
-        captureSession.startRunning()
+        session.commitConfiguration()
+        session.startRunning()
     }
     
     /** Setup frame rate for video device. captureSession.addInput must be called before this method is called. */
@@ -291,7 +285,7 @@ class SatoCamera: NSObject {
         // https://developer.apple.com/library/content/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/04_MediaCapture.html
         let adjustedPoint = CGPoint(x: 1 - adjustedCoordinatePoint.x / frame.width, y: adjustedCoordinatePoint.y / frame.height)
         
-        captureSessionQueue.async { [unowned self] in
+        sessionQueue.async { [unowned self] in
             if videoDevice.isFocusPointOfInterestSupported && videoDevice.isFocusModeSupported(AVCaptureFocusMode.autoFocus) && videoDevice.isExposureModeSupported(AVCaptureExposureMode.autoExpose) {
                 do {
                     // lock device to change
@@ -338,14 +332,10 @@ class SatoCamera: NSObject {
     /** Toggles back camera or front camera. */
     internal func toggleCamera() {
         let cameraDevice = getCameraDevice()
-        guard let captureSession = captureSession else {
-            print("capture session is nil in \(#function)")
-            return
-        }
-        
+
         didOutputSampleBufferMethodCallCount = 0
-        captureSession.beginConfiguration()
-        captureSession.removeInput(videoDeviceInput)
+        session.beginConfiguration()
+        session.removeInput(videoDeviceInput)
         videoDevice = cameraDevice
         
         // Configure input object with device
@@ -353,7 +343,7 @@ class SatoCamera: NSObject {
             videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
             // Add it to session
             if let videoDeviceInput = videoDeviceInput {
-                captureSession.addInput(videoDeviceInput)
+                session.addInput(videoDeviceInput)
             } else {
                 print("videoDeviceInput is nil")
             }
@@ -361,7 +351,7 @@ class SatoCamera: NSObject {
         } catch {
             print("Failed to instantiate input object")
         }
-        captureSession.commitConfiguration()
+        session.commitConfiguration()
     }
     
     /** Get camera device based on cameraState. */
@@ -380,12 +370,12 @@ class SatoCamera: NSObject {
     
     // MARK: - Camera Controls
     internal func start() {
-        captureSession?.startRunning()
+        session.startRunning()
     }
     
     internal func stop() {
         cameraOutput?.sampleBufferView?.isHidden = true
-        captureSession?.stopRunning()
+        session.stopRunning()
     }
     
     /** Set to the initial state. */
@@ -472,11 +462,7 @@ extension SatoCamera: FilterImageEffectDelegate {
      If a gif or image has already been taken and is showing on outputImageView, applies fitler to it. */
     func didSelectFilter(_ sender: FilterImageEffect, filter: Filter?) {
         // set filtered output image to outputImageView
-        guard let captureSession = captureSession else {
-            print("capture session is nil in \(#function)")
-            return
-        }
-        
+
         // if camera is running, just change the filter name
         guard let filter = filter else {
             print("filter is nil in \(#function)")
@@ -486,7 +472,7 @@ extension SatoCamera: FilterImageEffectDelegate {
         self.currentFilter = filter
         
         // if camera is not running
-        if !captureSession.isRunning {
+        if !session.isRunning {
             showGif()
         }
     }
