@@ -37,8 +37,8 @@ class SatoCamera: NSObject {
     /** stores GLKView's drawableWidth (The width, in pixels, of the underlying framebuffer object.) */
     fileprivate var videoGLKPreviewViewBounds: CGRect?
     fileprivate var session = AVCaptureSession()
-    internal var sessionQueue: DispatchQueue = DispatchQueue.main
-
+    //internal var sessionQueue: DispatchQueue = DispatchQueue.main
+    internal var sessionQueue = DispatchQueue(label: "sessionQueue", attributes: [], target: nil)
     /** Frame of sampleBufferView of CameraOutput delegate. Should be set when being initialized. */
     fileprivate var frame: CGRect
     
