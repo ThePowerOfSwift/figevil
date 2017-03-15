@@ -27,7 +27,7 @@ extension UIImageView {
         let fileProperties = [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFLoopCount as String: loopCount]]
         let frameProperties = [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFDelayTime as String: frameDelay]]
         let documentsDirectory = NSTemporaryDirectory()
-        let url = URL(fileURLWithPath: documentsDirectory).appendingPathComponent(getRandomGifFileName())
+        let url = URL(fileURLWithPath: documentsDirectory).appendingPathComponent(UUID().uuidString).appendingPathExtension("gif")
         
         guard let destination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeGIF, animationImages.count, nil) else {
             print("destination is nil")
@@ -45,11 +45,5 @@ extension UIImageView {
         } else {
             completion(nil, NSError())
         }
-    }
-    
-    /** Creates gif name from time interval since 1970. */
-    private func getRandomGifFileName() -> String {
-        let gifName = String(Date().timeIntervalSince1970) + ".gif"
-        return gifName
     }
 }

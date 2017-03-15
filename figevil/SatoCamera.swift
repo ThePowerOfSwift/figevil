@@ -126,7 +126,7 @@ class SatoCamera: NSObject {
         
         videoGLKPreview = GLKView(frame: frame, context: eaglContext)
         videoGLKPreview.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
-        
+
         // the original video image from the back SatoCamera is landscape. apply 90 degree transform
         videoGLKPreview.transform = backCameraTransform
         // Always set frame after transformation
