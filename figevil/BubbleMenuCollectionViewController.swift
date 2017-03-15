@@ -61,14 +61,6 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
             cell.bubbleContent = bubble
         }
         
-        if !collectionView.collectionViewLayout.isKind(of: UICollectionViewFlowLayout.self) {
-            print("collection view layout is circular layout")
-            cell.isCircularLayout = true
-        } else {
-            print("collection view layout is flow layout")
-            cell.isCircularLayout = false
-        }
-        
         return cell
     }
     

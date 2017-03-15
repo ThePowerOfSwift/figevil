@@ -11,9 +11,6 @@ import UIKit
 class BubbleMenuCollectionViewCell: UICollectionViewCell {
     static let name = "BubbleMenuCollectionViewCell"
     
-    weak var collectionView: UICollectionView?
-    var isCircularLayout: Bool = false
-    
     // Highlights are triggered by touch (one tap = highlight + unhiglight)
     /** Override flag to animate highlight on change */
     override var isHighlighted: Bool {
@@ -114,8 +111,6 @@ class BubbleMenuCollectionViewCell: UICollectionViewCell {
         imageView.layer.cornerRadius = imageView.frame.size.width / 2
         imageView.clipsToBounds = true
         imageView.layer.backgroundColor = UIColor.clear.cgColor
-        
-        isCircularLayout = false
     }
     
     // MARK: Selection and highlight
@@ -143,30 +138,15 @@ class BubbleMenuCollectionViewCell: UICollectionViewCell {
     private func didHighlight() {
     }
     
+    // MARK: - Layout
+    // no need to call super
     override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
-        //super.apply(layoutAttributes)
         
-        if isCircularLayout {
-            if let circularLayoutAttributes = layoutAttributes as? CircularCollectionViewLayoutAttributes {
-                self.layer.anchorPoint = circularLayoutAttributes.anchorPoint
-                self.center.y += (circularLayoutAttributes.anchorPoint.y - 0.5) * self.bounds.height
-                print("layout attibutes: \(layoutAttributes.transform)")
-            }
+        if let circularLayoutAttributes = layoutAttributes as? CircularCollectionViewLayoutAttributes {
+            self.layer.anchorPoint = circularLayoutAttributes.anchorPoint
+            self.center.y += (circularLayoutAttributes.anchorPoint.y - 0.5) * self.bounds.height
+            print("layout attibutes: \(layoutAttributes.transform)")
         }
-//        if let collectionView = collectionView {
-//            if !collectionView.collectionViewLayout.isKind(of: UICollectionViewFlowLayout.self) {
-//                super.apply(layoutAttributes)
-//                let circularLayoutAttributes = layoutAttributes as! CircularCollectionViewLayoutAttributes
-//                self.layer.anchorPoint = circularLayoutAttributes.anchorPoint
-//                self.center.y += (circularLayoutAttributes.anchorPoint.y - 0.5) * self.bounds.height
-//                print("collection view layout is circular layout")
-//            } else {
-//                print("collection view layout is flow layout")
-//            }
-//            
-//        } else {
-//            print("collection view is nil in \(#function)")
-//        }
         
     }
 }
@@ -181,5 +161,4 @@ class BubbleMenuCollectionViewCellContent: NSObject {
         self.image = image
         self.label = label
     }
-    
 }

@@ -14,17 +14,12 @@ class CircularCollectionViewLayoutAttributes: UICollectionViewLayoutAttributes {
     var anchorPoint = CGPoint(x: 0.5, y: 0.5)
     var angle: CGFloat = 0 {
         didSet {
-            // not needed because we won't use z axis
-            zIndex = Int(angle * 1000000)
-            
             // transform is a property of UICollectionViewLayoutAttributes class which define the affine transform of the item.
             transform = CGAffineTransform(rotationAngle: angle)
         }
     }
     
-    override func copy(with zone: NSZone? = nil) -> Any {
-        // can i apply the same deep copy logic to buffer coping?
-        
+    override func copy(with zone: NSZone? = nil) -> Any {        
         // copy things in super class
         let copiedAttributes: CircularCollectionViewLayoutAttributes = super.copy(with: zone) as! CircularCollectionViewLayoutAttributes
         // copy things in subclass here
@@ -85,19 +80,16 @@ class CircularCollectionViewLayout: UICollectionViewLayout {
     override func prepare() {
         super.prepare()
         
-        print("collection view in layout class: \(collectionView)")
-        // http://stackoverflow.com/questions/27515673/whats-causing-this-ios-crash-uicollectionview-received-layout-attributes-for-a
-        attributesList.removeAll()
         let centerX = collectionView!.contentOffset.x + collectionView!.bounds.width / 2.0
         
         // map creates a new array with the result of the closure for each element
         attributesList = (0..<collectionView!.numberOfItems(inSection: 0)).map({ (i) -> CircularCollectionViewLayoutAttributes in
+            
             let attributes = CircularCollectionViewLayoutAttributes(forCellWith: IndexPath(item: i, section: 0))
             attributes.size = self.itemSize
-            // cell Y position
-//            attributes.center = CGPoint(x: centerX, y: collectionView!.bounds.height / 5)
-            attributes.center = CGPoint(x: centerX, y: 10.0)
-            attributes.angle = self.angle + (anglePerItem * CGFloat(i))
+            
+            attributes.center = CGPoint(x: centerX, y: 10.0) // cell Y position
+            attributes.angle = self.angle + (anglePerItem * CGFloat(i)) // angle specific to each cell
             
             // anchor point is a property of CALayer defined in unit coordinate system
             // thus dividing by itemSize.height is nessesary. result is over 1
@@ -114,25 +106,11 @@ class CircularCollectionViewLayout: UICollectionViewLayout {
     /** Returns the layout attributes for all of the cells and views in the specified rectangle.*/
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         // rect is (0.0, 0.0, 736.0, 736.0)
-        var attr = [CircularCollectionViewLayoutAttributes]()
-        for i in 0..<collectionView!.numberOfSections {
-//            for k in 0..<collectionView!.numberOfItems(inSection: 0) {
-//                let indexPath = IndexPath(item: k, section: i)
-//                attr.append(layoutAttributesForItem(at: indexPath) as! CircularCollectionViewLayoutAttributes)
-//            }
-            for k in 0..<3 {
-                let indexPath = IndexPath(item: k, section: i)
-                attr.append(layoutAttributesForItem(at: indexPath) as! CircularCollectionViewLayoutAttributes)
-            }
-        }
-        print("number of attributes: \(attr.count) in \(#function)")
-        return attr
-//        return attributesList
+        return attributesList
     }
     
     /** Returns the layout information for the item at the specified index. */
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        print("indexPath.item: \(indexPath.item) in \(#function)")
         return attributesList[indexPath.item]
     }
     

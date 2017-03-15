@@ -206,11 +206,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         layout.itemSize = CGSize(width: 77, height: 77)
 
         effectToolBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: layout)
-        effectToolBubbleCVC.collectionView?.collectionViewLayout = layout
         effectToolBubbleCVC.datasource = self
         effectToolBubbleCVC.delegate = self
-        print("effect tool bubble collection view: \(effectToolBubbleCVC.collectionView!)")
-        print("collection veiw layout for effect tool bubbles: \(effectToolBubbleCVC.collectionView!.collectionViewLayout)")
         
         addChildViewController(effectToolBubbleCVC)
         effectToolView.addSubview(effectToolBubbleCVC.view)
@@ -220,23 +217,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     func setupEffectOptionBubbles() {
-//        let layout = UICollectionViewFlowLayout()
-//        layout.scrollDirection = UICollectionViewScrollDirection.horizontal
-//        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-//        layout.minimumInteritemSpacing = 0
-//        layout.minimumLineSpacing = 0
-//        layout.itemSize = CGSize(width: 77, height: 77)
-        selectedEffect = 0
-        lastSelectedEffect = 0 
-
         let circularLayout = CircularCollectionViewLayout()
         effectOptionBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: circularLayout)
-        effectOptionBubbleCVC.collectionView?.collectionViewLayout = circularLayout
-        print("effect option bubble collection view: \(effectOptionBubbleCVC.collectionView!)")
-        print("collection veiw layout for effect option bubbles: \(effectOptionBubbleCVC.collectionView!.collectionViewLayout)")
         effectOptionBubbleCVC.datasource = self
         effectOptionBubbleCVC.delegate = self
-        //effectToolBubbleCVC.collectionView?.isPrefetchingEnabled = false
         
         addChildViewController(effectOptionBubbleCVC)
         effectOptionView.addSubview(effectOptionBubbleCVC.view)
