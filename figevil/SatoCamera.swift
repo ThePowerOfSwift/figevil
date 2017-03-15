@@ -29,7 +29,7 @@ protocol SatoCameraOutput {
 class SatoCamera: NSObject {
     
     // MARK: Basic Configuration for capturing
-    fileprivate var videoGLKPreview: GLKView?
+    fileprivate var videoGLKPreview: GLKView!
     fileprivate var videoDevice: AVCaptureDevice?
     fileprivate var videoDeviceInput: AVCaptureDeviceInput?
     fileprivate var ciContext: CIContext?
@@ -101,6 +101,15 @@ class SatoCamera: NSObject {
     // Gif setting
     var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 5, liveGifDuration: 3)
     
+
+    private enum SessionSetupResult {
+        case success
+        case failed
+    }
+    
+    private var setupResult: SessionSetupResult = .success
+
+    
     // MARK: - Setups
     init(frame: CGRect) {
         self.frame = frame
@@ -108,24 +117,18 @@ class SatoCamera: NSObject {
         super.init()
         
         // EAGLContext object manages an OpenGL ES rendering context
-        eaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2)
-        guard let eaglContext = eaglContext else {
+        guard let eaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
             print("eaglContext is nil")
+            setupResult = .failed
             return
         }
-        // Configure GLK preview view.
-        // GLKView is A default implementation for views that draw their content using OpenGL ES.
-        videoGLKPreview = GLKView(frame: frame, context: eaglContext)
-        guard let videoGLKPreview = videoGLKPreview else {
-            print("videoGLKPreviewView is nil")
-            return
-        }
+        self.eaglContext = eaglContext
         
-        videoGLKPreview.enableSetNeedsDisplay = false
+        videoGLKPreview = GLKView(frame: frame, context: eaglContext)
+        videoGLKPreview.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
         
         // the original video image from the back SatoCamera is landscape. apply 90 degree transform
         videoGLKPreview.transform = backCameraTransform
-        
         // Always set frame after transformation
         videoGLKPreview.frame = frame
 
@@ -158,6 +161,7 @@ class SatoCamera: NSObject {
         // Get video device
         guard let videoDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo) else {
             print("video device is nil")
+            setupResult = .failed
             return
         }
         
@@ -192,10 +196,12 @@ class SatoCamera: NSObject {
                 session.addInput(videoDeviceInput)
             } else {
                 print("video device input cannot be added to session.")
+                setupResult = .failed
             }
             
         } catch {
             print("Failed to instantiate input object")
+            setupResult = .failed
         }
         
         // Minimize visibility or inconsistency of state
@@ -208,7 +214,8 @@ class SatoCamera: NSObject {
                 videoDevice.torchMode = light.torchState
                 videoDevice.unlockForConfiguration()
             } catch {
-                
+                print("failed to lock device")
+                setupResult = .failed
             }
         }
         
@@ -217,6 +224,7 @@ class SatoCamera: NSObject {
             session.addOutput(videoDataOutput)
         } else {
             print("cannot add video data output")
+            setupResult = .failed
         }
         
         // Assemble all the settings together
