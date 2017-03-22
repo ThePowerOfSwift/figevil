@@ -12,6 +12,9 @@ import GLKit
 
 import QuartzCore
 
+import MobileCoreServices // for HDD saving
+import Photos // for HDD saving
+
 /** Indicate camera state. */
 enum CameraFace {
     case Back
@@ -109,8 +112,14 @@ class SatoCamera: NSObject {
     }
     
     private var setupResult: SessionSetupResult = .success
-
     
+    
+    // MARK: HDD saving
+    var originalURLs = [URL]()
+    var resizedURLs = [URL]()
+    let fileManager = FileManager()
+    let maxPixelSize = 1334
+
     func askUserCameraAccessAuthorization(completion: ((_ authorized: Bool)->())?) {
         if AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) != AVAuthorizationStatus.authorized {
             AVCaptureDevice.requestAccess(forMediaType: AVMediaTypeVideo, completionHandler: { (granted :Bool) -> Void in
@@ -462,24 +471,120 @@ class SatoCamera: NSObject {
     
     /** Creates an image view with images for animation. Show the image view on output image view. */
     func showGif() {
-        let gif = Gif(originalCIImages: unfilteredCIImages, scale: 0, frame: frame, filter: currentFilter, preset: currentLiveGifPreset)
+//        let gif = Gif(originalCIImages: unfilteredCIImages, scale: 0, frame: frame, filter: currentFilter, preset: currentLiveGifPreset)
+//        
+//        guard let gifImageView = gif.gifImageView else {
+//            print("gif image view is nil")
+//            return
+//        }
+//        self.gif = gif
+//        
+//        if let cameraOutput = cameraOutput {
+//            if let outputImageView = cameraOutput.outputImageView {
+//                outputImageView.isHidden = false
+//                for subview in outputImageView.subviews {
+//                    subview.removeFromSuperview()
+//                }
+//            }
+//        }
+//        cameraOutput?.outputImageView?.addSubview(gifImageView)
+//        gifImageView.startAnimating()
         
-        guard let gifImageView = gif.gifImageView else {
-            print("gif image view is nil")
-            return
+        if let gifURL = createGif(with: originalURLs, frameDelay: 0.5) {
+            print(filesize(url: gifURL)!)
         }
-        self.gif = gif
         
-        if let cameraOutput = cameraOutput {
-            if let outputImageView = cameraOutput.outputImageView {
-                outputImageView.isHidden = false
-                for subview in outputImageView.subviews {
-                    subview.removeFromSuperview()
+        if let gifImageView = getGifImageViewFromImageUrls(originalURLs, filterName: "") {
+            if let cameraOutput = cameraOutput {
+                if let outputImageView = cameraOutput.outputImageView {
+                    outputImageView.isHidden = false
+                    for subview in outputImageView.subviews {
+                        subview.removeFromSuperview()
+                    }
                 }
             }
+            cameraOutput?.outputImageView?.addSubview(gifImageView)
+            gifImageView.startAnimating()
+        } else {
+            print("gifImageView is nil")
         }
-        cameraOutput?.outputImageView?.addSubview(gifImageView)
-        gifImageView.startAnimating()
+    }
+    
+    func getGifImageViewfromGifUrl(_ url: URL) -> UIImageView? {
+        do {
+            let imageData = try Data(contentsOf: url)
+            if let image = UIImage.gif(data: imageData) {
+                let imageView = UIImageView(image: image)
+                print("succeeded in creating image view")
+                return imageView
+            } else {
+                print("image is nil")
+            }
+            
+        } catch let e {
+            print(e.localizedDescription)
+            return nil
+        }
+        return nil
+    }
+    
+    func getGifImageViewFromImageUrls(_ urls: [URL], filterName: String) -> UIImageView? {
+        
+        var images = [UIImage]()
+        for url in urls {
+            if let image = getFilteredUIImageFromUrl(url, filterName: filterName) {
+                images.append(image)
+            } else {
+                print("image is nil in \(#function)")
+            }
+        }
+        
+        let imageView = UIImageView(frame: frame)
+        imageView.animationImages = images
+        imageView.animationRepeatCount = 0
+        imageView.animationDuration = 3
+        
+        return imageView
+    }
+    
+    func getCGImageFromUrl(_ url: URL) -> CGImage? {
+        //let dataProvider = CGDataProvider(url: resizedUrl as CFURL)
+        guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
+            print("CGImage is nil in \(#function)")
+            return nil
+        }
+        let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
+        return cgImage
+    }
+    
+    func getFilteredCIImageFromCGImage(_ cgImage: CGImage, filterName: String) -> CIImage? {
+        let ciImage = CIImage(cgImage: cgImage)
+        if let filter = CIFilter(name: filterName) {
+            filter.setValue(ciImage, forKey: kCIInputImageKey)
+            return filter.outputImage
+        }
+        print("filter is nil in \(#function)")
+        return ciImage
+    }
+    
+    func getFilteredUIImageFromUrl(_ url: URL, filterName: String) -> UIImage? {
+        guard let cgImage = getCGImageFromUrl(url) else {
+            print("cgImage is nil in \(#function)")
+            return nil
+        }
+        
+        guard let ciImage = getFilteredCIImageFromCGImage(cgImage, filterName: filterName) else {
+            print("ciImage is nil in \(#function)")
+            return nil
+        }
+        
+        let context = CIContext(options: nil)
+        let filteredCGImage = context.createCGImage(ciImage, from: ciImage.extent)
+        
+        let uiImage = UIImage(cgImage: filteredCGImage!)
+        //let uiImage = UIImage(ciImage: ciImage)
+        
+        return uiImage
     }
 }
 
@@ -506,6 +611,11 @@ extension SatoCamera: FilterImageEffectDelegate {
     }
 }
 
+//var originalURLs = [URL]()
+//var resizedURLs = [URL]()
+//let fileManager = FileManager()
+//let maxPixelSize = 1334
+
 // MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
 extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
     
@@ -525,28 +635,54 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             self.didOutputSampleBufferMethodCallCount += 1
             if self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0 {
                 
-                // get deep copied CIImage from sample buffer so that the ciimage has no reference to sample buffer anymore
-                if let deepCopiedCIImage = sampleBuffer.ciImage {
-                    if self.isRecording {
-                        self.unfilteredCIImages.append(deepCopiedCIImage)
-                    } else {
-                        
-                        // detect snap user action
-                        if !self.isSnappedGif {
-                            self.unfilteredCIImages.append(deepCopiedCIImage)
-                            
-                            if self.unfilteredCIImages.count == self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
-                                self.unfilteredCIImages.remove(at: 0)
+//                // get deep copied CIImage from sample buffer so that the ciimage has no reference to sample buffer anymore
+//                if let deepCopiedCIImage = sampleBuffer.ciImage {
+//                    if self.isRecording {
+//                        self.unfilteredCIImages.append(deepCopiedCIImage)
+//                    } else {
+//                        
+//                        // detect snap user action
+//                        if !self.isSnappedGif {
+//                            self.unfilteredCIImages.append(deepCopiedCIImage)
+//                            
+//                            if self.unfilteredCIImages.count == self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+//                                self.unfilteredCIImages.remove(at: 0)
+//                            }
+//                        } else {
+//                            
+//                            // if snapped, start post-storing
+//                            self.unfilteredCIImages.append(deepCopiedCIImage)
+//                            if self.unfilteredCIImages.count == self.currentLiveGifPreset.liveGifFrameTotalCount {
+//                                DispatchQueue.main.async { [unowned self] in
+//                                    // UI change has to be in main thread
+//                                    self.stopLiveGif()
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+                
+                if let url = self.saveFrame(from: sampleBuffer) {
+                    self.originalURLs.append(url)
+                    print("\(url) is appended to originalURLs")
+                    if !self.isSnappedGif {
+                        // pre-saving
+                        if self.originalURLs.count == self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+                            do {
+                                try self.fileManager.removeItem(at: self.originalURLs[0])
+                                self.originalURLs.remove(at: 0)
+                                print("\(self.originalURLs[0]) is removed from originalURLs")
+                            } catch let e {
+                                print(e)
                             }
-                        } else {
-                            
-                            // if snapped, start post-storing
-                            self.unfilteredCIImages.append(deepCopiedCIImage)
-                            if self.unfilteredCIImages.count == self.currentLiveGifPreset.liveGifFrameTotalCount {
-                                DispatchQueue.main.async { [unowned self] in
-                                    // UI change has to be in main thread
-                                    self.stopLiveGif()
-                                }
+                        }
+
+                    } else {
+                        // post-saving
+                        if self.originalURLs.count == self.currentLiveGifPreset.liveGifFrameTotalCount {
+                            DispatchQueue.main.async { [unowned self] in
+                                // UI change has to be in main thread
+                                self.stopLiveGif()
                             }
                         }
                     }
@@ -575,5 +711,185 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
 
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: sourceImage.extent)
         videoGLKPreview?.display()
+    }
+    
+    /// Save image from CVPixelBuffer to disk without loading into memory
+    func saveFrame(from buffer: CMSampleBuffer, outputURL: URL? = nil) -> URL? {
+        
+        guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(buffer) else {
+            print("Error: Image buffer is nil")
+            return nil
+        }
+        
+        CVPixelBufferLockBaseAddress(pixelBuffer, CVPixelBufferLockFlags.readOnly)
+        
+        guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) else {
+            print("Error: cannot retrieve pixel address")
+            CVPixelBufferUnlockBaseAddress(pixelBuffer, CVPixelBufferLockFlags.readOnly)
+            return nil
+        }
+        let width = CVPixelBufferGetWidth(pixelBuffer)
+        let height = CVPixelBufferGetHeight(pixelBuffer)
+        let rowBytes = CVPixelBufferGetBytesPerRow(pixelBuffer)
+        let data = NSData(bytes: baseAddress, length: rowBytes * height)
+        
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, CVPixelBufferLockFlags.readOnly)
+        
+        guard let provider = CGDataProvider(data: data) else {
+            print("Error: cannot create CGDataProvider")
+            return nil
+        }
+        
+        // Assumed
+        let bitmapInfo = CGBitmapInfo.byteOrder32Little.union(CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue))
+        
+        guard let image = CGImage(width: width,
+                                  height: height,
+                                  bitsPerComponent: 8,
+                                  bitsPerPixel: 32,
+                                  bytesPerRow: rowBytes,
+                                  space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: bitmapInfo,
+                                  provider: provider,
+                                  decode: nil,
+                                  shouldInterpolate: true,
+                                  intent: CGColorRenderingIntent.defaultIntent) else {
+                                    print("Error: cannot create CGImage")
+                                    return nil
+        }
+        
+        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
+        let url = outputURL ?? URL(fileURLWithPath: path)
+        guard let imageDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeJPEG, 1, nil) else {
+            print("Error: cannot create image destination")
+            return nil
+        }
+        
+        guard var options = CMCopyDictionaryOfAttachments(nil, buffer, kCMAttachmentMode_ShouldPropagate) as Dictionary? else {
+            print("Error: cannot create options dictionary for image destination")
+            return nil
+        }
+        options.updateValue(currentExifDeviceOrientation() as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+        CGImageDestinationAddImage(imageDestination, image, options as CFDictionary?)
+        
+        if !CGImageDestinationFinalize(imageDestination) {
+            print("Error: failed to finalize image destination")
+            return nil
+        }
+        
+        return url
+    }
+    
+    /// Calculates the current EXIF orientation tag based on the devices current orientation
+    func currentExifDeviceOrientation() -> Int {
+        var exifOrientation: Int = 1
+        switch UIDevice.current.orientation {
+        case .landscapeLeft:
+            exifOrientation = 1
+        case .landscapeRight:
+            exifOrientation = 3
+        case .portrait:
+            exifOrientation = 6
+        case .portraitUpsideDown:
+            exifOrientation = 8
+        default:
+            break
+        }
+        return exifOrientation
+    }
+    
+    /// Create a GIF
+    func createGif(with imageURLs:[URL], loopCount: Int = 0, frameDelay: Double) -> URL? {
+        // Data check
+        if imageURLs.count <= 0 {
+            return nil
+        }
+        
+        // Generate default output url
+        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif")
+        let url = URL(fileURLWithPath: path)
+        
+        // Create write-to destination
+        guard let gifDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeGIF, imageURLs.count, nil) else {
+            print("Error: cannot create image destination is nil")
+            return nil
+        }
+        
+        // ImageSource options- do not cache
+        let sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
+        
+        // Set gif file properties (options)
+        var gifDestinationOptions: [NSObject: AnyObject] = [:]
+        let gifDictionaryOptions: [NSObject: AnyObject]? = [kCGImagePropertyGIFLoopCount as NSObject: loopCount as AnyObject,
+                                                            kCGImagePropertyGIFDelayTime as NSObject: frameDelay as AnyObject]
+        gifDestinationOptions[kCGImagePropertyGIFDictionary as NSObject] = gifDictionaryOptions as AnyObject
+        CGImageDestinationSetProperties(gifDestination, gifDestinationOptions as CFDictionary?)
+        
+        // Add images to gif
+        for url in imageURLs {
+            guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, sourceOptions as CFDictionary?) else {
+                print("Error: cannot load image source from url \(url)")
+                continue
+            }
+            
+            CGImageDestinationAddImageFromSource(gifDestination, imageSource, 0, nil)
+        }
+        
+        // Write gif to disk
+        if !CGImageDestinationFinalize(gifDestination) {
+            print("Error: cannot finalize gif")
+            return nil
+        }
+        
+        return url
+    }
+    
+    /// Return the filesize of a given URL
+    func filesize(url: URL) -> String? {
+        if let data = NSData(contentsOf: url) {
+            let size = Double(data.length)
+            let sizeKB = size / 1024.0
+            
+            return String(format: "%.2fKB", sizeKB)
+        } else {
+            return nil
+        }
+    }
+    
+    /// Resize an image at a given url
+    func resize(image atURL: URL, maxSize: Int) -> URL? {
+        var sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
+        guard let imageSource = CGImageSourceCreateWithURL(atURL as CFURL, sourceOptions as CFDictionary?) else {
+            print("Error: cannot create image source for resize")
+            return nil
+        }
+        
+        sourceOptions[kCGImageSourceCreateThumbnailFromImageAlways as NSObject] = true as AnyObject
+        sourceOptions[kCGImageSourceCreateThumbnailWithTransform as NSObject] = true as AnyObject
+        sourceOptions[kCGImageSourceThumbnailMaxPixelSize as NSObject] = maxSize as AnyObject
+        
+        guard let resizedImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, sourceOptions as CFDictionary?) else {
+            print("Error: failed to resize image")
+            return nil
+        }
+        
+        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
+        let outputURL = URL(fileURLWithPath: path)
+        
+        guard let imageDestination = CGImageDestinationCreateWithURL(outputURL as CFURL, kUTTypeJPEG, 1, nil) else {
+            print("Error: cannot create image destination")
+            return nil
+        }
+        
+        //        var imageDestinationOptions: [NSObject: AnyObject] = [:]
+        //        imageDestinationOptions as CFDictionary?
+        CGImageDestinationAddImage(imageDestination, resizedImage, nil)
+        
+        if !CGImageDestinationFinalize(imageDestination) {
+            print("Error: cannot finalize and write image destination for resize")
+            return nil
+        }
+        
+        return outputURL
     }
 }
