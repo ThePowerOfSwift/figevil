@@ -799,6 +799,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             return nil
         }
         //options.updateValue(currentExifDeviceOrientation() as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+        options.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         CGImageDestinationAddImage(imageDestination, image, options as CFDictionary?)
         
         if !CGImageDestinationFinalize(imageDestination) {
@@ -808,6 +809,9 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         
         return url
     }
+    
+    // 7 right bottom for landscape left
+    // https://developer.apple.com/reference/imageio/kcgimagepropertyorientation
     
     /// Calculates the current EXIF orientation tag based on the devices current orientation
     func currentExifDeviceOrientation() -> Int {
