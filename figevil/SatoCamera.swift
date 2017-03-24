@@ -102,7 +102,7 @@ class SatoCamera: NSObject {
     }
     
     // Gif setting
-    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 15, liveGifDuration: 3)
+    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
     
 
     private enum SessionSetupResult {
@@ -177,7 +177,7 @@ class SatoCamera: NSObject {
     /** Start running capture session. */
     internal func configureSession() {
         
-        print("status bar orientation is landscape?: \(UIApplication.shared.statusBarOrientation.isLandscape)")
+        //print("status bar orientation is landscape?: \(UIApplication.shared.statusBarOrientation.isLandscape)")
         // Get video device
         guard let videoDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo) else {
             print("video device is nil")
@@ -531,7 +531,7 @@ class SatoCamera: NSObject {
 //        cameraOutput?.outputImageView?.addSubview(gifImageView)
 //        gifImageView.startAnimating()
         
-        if let gifImageView = getGifImageViewFromImageUrls(originalURLs, filterName: "") {
+        if let gifImageView = getGifImageViewFromImageUrls(resizedURLs, filterName: "") {
             if let cameraOutput = cameraOutput {
                 if let outputImageView = cameraOutput.outputImageView {
                     outputImageView.isHidden = false
@@ -695,20 +695,36 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                 
                 if let url = self.saveFrame(from: sampleBuffer) {
                     self.originalURLs.append(url)
+                    
+                    if let resizedUrl = self.resize(image: url, maxSize: self.maxPixelSize) {
+                        self.resizedURLs.append(resizedUrl)
+                        print("resized URL is appended : \(resizedUrl), resized URL count: \(self.resizedURLs.count)")
+                    } else {
+                        print("failed to get resized URL")
+                    }
+                    
                     if !self.isSnappedGif {
                         // pre-saving
                         if self.originalURLs.count == self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                             do {
-                                try self.fileManager.removeItem(at: self.originalURLs[0])
-                                self.originalURLs.remove(at: 0)
+                                try self.fileManager.removeItem(at: self.originalURLs.removeFirst())
                             } catch let e {
                                 print(e)
                             }
                         }
-
+                        
+                        if self.resizedURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+                            do {
+                                try self.fileManager.removeItem(at: self.resizedURLs.removeFirst())
+                            } catch let e {
+                                print(e)
+                            }
+                        }
+                        
                     } else {
                         // post-saving
-                        if self.originalURLs.count == self.currentLiveGifPreset.liveGifFrameTotalCount {
+                        
+                        if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount {
                             DispatchQueue.main.async { [unowned self] in
                                 // UI change has to be in main thread
                                 self.stopLiveGif()
