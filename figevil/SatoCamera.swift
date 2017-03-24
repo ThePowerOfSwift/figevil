@@ -87,19 +87,19 @@ class SatoCamera: NSObject {
         }
     }
     
-    // MARK: Transform
-    /** CGAffineTransfrom when it's back camera. */
-    var backCameraTransform: CGAffineTransform {
-        return CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
-    }
-    
-    /** CGAffineTransfrom when it's front camera. */
-    var frontCameraTransform: CGAffineTransform {
-        let rotation = CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
-        let flip = CGAffineTransform(scaleX: -1.0, y: 1.0)
-        let transform = rotation.concatenating(flip)
-        return transform
-    }
+//    // MARK: Transform
+//    /** CGAffineTransfrom when it's back camera. */
+//    var backCameraTransform: CGAffineTransform {
+//        return CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
+//    }
+//    
+//    /** CGAffineTransfrom when it's front camera. */
+//    var frontCameraTransform: CGAffineTransform {
+//        let rotation = CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
+//        let flip = CGAffineTransform(scaleX: -1.0, y: 1.0)
+//        let transform = rotation.concatenating(flip)
+//        return transform
+//    }
     
     // Gif setting
     var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
@@ -531,7 +531,8 @@ class SatoCamera: NSObject {
 //        cameraOutput?.outputImageView?.addSubview(gifImageView)
 //        gifImageView.startAnimating()
         
-        if let gifImageView = getGifImageViewFromImageUrls(resizedURLs, filterName: "") {
+        
+        if let gifImageView = getGifImageViewFromImageUrls(resizedURLs, filter: currentFilter.filter) {
             if let cameraOutput = cameraOutput {
                 if let outputImageView = cameraOutput.outputImageView {
                     outputImageView.isHidden = false
@@ -565,11 +566,11 @@ class SatoCamera: NSObject {
         return nil
     }
     
-    func getGifImageViewFromImageUrls(_ urls: [URL], filterName: String) -> UIImageView? {
+    func getGifImageViewFromImageUrls(_ urls: [URL], filter: CIFilter?) -> UIImageView? {
         
         var images = [UIImage]()
         for url in urls {
-            if let image = getFilteredUIImageFromUrl(url, filterName: filterName) {
+            if let image = getFilteredUIImageFromUrl(url, filter: filter) {
                 images.append(image)
             } else {
                 print("image is nil in \(#function)")
@@ -594,9 +595,9 @@ class SatoCamera: NSObject {
         return cgImage
     }
     
-    func getFilteredCIImageFromCGImage(_ cgImage: CGImage, filterName: String) -> CIImage? {
+    func getFilteredCIImageFromCGImage(_ cgImage: CGImage, filter: CIFilter?) -> CIImage? {
         let ciImage = CIImage(cgImage: cgImage)
-        if let filter = CIFilter(name: filterName) {
+        if let filter = filter {
             filter.setValue(ciImage, forKey: kCIInputImageKey)
             return filter.outputImage
         }
@@ -604,13 +605,13 @@ class SatoCamera: NSObject {
         return ciImage
     }
     
-    func getFilteredUIImageFromUrl(_ url: URL, filterName: String) -> UIImage? {
+    func getFilteredUIImageFromUrl(_ url: URL, filter: CIFilter?) -> UIImage? {
         guard let cgImage = getCGImageFromUrl(url) else {
             print("cgImage is nil in \(#function)")
             return nil
         }
         
-        guard let ciImage = getFilteredCIImageFromCGImage(cgImage, filterName: filterName) else {
+        guard let ciImage = getFilteredCIImageFromCGImage(cgImage, filter: filter) else {
             print("ciImage is nil in \(#function)")
             return nil
         }
@@ -698,7 +699,6 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                     
                     if let resizedUrl = self.resize(image: url, maxSize: self.maxPixelSize) {
                         self.resizedURLs.append(resizedUrl)
-                        print("resized URL is appended : \(resizedUrl), resized URL count: \(self.resizedURLs.count)")
                     } else {
                         print("failed to get resized URL")
                     }
@@ -815,7 +815,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             return nil
         }
         //options.updateValue(currentExifDeviceOrientation() as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
-        options.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+        //options.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         CGImageDestinationAddImage(imageDestination, image, options as CFDictionary?)
         
         if !CGImageDestinationFinalize(imageDestination) {
@@ -869,7 +869,8 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         // ImageSource options- do not cache
-        let sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
+        var sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
+        sourceOptions.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         
         // Set gif file properties (options)
         var gifDestinationOptions: [NSObject: AnyObject] = [:]
