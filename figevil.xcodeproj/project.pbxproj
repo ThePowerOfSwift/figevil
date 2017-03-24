@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		0571FA59C0B61657852D33D6 /* Pods_figevil.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C710722E2727E087354024E4 /* Pods_figevil.framework */; };
+		782399E01E847C2B00207B56 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782399DF1E847C2B00207B56 /* Globals.swift */; };
+		782399E21E8489C200207B56 /* FirstTimeExperience.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 782399E11E8489C200207B56 /* FirstTimeExperience.storyboard */; };
+		782399E61E848C1000207B56 /* FirstTimeExperienceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782399E51E848C1000207B56 /* FirstTimeExperienceViewController.swift */; };
 		782BB2621E7C7F5000EFD135 /* BbgL7x3.gif in Resources */ = {isa = PBXBuildFile; fileRef = 782BB2611E7C7F5000EFD135 /* BbgL7x3.gif */; };
 		7854B9DD1E64F98300591255 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9DC1E64F98300591255 /* AppDelegate.swift */; };
 		7854B9E41E64F98300591255 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9E31E64F98300591255 /* Assets.xcassets */; };
@@ -38,6 +41,7 @@
 		78B5DD1D1E675EC500192135 /* back.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD151E675EC500192135 /* back.png */; };
 		78B5DD1E1E675EC500192135 /* flash.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD161E675EC500192135 /* flash.png */; };
 		78B5DD1F1E675EC500192135 /* circle.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD171E675EC500192135 /* circle.png */; };
+		78F67D3E1E7CA627003F8A20 /* AppDelegate+FirstLaunch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78F67D3D1E7CA627003F8A20 /* AppDelegate+FirstLaunch.swift */; };
 		E335FE701E70E89F00A5BAD2 /* Light.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE6F1E70E89F00A5BAD2 /* Light.swift */; };
 		E335FE721E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE711E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift */; };
 		E335FE741E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE731E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift */; };
@@ -50,6 +54,9 @@
 
 /* Begin PBXFileReference section */
 		54758DDE5EE3F1B539963AA4 /* Pods-figevil.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-figevil.debug.xcconfig"; path = "Pods/Target Support Files/Pods-figevil/Pods-figevil.debug.xcconfig"; sourceTree = "<group>"; };
+		782399DF1E847C2B00207B56 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
+		782399E11E8489C200207B56 /* FirstTimeExperience.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = FirstTimeExperience.storyboard; sourceTree = "<group>"; };
+		782399E51E848C1000207B56 /* FirstTimeExperienceViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FirstTimeExperienceViewController.swift; sourceTree = "<group>"; };
 		782BB2611E7C7F5000EFD135 /* BbgL7x3.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = BbgL7x3.gif; sourceTree = "<group>"; };
 		7854B9D91E64F98300591255 /* figevil.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = figevil.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7854B9DC1E64F98300591255 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -82,6 +89,7 @@
 		78B5DD151E675EC500192135 /* back.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = back.png; sourceTree = "<group>"; };
 		78B5DD161E675EC500192135 /* flash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = flash.png; sourceTree = "<group>"; };
 		78B5DD171E675EC500192135 /* circle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = circle.png; sourceTree = "<group>"; };
+		78F67D3D1E7CA627003F8A20 /* AppDelegate+FirstLaunch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AppDelegate+FirstLaunch.swift"; sourceTree = "<group>"; };
 		C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-figevil.release.xcconfig"; path = "Pods/Target Support Files/Pods-figevil/Pods-figevil.release.xcconfig"; sourceTree = "<group>"; };
 		C710722E2727E087354024E4 /* Pods_figevil.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_figevil.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E335FE6F1E70E89F00A5BAD2 /* Light.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Light.swift; sourceTree = "<group>"; };
@@ -125,6 +133,7 @@
 		782BB2631E7C7FD300EFD135 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				782399DF1E847C2B00207B56 /* Globals.swift */,
 				7854B9DC1E64F98300591255 /* AppDelegate.swift */,
 				7854B9EE1E64F9B600591255 /* GoogleService-Info.plist */,
 				7854B9E31E64F98300591255 /* Assets.xcassets */,
@@ -183,6 +192,7 @@
 				7854B9FE1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift */,
 				E36FA67D1E7714AC00F70925 /* CircularCollectionViewLayout.swift */,
 				7854B9FF1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib */,
+				78F67D3C1E7CA5BD003F8A20 /* FTE */,
 				78B5DD0F1E675E7F00192135 /* TBD */,
 			);
 			path = figevil;
@@ -205,6 +215,16 @@
 				7857A02D1E6504EC00660B68 /* montgomery.jpg */,
 			);
 			name = TBD;
+			sourceTree = "<group>";
+		};
+		78F67D3C1E7CA5BD003F8A20 /* FTE */ = {
+			isa = PBXGroup;
+			children = (
+				78F67D3D1E7CA627003F8A20 /* AppDelegate+FirstLaunch.swift */,
+				782399E11E8489C200207B56 /* FirstTimeExperience.storyboard */,
+				782399E51E848C1000207B56 /* FirstTimeExperienceViewController.swift */,
+			);
+			name = FTE;
 			sourceTree = "<group>";
 		};
 		DB64432D15A069CAAE0FE212 /* Pods */ = {
@@ -296,6 +316,7 @@
 				78B5DD1C1E675EC500192135 /* checkmark.png in Resources */,
 				7857A02F1E6504EC00660B68 /* golden_gate_bridge.jpg in Resources */,
 				78B5DD191E675EC500192135 /* paintbrush.png in Resources */,
+				782399E21E8489C200207B56 /* FirstTimeExperience.storyboard in Resources */,
 				782BB2621E7C7F5000EFD135 /* BbgL7x3.gif in Resources */,
 				78B5DD181E675EC500192135 /* camera.png in Resources */,
 				7854BA0B1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib in Resources */,
@@ -381,6 +402,9 @@
 				7854BA071E64FD7D00591255 /* DrawImageEffectView.swift in Sources */,
 				7854BA061E64FD7D00591255 /* Filter.swift in Sources */,
 				7854B9DD1E64F98300591255 /* AppDelegate.swift in Sources */,
+				782399E61E848C1000207B56 /* FirstTimeExperienceViewController.swift in Sources */,
+				78F67D3E1E7CA627003F8A20 /* AppDelegate+FirstLaunch.swift in Sources */,
+				782399E01E847C2B00207B56 /* Globals.swift in Sources */,
 				E335FE721E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift in Sources */,
 				E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */,
 				E36FA67E1E7714AC00F70925 /* CircularCollectionViewLayout.swift in Sources */,
