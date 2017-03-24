@@ -102,7 +102,7 @@ class SatoCamera: NSObject {
     }
     
     // Gif setting
-    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 5, liveGifDuration: 3)
+    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 15, liveGifDuration: 3)
     
 
     private enum SessionSetupResult {
@@ -148,7 +148,7 @@ class SatoCamera: NSObject {
         videoGLKPreview.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
 
         // the original video image from the back SatoCamera is landscape. apply 90 degree transform
-        videoGLKPreview.transform = backCameraTransform
+        //videoGLKPreview.transform = backCameraTransform
         // Always set frame after transformation
         videoGLKPreview.frame = frame
 
@@ -245,6 +245,13 @@ class SatoCamera: NSObject {
         } else {
             print("cannot add video data output")
             setupResult = .configurationFailed
+        }
+        
+        //configureOrientation(for: cameraFace)
+        if let connection = videoDataOutput.connection(withMediaType: AVMediaTypeVideo) {
+            if connection.isVideoOrientationSupported {
+                connection.videoOrientation = AVCaptureVideoOrientation.portrait
+            }
         }
         
         // Assemble all the settings together
@@ -418,6 +425,8 @@ class SatoCamera: NSObject {
     /** Set to the initial state. */
     internal func reset() {
         unfilteredCIImages.removeAll()
+        originalURLs.removeAll()
+        resizedURLs.removeAll()
         cameraOutput?.sampleBufferView?.isHidden = false
         didOutputSampleBufferMethodCallCount = 0
         gif = nil
@@ -442,6 +451,38 @@ class SatoCamera: NSObject {
         }
         
         gif.save(drawImage: drawImage, textImage: textImage, completion: completion)
+    }
+    
+    internal func save() {
+        // render here
+        if let gifURL = createGif(with: originalURLs, frameDelay: 0.5) {
+            print(filesize(url: gifURL)!)
+            PHPhotoLibrary.requestAuthorization
+                { (status) -> Void in
+                    switch (status)
+                    {
+                    case .authorized:
+                        // Permission Granted
+                        //print("Photo library usage authorized")
+                        // save data to the url
+                        PHPhotoLibrary.shared().performChanges({
+                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifURL)
+                        }, completionHandler: { (saved: Bool, error: Error?) in
+                            if saved {
+                                print("saved gif")
+                            } else {
+                                print("did not save gif")
+                            }
+                        })
+                    case .denied:
+                        // Permission Denied
+                        print("User denied")
+                    default:
+                        print("Restricted")
+                    }
+            }
+
+        }
     }
     
     // MARK: - Gif Controls
@@ -489,10 +530,6 @@ class SatoCamera: NSObject {
 //        }
 //        cameraOutput?.outputImageView?.addSubview(gifImageView)
 //        gifImageView.startAnimating()
-        
-        if let gifURL = createGif(with: originalURLs, frameDelay: 0.5) {
-            print(filesize(url: gifURL)!)
-        }
         
         if let gifImageView = getGifImageViewFromImageUrls(originalURLs, filterName: "") {
             if let cameraOutput = cameraOutput {
@@ -624,12 +661,6 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
      In background, store CIImages into array one by one. Resizing should be done in background.*/
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
-        if cameraFace == CameraFace.Back {
-            videoGLKPreview?.transform = backCameraTransform
-        } else {
-            videoGLKPreview?.transform = frontCameraTransform
-        }
-        
         // Store in background thread
         DispatchQueue.global(qos: .utility).async { [unowned self] in
             self.didOutputSampleBufferMethodCallCount += 1
@@ -664,14 +695,12 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                 
                 if let url = self.saveFrame(from: sampleBuffer) {
                     self.originalURLs.append(url)
-                    print("\(url) is appended to originalURLs")
                     if !self.isSnappedGif {
                         // pre-saving
                         if self.originalURLs.count == self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                             do {
                                 try self.fileManager.removeItem(at: self.originalURLs[0])
                                 self.originalURLs.remove(at: 0)
-                                print("\(self.originalURLs[0]) is removed from originalURLs")
                             } catch let e {
                                 print(e)
                             }
@@ -769,7 +798,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             print("Error: cannot create options dictionary for image destination")
             return nil
         }
-        options.updateValue(currentExifDeviceOrientation() as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+        //options.updateValue(currentExifDeviceOrientation() as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         CGImageDestinationAddImage(imageDestination, image, options as CFDictionary?)
         
         if !CGImageDestinationFinalize(imageDestination) {
@@ -786,12 +815,16 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         switch UIDevice.current.orientation {
         case .landscapeLeft:
             exifOrientation = 1
+            print("landscape left")
         case .landscapeRight:
             exifOrientation = 3
+            print("landscape right")
         case .portrait:
             exifOrientation = 6
+            print("portrait")
         case .portraitUpsideDown:
             exifOrientation = 8
+            print("portrait upside down")
         default:
             break
         }

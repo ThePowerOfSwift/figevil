@@ -65,8 +65,8 @@ class Gif: NSObject {
         // whats the size of ciImages
         for ciImage in ciImages {
             
-            let uiImage = UIImage(ciImage: ciImage, scale: scale, orientation: UIImageOrientation.right) // 360, 640. The bigger scale is, the image smaller becomes
-            
+            //let uiImage = UIImage(ciImage: ciImage, scale: scale, orientation: UIImageOrientation.right) // 360, 640. The bigger scale is, the image smaller becomes
+            let uiImage = UIImage(ciImage: ciImage)
             guard let rotatedImage = rotate(image: uiImage) else { // width: 1080, height: 1920, scale: 1.0, orientation: 0
                 print("rotatedImage is nil in \(#function)")
                 return nil
