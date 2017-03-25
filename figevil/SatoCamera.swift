@@ -657,11 +657,18 @@ extension UIImage {
     }
 }
 
+enum CGImageOrientation: Int {
+    case LandscapeRight = 6
+    case LandscapeLeft = 7
+}
+
 extension CGImage {
     var ciImage: CIImage {
         return CIImage(cgImage: self)
     }
     
+    // 7 right bottom for landscape left
+    // https://developer.apple.com/reference/imageio/kcgimagepropertyorientation
     func saveToDisk(orientation: UIDeviceOrientation) -> URL? {
         let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
         let url = URL(fileURLWithPath: path)
@@ -672,22 +679,15 @@ extension CGImage {
         
         var imageDestinationOptions: [NSObject: AnyObject] = [:]
         
-//        if orientation.isLandscape {
-//            imageDestinationOptions.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
-//        }
-        
         switch orientation {
-        case .landscapeLeft:
-            imageDestinationOptions.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         case .landscapeRight:
             imageDestinationOptions.updateValue(6 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
-
+        case .landscapeLeft:
+            imageDestinationOptions.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         default:
             break
         }
         
-        //options.updateValue(currentExifDeviceOrientation() as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
-        //options.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         CGImageDestinationAddImage(imageDestination, self, imageDestinationOptions as CFDictionary?)
         
         if !CGImageDestinationFinalize(imageDestination) {
@@ -755,8 +755,6 @@ extension CMSampleBuffer {
             return nil
         }
         
-        //options.updateValue(currentExifDeviceOrientation() as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
-        //options.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         CGImageDestinationAddImage(imageDestination, image, options as CFDictionary?)
         
         if !CGImageDestinationFinalize(imageDestination) {
@@ -915,30 +913,5 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
 
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: sourceImage.extent)
         videoGLKPreview?.display()
-    }
-    
-    // 7 right bottom for landscape left
-    // https://developer.apple.com/reference/imageio/kcgimagepropertyorientation
-    
-    /// Calculates the current EXIF orientation tag based on the devices current orientation
-    func currentExifDeviceOrientation() -> Int {
-        var exifOrientation: Int = 1
-        switch UIDevice.current.orientation {
-        case .landscapeLeft:
-            exifOrientation = 1
-            print("landscape left")
-        case .landscapeRight:
-            exifOrientation = 3
-            print("landscape right")
-        case .portrait:
-            exifOrientation = 6
-            print("portrait")
-        case .portraitUpsideDown:
-            exifOrientation = 8
-            print("portrait upside down")
-        default:
-            break
-        }
-        return exifOrientation
     }
 }
