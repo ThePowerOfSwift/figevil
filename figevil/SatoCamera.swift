@@ -426,6 +426,8 @@ class SatoCamera: NSObject {
     internal func reset() {
         originalURLs.removeAll()
         resizedURLs.removeAll()
+        renderedImageURLs.removeAll()
+        filteredUIImages.removeAll()
         cameraOutput?.sampleBufferView?.isHidden = false
         didOutputSampleBufferMethodCallCount = 0
         gif = nil
@@ -441,9 +443,37 @@ class SatoCamera: NSObject {
         start()
     }
     
+    
+    // func save cgimage to disk
+    // var renderedImage [url]
+
+    var renderedImageURLs = [URL]()
+    internal func render(drawImage: UIImage?, textImage: UIImage?) {
+        for image in filteredUIImages {
+            UIGraphicsBeginImageContext(frame.size)
+            image.draw(in: frame)
+            drawImage?.draw(in: frame)
+            textImage?.draw(in: frame)
+            if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {
+                print("renderedImage.cgImage): \(renderedImage.cgImage)")
+                if let cgImage = renderedImage.cgImage {
+                    if let url = cgImage.saveToDisk() {
+                        renderedImageURLs.append(url)
+                        print("rendered image url: \(url)")
+                    }
+                }
+            }
+            UIGraphicsEndImageContext()
+        }
+    }
+    
+    
+    
     internal func save() {
         // render here
-        if let gifURL = resizedURLs.createGif(frameDelay: 0.5) {
+        render(drawImage: nil, textImage: nil)
+        //if let gifURL = resizedURLs.createGif(frameDelay: 0.5) {
+        if let gifURL = renderedImageURLs.createGif(frameDelay: 0.5) {
             print(gifURL.filesize!)
             PHPhotoLibrary.requestAuthorization
                 { (status) -> Void in
@@ -518,20 +548,21 @@ class SatoCamera: NSObject {
         }
     }
 
+    var filteredUIImages = [UIImage]()
     func makeGif(from urls: [URL], filter: CIFilter?) -> UIImageView? {
         
-        var images = [UIImage]()
+        //var images = [UIImage]()
         for url in urls {
             
             if let image = url.makeUIImage(filter: filter) {
-                images.append(image)
+                filteredUIImages.append(image)
             } else {
                 print("image is nil in \(#function)")
             }
         }
         
         let imageView = UIImageView(frame: frame)
-        imageView.animationImages = images
+        imageView.animationImages = filteredUIImages
         imageView.animationRepeatCount = 0
         imageView.animationDuration = 3
         
@@ -623,6 +654,34 @@ extension URL {
 extension CGImage {
     var ciImage: CIImage {
         return CIImage(cgImage: self)
+    }
+    
+    func saveToDisk() -> URL? {
+        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
+        let url = URL(fileURLWithPath: path)
+        guard let imageDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeJPEG, 1, nil) else {
+            print("Error: cannot create image destination")
+            return nil
+        }
+        
+//        guard let options = CMCopyDictionaryOfAttachments(nil, self, kCMAttachmentMode_ShouldPropagate) as Dictionary? else {
+//            print("Error: cannot create options dictionary for image destination")
+//            return nil
+//        }
+        
+        //CMCopyDictionaryOfAttachments(<#T##allocator: CFAllocator?##CFAllocator?#>, CMAttachmentBearer, <#T##attachmentMode: CMAttachmentMode##CMAttachmentMode#>)
+        var imageDestinationOptions: [NSObject: AnyObject] = [:]
+        
+        
+        //options.updateValue(currentExifDeviceOrientation() as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+        //options.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+        CGImageDestinationAddImage(imageDestination, self, imageDestinationOptions as CFDictionary?)
+        
+        if !CGImageDestinationFinalize(imageDestination) {
+            print("Error: failed to finalize image destination")
+            return nil
+        }
+        return url
     }
 }
 
