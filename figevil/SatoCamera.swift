@@ -443,7 +443,7 @@ class SatoCamera: NSObject {
                 break
             }
             
-            guard let url = cgImage.saveToDisk() else {
+            guard let url = cgImage.saveToDisk(orientation: deviceOrientation) else {
                 print("Could not save cgImage to disk in \(#function)")
                 break
             }
@@ -499,6 +499,7 @@ class SatoCamera: NSObject {
     internal func stopRecordingGif() {
         stop()
         isRecording = false
+
         showGif()
     }
     
@@ -507,9 +508,12 @@ class SatoCamera: NSObject {
         isSnappedGif = true
     }
     
+    var deviceOrientation = UIDeviceOrientation.portrait
     /** Stops image post-storing. Calls showGif to show gif.*/
     fileprivate func stopLiveGif() {
         isSnappedGif = false
+        deviceOrientation = UIDevice.current.orientation
+        print(deviceOrientation.rawValue)
         stop()
         showGif()
     }
@@ -553,22 +557,6 @@ class SatoCamera: NSObject {
         imageView.animationDuration = 3
         
         return imageView
-    }
-}
-
-extension UIImage {
-    func render(drawImage: UIImage?, textImage: UIImage?, frame: CGRect) -> UIImage? {
-        UIGraphicsBeginImageContext(frame.size)
-        self.draw(in: frame)
-        drawImage?.draw(in: frame)
-        textImage?.draw(in: frame)
-        if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {
-            UIGraphicsEndImageContext()
-            return renderedImage
-        }
-        
-        UIGraphicsEndImageContext()
-        return nil
     }
 }
 
@@ -653,12 +641,28 @@ extension URL {
     }
 }
 
+extension UIImage {
+    func render(drawImage: UIImage?, textImage: UIImage?, frame: CGRect) -> UIImage? {
+        UIGraphicsBeginImageContext(frame.size)
+        self.draw(in: frame)
+        drawImage?.draw(in: frame)
+        textImage?.draw(in: frame)
+        if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {
+            UIGraphicsEndImageContext()
+            return renderedImage
+        }
+        
+        UIGraphicsEndImageContext()
+        return nil
+    }
+}
+
 extension CGImage {
     var ciImage: CIImage {
         return CIImage(cgImage: self)
     }
     
-    func saveToDisk() -> URL? {
+    func saveToDisk(orientation: UIDeviceOrientation) -> URL? {
         let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
         let url = URL(fileURLWithPath: path)
         guard let imageDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeJPEG, 1, nil) else {
@@ -666,14 +670,21 @@ extension CGImage {
             return nil
         }
         
-//        guard let options = CMCopyDictionaryOfAttachments(nil, self, kCMAttachmentMode_ShouldPropagate) as Dictionary? else {
-//            print("Error: cannot create options dictionary for image destination")
-//            return nil
+        var imageDestinationOptions: [NSObject: AnyObject] = [:]
+        
+//        if orientation.isLandscape {
+//            imageDestinationOptions.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
 //        }
         
-        //CMCopyDictionaryOfAttachments(<#T##allocator: CFAllocator?##CFAllocator?#>, CMAttachmentBearer, <#T##attachmentMode: CMAttachmentMode##CMAttachmentMode#>)
-        let imageDestinationOptions: [NSObject: AnyObject] = [:]
-        
+        switch orientation {
+        case .landscapeLeft:
+            imageDestinationOptions.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+        case .landscapeRight:
+            imageDestinationOptions.updateValue(6 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+
+        default:
+            break
+        }
         
         //options.updateValue(currentExifDeviceOrientation() as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         //options.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
@@ -775,8 +786,7 @@ extension Sequence where Iterator.Element == URL {
         }
         
         // ImageSource options- do not cache
-        var sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
-        sourceOptions.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+        let sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
         
         // Set gif file properties (options)
         var gifDestinationOptions: [NSObject: AnyObject] = [:]
