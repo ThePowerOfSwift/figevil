@@ -52,9 +52,6 @@ class SatoCamera: NSObject {
 
     // MARK: Results
     /** Stores the result gif object. */
-    fileprivate var gif: Gif?
-    /** Stores captured CIImages*/
-    fileprivate var unfilteredCIImages: [CIImage] = [CIImage]()
     /** count variable to count how many times the method gets called */
     fileprivate var didOutputSampleBufferMethodCallCount: Int = 0
     
@@ -87,23 +84,8 @@ class SatoCamera: NSObject {
         }
     }
     
-//    // MARK: Transform
-//    /** CGAffineTransfrom when it's back camera. */
-//    var backCameraTransform: CGAffineTransform {
-//        return CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
-//    }
-//    
-//    /** CGAffineTransfrom when it's front camera. */
-//    var frontCameraTransform: CGAffineTransform {
-//        let rotation = CGAffineTransform(rotationAngle: CGFloat(M_PI_2))
-//        let flip = CGAffineTransform(scaleX: -1.0, y: 1.0)
-//        let transform = rotation.concatenating(flip)
-//        return transform
-//    }
-    
     // Gif setting
     var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
-    
 
     private enum SessionSetupResult {
         case success
@@ -113,8 +95,8 @@ class SatoCamera: NSObject {
     
     private var setupResult: SessionSetupResult = .success
     
-    
     // MARK: HDD saving
+    var filteredUIImages = [UIImage]()
     var originalURLs = [URL]()
     var resizedURLs = [URL]()
     let fileManager = FileManager()
@@ -426,11 +408,10 @@ class SatoCamera: NSObject {
     internal func reset() {
         originalURLs.removeAll()
         resizedURLs.removeAll()
-        renderedImageURLs.removeAll()
+        renderedURLs.removeAll()
         filteredUIImages.removeAll()
         cameraOutput?.sampleBufferView?.isHidden = false
         didOutputSampleBufferMethodCallCount = 0
-        gif = nil
         
         if let cameraOutput = cameraOutput {
             if let outputImageView = cameraOutput.outputImageView {
@@ -447,33 +428,36 @@ class SatoCamera: NSObject {
     // func save cgimage to disk
     // var renderedImage [url]
 
-    var renderedImageURLs = [URL]()
-    internal func render(drawImage: UIImage?, textImage: UIImage?) {
+    var renderedURLs = [URL]()
+    internal func render(drawImage: UIImage?, textImage: UIImage?) -> [URL] {
+        var urls = [URL]()
         for image in filteredUIImages {
-            UIGraphicsBeginImageContext(frame.size)
-            image.draw(in: frame)
-            drawImage?.draw(in: frame)
-            textImage?.draw(in: frame)
-            if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {
-                print("renderedImage.cgImage): \(renderedImage.cgImage)")
-                if let cgImage = renderedImage.cgImage {
-                    if let url = cgImage.saveToDisk() {
-                        renderedImageURLs.append(url)
-                        print("rendered image url: \(url)")
-                    }
-                }
+            
+            guard let renderedImage = image.render(drawImage: drawImage, textImage: textImage, frame: frame) else {
+                print("rendered image is nil in \(#function)")
+                break
             }
-            UIGraphicsEndImageContext()
+            
+            guard let cgImage = renderedImage.cgImage else {
+                print("Could not get cgImage from rendered UIImage in \(#function)")
+                break
+            }
+            
+            guard let url = cgImage.saveToDisk() else {
+                print("Could not save cgImage to disk in \(#function)")
+                break
+            }
+            urls.append(url)
+            //renderedURLs.append(url)
         }
+        return urls
     }
-    
-    
-    
-    internal func save() {
+
+    internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
         // render here
-        render(drawImage: nil, textImage: nil)
+        renderedURLs = render(drawImage: drawImage, textImage: textImage)
         //if let gifURL = resizedURLs.createGif(frameDelay: 0.5) {
-        if let gifURL = renderedImageURLs.createGif(frameDelay: 0.5) {
+        if let gifURL = renderedURLs.createGif(frameDelay: 0.5) {
             print(gifURL.filesize!)
             PHPhotoLibrary.requestAuthorization
                 { (status) -> Void in
@@ -488,8 +472,10 @@ class SatoCamera: NSObject {
                         }, completionHandler: { (saved: Bool, error: Error?) in
                             if saved {
                                 print("saved gif")
+                                completion?(true, gifURL.filesize!)
                             } else {
                                 print("did not save gif")
+                                completion?(false, nil)
                             }
                         })
                     case .denied:
@@ -548,10 +534,10 @@ class SatoCamera: NSObject {
         }
     }
 
-    var filteredUIImages = [UIImage]()
     func makeGif(from urls: [URL], filter: CIFilter?) -> UIImageView? {
         
-        //var images = [UIImage]()
+        filteredUIImages.removeAll()
+
         for url in urls {
             
             if let image = url.makeUIImage(filter: filter) {
@@ -567,6 +553,22 @@ class SatoCamera: NSObject {
         imageView.animationDuration = 3
         
         return imageView
+    }
+}
+
+extension UIImage {
+    func render(drawImage: UIImage?, textImage: UIImage?, frame: CGRect) -> UIImage? {
+        UIGraphicsBeginImageContext(frame.size)
+        self.draw(in: frame)
+        drawImage?.draw(in: frame)
+        textImage?.draw(in: frame)
+        if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {
+            UIGraphicsEndImageContext()
+            return renderedImage
+        }
+        
+        UIGraphicsEndImageContext()
+        return nil
     }
 }
 
@@ -670,7 +672,7 @@ extension CGImage {
 //        }
         
         //CMCopyDictionaryOfAttachments(<#T##allocator: CFAllocator?##CFAllocator?#>, CMAttachmentBearer, <#T##attachmentMode: CMAttachmentMode##CMAttachmentMode#>)
-        var imageDestinationOptions: [NSObject: AnyObject] = [:]
+        let imageDestinationOptions: [NSObject: AnyObject] = [:]
         
         
         //options.updateValue(currentExifDeviceOrientation() as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
@@ -737,7 +739,7 @@ extension CMSampleBuffer {
             return nil
         }
         
-        guard var options = CMCopyDictionaryOfAttachments(nil, self, kCMAttachmentMode_ShouldPropagate) as Dictionary? else {
+        guard let options = CMCopyDictionaryOfAttachments(nil, self, kCMAttachmentMode_ShouldPropagate) as Dictionary? else {
             print("Error: cannot create options dictionary for image destination")
             return nil
         }
