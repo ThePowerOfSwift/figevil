@@ -443,7 +443,7 @@ class SatoCamera: NSObject {
                 break
             }
             
-            guard let url = cgImage.saveToDisk(orientation: deviceOrientation) else {
+            guard let url = cgImage.saveToDisk(cgImagePropertyOrientation: cgImageOrientation) else {
                 print("Could not save cgImage to disk in \(#function)")
                 break
             }
@@ -506,7 +506,23 @@ class SatoCamera: NSObject {
         isSnappedGif = true
     }
     
-    var deviceOrientation = UIDeviceOrientation.portrait
+    /** Device orientation when image taken. This also set an integer value to be passed with kCGImagePropertyOrientation. */
+    var deviceOrientation = UIDeviceOrientation.portrait {
+        didSet {
+            switch deviceOrientation {
+            case .landscapeRight:
+                cgImageOrientation = CGImagePropertyOrientation.LandscapeRight
+            case .landscapeLeft:
+                cgImageOrientation = CGImagePropertyOrientation.LandscapeLeft
+            default:
+                cgImageOrientation = CGImagePropertyOrientation.Default
+            }
+        }
+    }
+    
+    /** an integer value to be passed with kCGImagePropertyOrientation. */
+    var cgImageOrientation: CGImagePropertyOrientation = CGImagePropertyOrientation.Default
+    
     /** Stops image post-storing. Calls showGif to show gif.*/
     fileprivate func stopLiveGif() {
         isSnappedGif = false
@@ -656,9 +672,14 @@ extension UIImage {
     }
 }
 
-enum CGImageOrientation: Int {
+// https://developer.apple.com/reference/imageio/kcgimagepropertyorientation
+/** Integer value to be passed with kCGImagePropertyOrientation.*/
+enum CGImagePropertyOrientation: Int {
+    case Default = 1
+    /** set Right, Top to CGImage when image taken in landscape right device orientation. */
     case LandscapeRight = 6
-    case LandscapeLeft = 7
+    /** set Left, Bottom to CGImage when image taken in landscape left device orientation. */
+    case LandscapeLeft = 8
 }
 
 extension CGImage {
@@ -666,9 +687,7 @@ extension CGImage {
         return CIImage(cgImage: self)
     }
     
-    // 7 right bottom for landscape left
-    // https://developer.apple.com/reference/imageio/kcgimagepropertyorientation
-    func saveToDisk(orientation: UIDeviceOrientation) -> URL? {
+    func saveToDisk(cgImagePropertyOrientation: CGImagePropertyOrientation) -> URL? {
         let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
         let url = URL(fileURLWithPath: path)
         guard let imageDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeJPEG, 1, nil) else {
@@ -678,14 +697,8 @@ extension CGImage {
         
         var imageDestinationOptions: [NSObject: AnyObject] = [:]
         
-        switch orientation {
-        case .landscapeRight:
-            imageDestinationOptions.updateValue(6 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
-        case .landscapeLeft:
-            imageDestinationOptions.updateValue(8 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
-        default:
-            break
-        }
+        // make sure to pass rawValue of CGImagePropertyOrientation but not the object itself
+        imageDestinationOptions.updateValue(cgImagePropertyOrientation.rawValue as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         
         CGImageDestinationAddImage(imageDestination, self, imageDestinationOptions as CFDictionary?)
         
@@ -871,7 +884,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                         
                         if self.resizedURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                             do {
-                                try self.fileManager.removeItem(at: self.resizedURLs.removeFirst())
+                                try self.fileManager.removeItem(at: self.resizedURLs.removeFirst()) // error
                             } catch let e {
                                 print(e)
                             }
