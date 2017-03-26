@@ -114,16 +114,6 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
         // Add custom view sizing constraints here
     }
     
-    // MARK:  UITextInputDelegate
-    
-    override func textWillChange(_ textInput: UITextInput?) {
-        // The app is about to change the document's contents. Perform any preparation here.
-    }
-    
-    override func textDidChange(_ textInput: UITextInput?) {
-        // The app has just changed the document's contents, the document context has been updated.
-    }
-    
     // MARK: GifCollectionViewDatasource
         
     func gifCollectionViewController(for gifCollectionViewController: GifCollectionViewController) -> [GifCollectionViewCellContent] {
@@ -141,6 +131,8 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
         do {
             // Put gif to pasteboard
             UIPasteboard.general.setData(try Data(contentsOf: gifURL), forPasteboardType: kUTTypeGIF as String)
+            print("Copied gif to pastedboard")
+            
         } catch {
             print("Error: could not read data contents of gif URL at (\(gifURL.path))")
             print("\(error.localizedDescription)")
