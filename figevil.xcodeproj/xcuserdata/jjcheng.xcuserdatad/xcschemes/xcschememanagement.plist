@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>MeKeyboard.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
 		<key>figevil.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -12,6 +17,11 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>782399EB1E85A36900207B56</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>7854B9D81E64F98300591255</key>
 		<dict>
 			<key>primary</key>

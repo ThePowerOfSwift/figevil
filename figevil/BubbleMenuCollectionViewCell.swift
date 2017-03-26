@@ -44,8 +44,6 @@ class BubbleMenuCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var imageLabel: UILabel!
     
     // Manage selection animation
-    /** Selection animation duration */
-    var animationTime = 0.25
     /** The default font imageLabel is initialized with (set in storyboard) */
     var imageLabelDefaultFont: UIFont?
     /** The selected font for imageLabel */
@@ -116,7 +114,7 @@ class BubbleMenuCollectionViewCell: UICollectionViewCell {
     // MARK: Selection and highlight
     
     private func didSelect() {
-        UIView.animate(withDuration: animationTime/2) {
+        UIView.animate(withDuration: selectionAnimationTime / 2) {
             self.imageView.alpha = 0.25
             self.imageView.layer.borderColor = UIColor.white.cgColor
             self.imageView.layer.borderWidth = 2.0
@@ -126,7 +124,7 @@ class BubbleMenuCollectionViewCell: UICollectionViewCell {
     }
     
     private func didDeselect() {
-        UIView.animate(withDuration: animationTime) {
+        UIView.animate(withDuration: selectionAnimationTime) {
             self.imageView.alpha = 1.0
             self.imageView.layer.borderWidth = 0.0
 
@@ -139,9 +137,8 @@ class BubbleMenuCollectionViewCell: UICollectionViewCell {
     }
     
     // MARK: - Layout
-    // no need to call super
     override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
-        
+        // No need to call super
         if let circularLayoutAttributes = layoutAttributes as? CircularCollectionViewLayoutAttributes {
             self.layer.anchorPoint = circularLayoutAttributes.anchorPoint
             self.center.y += (circularLayoutAttributes.anchorPoint.y - 0.5) * self.bounds.height

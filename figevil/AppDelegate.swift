@@ -16,6 +16,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        
+        testGif()
+        
         // Override point for customization after application launch.
 
         // FIR Database setup
@@ -26,9 +29,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         self.window?.rootViewController = firstViewController
         self.window?.makeKeyAndVisible()
-
+        
         return true
     }
+    
+    func testGif() {
+        // save test file
+        guard let url = userGeneratedGifURL?.appendingPathComponent("test.gif") else {
+            print("Error: Directory for user generated gifs cannot be found")
+            return
+        }
+        
+        let data = UIImageJPEGRepresentation(UIImage(named: "BbgL7x3.gif")!, 1.0)
+        do {
+            try data?.write(to: url, options: Data.WritingOptions.atomic)
+        } catch {
+            print("Error: failed writing test gif: \(error.localizedDescription)")
+        }
+    }
+
     
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.

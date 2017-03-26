@@ -15,6 +15,8 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
     var datasource: BubbleMenuCollectionViewControllerDatasource?
     var delegate: BubbleMenuCollectionViewControllerDelegate?
     
+    // MARK: Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -48,7 +50,6 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
         if let datasource = datasource {
             let count = datasource.bubbleMenuContent(for: self).count
             return count
-            //return 3
         }
         return 0
     }
