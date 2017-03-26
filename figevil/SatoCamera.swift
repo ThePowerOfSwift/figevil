@@ -100,7 +100,7 @@ class SatoCamera: NSObject {
     var originalURLs = [URL]()
     var resizedURLs = [URL]()
     let fileManager = FileManager()
-    let maxPixelSize = 667 //1334 is original
+    let maxPixelSize = 337 //1334 is original
 
     func askUserCameraAccessAuthorization(completion: ((_ authorized: Bool)->())?) {
         if AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) != AVAuthorizationStatus.authorized {
@@ -448,7 +448,6 @@ class SatoCamera: NSObject {
                 break
             }
             urls.append(url)
-            //renderedURLs.append(url)
         }
         return urls
     }
@@ -456,7 +455,6 @@ class SatoCamera: NSObject {
     internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
         // render here
         renderedURLs = render(drawImage: drawImage, textImage: textImage)
-        //if let gifURL = resizedURLs.createGif(frameDelay: 0.5) {
         if let gifURL = renderedURLs.createGif(frameDelay: 0.5) {
             print(gifURL.filesize!)
             PHPhotoLibrary.requestAuthorization
@@ -522,6 +520,7 @@ class SatoCamera: NSObject {
     func showGif() {
         
         //if let gifImageView = getGifImageViewFromImageUrls(resizedURLs, filter: currentFilter.filter) {
+        
         if let gifImageView = makeGif(from: resizedURLs, filter: currentFilter.filter) {
             if let cameraOutput = cameraOutput {
                 if let outputImageView = cameraOutput.outputImageView {
@@ -683,7 +682,7 @@ extension CGImage {
         case .landscapeRight:
             imageDestinationOptions.updateValue(6 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         case .landscapeLeft:
-            imageDestinationOptions.updateValue(7 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+            imageDestinationOptions.updateValue(8 as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         default:
             break
         }
