@@ -17,34 +17,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        //FIRApp.configure()
-        
-        window = UIWindow(frame: UIScreen.main.bounds)
-        // this code should be
-        let storyboard = UIStoryboard(name: "Camera", bundle: nil)
-        let cameraViewController = storyboard.instantiateInitialViewController() as! CameraViewController
-        self.window?.rootViewController = cameraViewController
-        self.window?.makeKeyAndVisible()
-        cameraViewController.satoCamera.sessionQueue.suspend()
-        askUserCameraAccessAuthorization { (authorized: Bool) in
-            if authorized {
-                print("camera access authorized")
-                cameraViewController.satoCamera.sessionQueue.resume()
-            } else {
-                print("camera access failed to authorize")
-            }
-        }
-        return true
-    }
 
-    func askUserCameraAccessAuthorization(completion: ((_ authorized: Bool)->())?) {
-        if AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) != AVAuthorizationStatus.authorized {
-            AVCaptureDevice.requestAccess(forMediaType: AVMediaTypeVideo, completionHandler: { (granted :Bool) -> Void in
-                completion?(granted)
-            })
-        } else {
-            completion?(true)
-        }
+        // FIR Database setup
+//        FIRApp.configure()
+        
+        // Set root VC
+        window = UIWindow(frame: UIScreen.main.bounds)
+        
+        self.window?.rootViewController = firstViewController
+        self.window?.makeKeyAndVisible()
+
+        return true
     }
     
     func applicationWillResignActive(_ application: UIApplication) {
