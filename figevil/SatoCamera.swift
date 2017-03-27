@@ -35,6 +35,7 @@ class SatoCamera: NSObject {
     fileprivate var videoGLKPreview: GLKView!
     fileprivate var videoDevice: AVCaptureDevice?
     fileprivate var videoDeviceInput: AVCaptureDeviceInput?
+    fileprivate var videoDataOutput = AVCaptureVideoDataOutput()
     fileprivate var ciContext: CIContext?
     fileprivate var eaglContext: EAGLContext?
     /** stores GLKView's drawableWidth (The width, in pixels, of the underlying framebuffer object.) */
@@ -178,8 +179,6 @@ class SatoCamera: NSObject {
             session.sessionPreset = AVCaptureSessionPresetLow
         }
         
-
-        let videoDataOutput = AVCaptureVideoDataOutput()
         // Configure video output setting
         let outputSettings: [AnyHashable : Any] = [kCVPixelBufferPixelFormatTypeKey as AnyHashable : Int(kCVPixelFormatType_32BGRA)]
         videoDataOutput.videoSettings = outputSettings
@@ -229,12 +228,7 @@ class SatoCamera: NSObject {
             setupResult = .configurationFailed
         }
         
-        //configureOrientation(for: cameraFace)
-        if let connection = videoDataOutput.connection(withMediaType: AVMediaTypeVideo) {
-            if connection.isVideoOrientationSupported {
-                connection.videoOrientation = AVCaptureVideoOrientation.portrait
-            }
-        }
+        configureVideoOrientation()
         
         // Assemble all the settings together
         session.commitConfiguration()
@@ -286,6 +280,20 @@ class SatoCamera: NSObject {
             
         } catch let error {
             print(error.localizedDescription)
+        }
+    }
+    
+    func configureVideoOrientation() {
+        if let connection = videoDataOutput.connection(withMediaType: AVMediaTypeVideo) {
+            if connection.isVideoOrientationSupported {
+                connection.videoOrientation = AVCaptureVideoOrientation.portrait
+                
+                if cameraFace == CameraFace.Front {
+                    if connection.isVideoMirroringSupported {
+                        connection.isVideoMirrored = true
+                    }
+                }
+            }
         }
     }
     
@@ -374,6 +382,8 @@ class SatoCamera: NSObject {
         } catch {
             print("Failed to instantiate input object")
         }
+
+        configureVideoOrientation()
         session.commitConfiguration()
     }
     
@@ -483,7 +493,6 @@ class SatoCamera: NSObject {
                         print("Restricted")
                     }
             }
-
         }
     }
     
