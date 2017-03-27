@@ -14,7 +14,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // MARK: Snap Testing
     // TODO: temp var for effect option bottom constraint
     var lastconstant: CGFloat = 0
-
+    
     func setupTest() {
         print("setup")
     }
@@ -53,6 +53,15 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     @IBOutlet weak var saveButton: UIButton!
     @IBAction func tappedSave(_ sender: Any) {
         save()
+    }
+    
+    @IBOutlet weak var share: UIButton!
+    @IBAction func tappedShare(_ sender: Any) {
+        let image = UIImage(named: "BbgL7x3.gif")
+        
+        let activityItems: [Any] = [image as Any]
+        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        present(activityViewController, animated: true, completion: nil)
     }
     
     @IBOutlet weak var selfieButton: UIButton!
@@ -256,7 +265,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         satoCamera.save(drawImage: drawImage, textImage: textImage, completion: { (saved: Bool, fileSize: String?) in
             if saved {
-                print("saved gif to camera roll")
                 if let fileSize = fileSize {
                     let alertController = UIAlertController(title: "Saved", message: fileSize, preferredStyle: .alert)
                     let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)

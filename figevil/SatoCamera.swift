@@ -479,7 +479,6 @@ class SatoCamera: NSObject {
                             PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifURL)
                         }, completionHandler: { (saved: Bool, error: Error?) in
                             if saved {
-                                print("saved gif")
                                 completion?(true, gifURL.filesize!)
                             } else {
                                 print("did not save gif")
@@ -795,8 +794,8 @@ extension Sequence where Iterator.Element == URL {
         }
         
         // Generate default output url
-        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif")
-        let url = URL(fileURLWithPath: path)
+        
+        let url = userGeneratedGifURL!.appendingPathComponent(String(Date().timeIntervalSinceReferenceDate).appending(".gif"), isDirectory: false)
         
         // Create write-to destination
         guard let gifDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeGIF, imageURLs.count, nil) else {
@@ -828,6 +827,8 @@ extension Sequence where Iterator.Element == URL {
         if !CGImageDestinationFinalize(gifDestination) {
             print("Error: cannot finalize gif")
             return nil
+        } else {
+            print("Saved gif to \(url.path)")
         }
         
         return url
