@@ -267,7 +267,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 print("failed to save gif to camera roll")
             }
         })
-        
+        //satoCamera.save()
         cancel()
     }
     
