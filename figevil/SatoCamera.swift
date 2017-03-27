@@ -119,7 +119,7 @@ class SatoCamera: NSObject {
         self.frame = frame
         //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
         super.init()
-        
+    
         // EAGLContext object manages an OpenGL ES rendering context
         guard let eaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
             print("eaglContext is nil")
@@ -233,6 +233,17 @@ class SatoCamera: NSObject {
         
         // Assemble all the settings together
         session.commitConfiguration()
+        
+        // Check if camera usage is authorized by user before starting to run
+        sessionQueue.suspend()
+        askUserCameraAccessAuthorization { (authorized: Bool) in
+            if authorized {
+                print("camera access authorized")
+                self.sessionQueue.resume()
+            } else {
+                print("camera access failed to authorize")
+            }
+        }
         session.startRunning()
     }
     
