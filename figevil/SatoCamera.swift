@@ -877,29 +877,22 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                     if !self.isSnappedGif {
                         // pre-saving
                         if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
-                            print("original count: \(self.originalURLs.count)")
+                            // Remove the first item in the array
                             let firstItem = self.originalURLs.removeFirst()
+                            //let firstItem = self.originalURLs[0]
+                            //self.originalURLs.remove(at: 0)
                             do {
+                                // Remove data at the first URL. If this fails data, the data should be collected at some point.
                                 try self.fileManager.removeItem(at: firstItem)
                             } catch let e {
                                 print(e)
                             }
                         }
-                        // if this fails with the error below, array keeps growing
-                        
-                        // try self.fileManager.removeItem(at: self.originalURLs.first!)
-                        // self.originalURLs.removeFirst()
-
-                        // original count: 793
-                        // Error Domain=NSCocoaErrorDomain Code=4 "“512325979.411807” couldn’t be removed." UserInfo={NSFilePath=/private/var/mobile/Containers/Data/Application/92F1FBE2-48EA-4ED1-B761-79C9F909B22C/tmp/512325979.411807, NSUserStringVariant=(
-                        // Remove
-                        // ), NSUnderlyingError=0x174443090 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
-                        // resized count: 258
-                        // It's better to delete the first item anyway no matter whether data at the URL in the disk has been deleted or failed to delete
                         
                         if self.resizedURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
-                            print("resized count: \(self.resizedURLs.count)")
                             let firstItem = self.resizedURLs.removeFirst()
+                            //let firstItem = self.resizedURLs[0]
+                            //self.resizedURLs.remove(at: 0)
                             do {
                                 try self.fileManager.removeItem(at: firstItem)
                             } catch let e {
