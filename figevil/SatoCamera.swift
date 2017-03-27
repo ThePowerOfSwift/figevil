@@ -97,11 +97,12 @@ class SatoCamera: NSObject {
     private var setupResult: SessionSetupResult = .success
     
     // MARK: HDD saving
+    /** To be rendered. */
     var filteredUIImages = [UIImage]()
     var originalURLs = [URL]()
     var resizedURLs = [URL]()
     let fileManager = FileManager()
-    let maxPixelSize = 337 //1334 is original
+    let maxPixelSize = 667 //1334 is original
 
     func askUserCameraAccessAuthorization(completion: ((_ authorized: Bool)->())?) {
         if AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) != AVAuthorizationStatus.authorized {
@@ -440,8 +441,19 @@ class SatoCamera: NSObject {
 
     var renderedURLs = [URL]()
     internal func render(drawImage: UIImage?, textImage: UIImage?) -> [URL] {
+        
+        var filteredResizedUIImages = [UIImage]()
+        for url in resizedURLs {
+            if let image = url.makeUIImage(filter: currentFilter.filter) {
+                filteredResizedUIImages.append(image)
+            } else {
+                print("resized image is nil in \(#function)")
+            }
+        }
+        
         var urls = [URL]()
-        for image in filteredUIImages {
+        
+        for image in filteredResizedUIImages {
             
             guard let renderedImage = image.render(drawImage: drawImage, textImage: textImage, frame: frame) else {
                 print("rendered image is nil in \(#function)")
@@ -545,7 +557,7 @@ class SatoCamera: NSObject {
         
         //if let gifImageView = getGifImageViewFromImageUrls(resizedURLs, filter: currentFilter.filter) {
         
-        if let gifImageView = makeGif(from: resizedURLs, filter: currentFilter.filter) {
+        if let gifImageView = makeGif(urls: resizedURLs, filter: currentFilter.filter) {
             if let cameraOutput = cameraOutput {
                 if let outputImageView = cameraOutput.outputImageView {
                     outputImageView.isHidden = false
@@ -561,16 +573,15 @@ class SatoCamera: NSObject {
         }
     }
 
-    func makeGif(from urls: [URL], filter: CIFilter?) -> UIImageView? {
+    func makeGif(urls: [URL], filter: CIFilter?) -> UIImageView? {
         
         filteredUIImages.removeAll()
-
-        for url in urls {
+        for url in resizedURLs {
             
             if let image = url.makeUIImage(filter: filter) {
                 filteredUIImages.append(image)
             } else {
-                print("image is nil in \(#function)")
+                print("original image is nil in \(#function)")
             }
         }
         
