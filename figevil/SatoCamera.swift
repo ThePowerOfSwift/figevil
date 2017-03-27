@@ -856,11 +856,13 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
      In background, store CIImages into array one by one. Resizing should be done in background.*/
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
+        
+        CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, false)
+        
         // Store in background thread
         DispatchQueue.global(qos: .utility).async { [unowned self] in
             self.didOutputSampleBufferMethodCallCount += 1
             if self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0 {
-                
                 
                 if let url = sampleBuffer.saveFrameToDisk() {
                     self.originalURLs.append(url)
@@ -874,17 +876,32 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                     
                     if !self.isSnappedGif {
                         // pre-saving
-                        if self.originalURLs.count == self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+                        if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+                            print("original count: \(self.originalURLs.count)")
+                            let firstItem = self.originalURLs.removeFirst()
                             do {
-                                try self.fileManager.removeItem(at: self.originalURLs.removeFirst())
+                                try self.fileManager.removeItem(at: firstItem)
                             } catch let e {
                                 print(e)
                             }
                         }
+                        // if this fails with the error below, array keeps growing
+                        
+                        // try self.fileManager.removeItem(at: self.originalURLs.first!)
+                        // self.originalURLs.removeFirst()
+
+                        // original count: 793
+                        // Error Domain=NSCocoaErrorDomain Code=4 "“512325979.411807” couldn’t be removed." UserInfo={NSFilePath=/private/var/mobile/Containers/Data/Application/92F1FBE2-48EA-4ED1-B761-79C9F909B22C/tmp/512325979.411807, NSUserStringVariant=(
+                        // Remove
+                        // ), NSUnderlyingError=0x174443090 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+                        // resized count: 258
+                        // It's better to delete the first item anyway no matter whether data at the URL in the disk has been deleted or failed to delete
                         
                         if self.resizedURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+                            print("resized count: \(self.resizedURLs.count)")
+                            let firstItem = self.resizedURLs.removeFirst()
                             do {
-                                try self.fileManager.removeItem(at: self.resizedURLs.removeFirst()) // error
+                                try self.fileManager.removeItem(at: firstItem)
                             } catch let e {
                                 print(e)
                             }
@@ -893,7 +910,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                     } else {
                         // post-saving
                         
-                        if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount {
+                        if self.originalURLs.count >= self.currentLiveGifPreset.liveGifFrameTotalCount {
                             DispatchQueue.main.async { [unowned self] in
                                 // UI change has to be in main thread
                                 self.stopLiveGif()
