@@ -103,16 +103,6 @@ class SatoCamera: NSObject {
     var resizedURLs = [URL]()
     let fileManager = FileManager()
     let maxPixelSize = 667 //1334 is original
-
-    func askUserCameraAccessAuthorization(completion: ((_ authorized: Bool)->())?) {
-        if AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) != AVAuthorizationStatus.authorized {
-            AVCaptureDevice.requestAccess(forMediaType: AVMediaTypeVideo, completionHandler: { (granted :Bool) -> Void in
-                completion?(granted)
-            })
-        } else {
-            completion?(true)
-        }
-    }
     
     // MARK: - Setups
     init(frame: CGRect) {
@@ -146,6 +136,17 @@ class SatoCamera: NSObject {
         setupOpenGL()
         
         configureSession()
+    }
+    
+    /** Authorize camera usage. */
+    func askUserCameraAccessAuthorization(completion: ((_ authorized: Bool)->())?) {
+        if AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) != AVAuthorizationStatus.authorized {
+            AVCaptureDevice.requestAccess(forMediaType: AVMediaTypeVideo, completionHandler: { (granted :Bool) -> Void in
+                completion?(granted)
+            })
+        } else {
+            completion?(true)
+        }
     }
 
     func setupOpenGL() {
@@ -295,6 +296,7 @@ class SatoCamera: NSObject {
         }
     }
     
+    /** Change the orientation of data recieved by AVCaptureVideoData. */
     func configureVideoOrientation() {
         if let connection = videoDataOutput.connection(withMediaType: AVMediaTypeVideo) {
             if connection.isVideoOrientationSupported {
@@ -887,9 +889,6 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
      Applies filter to it. Draw the CIImage into CIContext to update GLKView.
      In background, store CIImages into array one by one. Resizing should be done in background.*/
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-        
-        
-        CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, false)
         
         // Store in background thread
         DispatchQueue.global(qos: .utility).async { [unowned self] in
