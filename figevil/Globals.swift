@@ -8,7 +8,7 @@
 
 import UIKit
 
-public let debug = true
+public let debug = false
 /// Time for selection animation
 public let selectionAnimationTime = 0.25
 /// Application Group Identifier

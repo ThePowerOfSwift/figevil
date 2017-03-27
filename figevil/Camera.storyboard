@@ -93,6 +93,17 @@
                                             <action selector="tappedCancel:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="qWm-Pw-hJk"/>
                                         </connections>
                                     </button>
+                                    <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="poT-B2-yE5">
+                                        <rect key="frame" x="232" y="30" width="44" height="44"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="44" id="EQ8-1L-KVK"/>
+                                            <constraint firstAttribute="width" constant="44" id="PXA-Ci-8YS"/>
+                                        </constraints>
+                                        <state key="normal" title="Share"/>
+                                        <connections>
+                                            <action selector="tappedShare:" destination="KW6-Bc-DhJ" eventType="touchUpInside" id="7zI-YP-9Qc"/>
+                                        </connections>
+                                    </button>
                                     <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="N54-oQ-fkW">
                                         <rect key="frame" x="316" y="30" width="44" height="44"/>
                                         <constraints>
@@ -107,6 +118,8 @@
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <constraints>
+                                    <constraint firstItem="N54-oQ-fkW" firstAttribute="leading" secondItem="poT-B2-yE5" secondAttribute="trailing" constant="40" id="02t-rS-nMF"/>
+                                    <constraint firstItem="N54-oQ-fkW" firstAttribute="top" secondItem="poT-B2-yE5" secondAttribute="top" id="0g5-5z-6ND"/>
                                     <constraint firstItem="DB6-0Y-2aN" firstAttribute="centerY" secondItem="6v3-5B-uh9" secondAttribute="centerY" id="848-No-JSU"/>
                                     <constraint firstAttribute="bottom" secondItem="4pJ-iu-cBa" secondAttribute="bottom" constant="15" id="A3y-LM-C3U"/>
                                     <constraint firstItem="4pJ-iu-cBa" firstAttribute="centerX" secondItem="6v3-5B-uh9" secondAttribute="centerX" id="B2A-3n-Lyl"/>
@@ -153,6 +166,7 @@
                         <outlet property="sampleBufferContainerView" destination="MWL-Oi-NMW" id="wQI-ga-qKX"/>
                         <outlet property="saveButton" destination="N54-oQ-fkW" id="oOD-yS-6ve"/>
                         <outlet property="selfieButton" destination="QEg-zn-yZI" id="puq-4o-mzU"/>
+                        <outlet property="share" destination="poT-B2-yE5" id="XoG-Tz-dDG"/>
                         <outlet property="snapButton" destination="4pJ-iu-cBa" id="f6V-9r-VL7"/>
                     </connections>
                 </viewController>
