@@ -45,12 +45,13 @@
 		78B5DD1E1E675EC500192135 /* flash.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD161E675EC500192135 /* flash.png */; };
 		78B5DD1F1E675EC500192135 /* circle.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD171E675EC500192135 /* circle.png */; };
 		78BEF4371E89E4F100047212 /* GifCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BEF4341E89E4F100047212 /* GifCollectionViewCell.swift */; };
-		78BEF4381E89E4F100047212 /* GifCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BEF4341E89E4F100047212 /* GifCollectionViewCell.swift */; };
 		78BEF4391E89E4F100047212 /* GifCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 78BEF4351E89E4F100047212 /* GifCollectionViewCell.xib */; };
-		78BEF43A1E89E4F100047212 /* GifCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 78BEF4351E89E4F100047212 /* GifCollectionViewCell.xib */; };
 		78BEF43B1E89E4F100047212 /* GifCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BEF4361E89E4F100047212 /* GifCollectionViewController.swift */; };
-		78BEF43C1E89E4F100047212 /* GifCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BEF4361E89E4F100047212 /* GifCollectionViewController.swift */; };
+		78BEF43E1E89E82200047212 /* GifCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BEF4341E89E4F100047212 /* GifCollectionViewCell.swift */; };
+		78BEF43F1E89E82200047212 /* GifCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 78BEF4351E89E4F100047212 /* GifCollectionViewCell.xib */; };
+		78BEF4401E89E82200047212 /* GifCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BEF4361E89E4F100047212 /* GifCollectionViewController.swift */; };
 		78F67D3E1E7CA627003F8A20 /* AppDelegate+FirstLaunch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78F67D3D1E7CA627003F8A20 /* AppDelegate+FirstLaunch.swift */; };
+		9EDF76CF876FEBA45153C98B /* Pods_MeKeyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5815A8F1BFBE50E3044E72FF /* Pods_MeKeyboard.framework */; };
 		E335FE701E70E89F00A5BAD2 /* Light.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE6F1E70E89F00A5BAD2 /* Light.swift */; };
 		E335FE721E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE711E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift */; };
 		E335FE741E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE731E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift */; };
@@ -87,7 +88,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		203D3A74F61E82E11825C409 /* Pods-MeKeyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeKeyboard.release.xcconfig"; path = "Pods/Target Support Files/Pods-MeKeyboard/Pods-MeKeyboard.release.xcconfig"; sourceTree = "<group>"; };
+		2816F0DD14A7284C19D30662 /* Pods-MeKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeKeyboard.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MeKeyboard/Pods-MeKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
 		54758DDE5EE3F1B539963AA4 /* Pods-figevil.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-figevil.debug.xcconfig"; path = "Pods/Target Support Files/Pods-figevil/Pods-figevil.debug.xcconfig"; sourceTree = "<group>"; };
+		5815A8F1BFBE50E3044E72FF /* Pods_MeKeyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MeKeyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		782399DF1E847C2B00207B56 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
 		782399E11E8489C200207B56 /* FirstTimeExperience.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = FirstTimeExperience.storyboard; sourceTree = "<group>"; };
 		782399E51E848C1000207B56 /* FirstTimeExperienceViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FirstTimeExperienceViewController.swift; sourceTree = "<group>"; };
@@ -151,6 +155,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9EDF76CF876FEBA45153C98B /* Pods_MeKeyboard.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -169,6 +174,7 @@
 			isa = PBXGroup;
 			children = (
 				C710722E2727E087354024E4 /* Pods_figevil.framework */,
+				5815A8F1BFBE50E3044E72FF /* Pods_MeKeyboard.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -295,9 +301,9 @@
 		78BEF4331E89E49C00047212 /* GifCollectionView */ = {
 			isa = PBXGroup;
 			children = (
+				78BEF4361E89E4F100047212 /* GifCollectionViewController.swift */,
 				78BEF4341E89E4F100047212 /* GifCollectionViewCell.swift */,
 				78BEF4351E89E4F100047212 /* GifCollectionViewCell.xib */,
-				78BEF4361E89E4F100047212 /* GifCollectionViewController.swift */,
 			);
 			name = GifCollectionView;
 			sourceTree = "<group>";
@@ -317,6 +323,8 @@
 			children = (
 				54758DDE5EE3F1B539963AA4 /* Pods-figevil.debug.xcconfig */,
 				C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */,
+				2816F0DD14A7284C19D30662 /* Pods-MeKeyboard.debug.xcconfig */,
+				203D3A74F61E82E11825C409 /* Pods-MeKeyboard.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -339,9 +347,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 782399F41E85A36A00207B56 /* Build configuration list for PBXNativeTarget "MeKeyboard" */;
 			buildPhases = (
+				3255D88D36FBBBB775DA5C1D /* [CP] Check Pods Manifest.lock */,
 				782399E81E85A36900207B56 /* Sources */,
 				782399E91E85A36900207B56 /* Frameworks */,
 				782399EA1E85A36900207B56 /* Resources */,
+				8F5DA9B5E75D2A634533B132 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -430,7 +440,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				78BEF43A1E89E4F100047212 /* GifCollectionViewCell.xib in Resources */,
+				78BEF43F1E89E82200047212 /* GifCollectionViewCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -463,6 +473,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		3255D88D36FBBBB775DA5C1D /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
 		46794B0B6DF8421E272935D2 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -493,6 +518,21 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-figevil/Pods-figevil-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		8F5DA9B5E75D2A634533B132 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MeKeyboard/Pods-MeKeyboard-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		9823CA148D0253A50AB38F4F /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -515,10 +555,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				78BEF4381E89E4F100047212 /* GifCollectionViewCell.swift in Sources */,
+				78BEF43E1E89E82200047212 /* GifCollectionViewCell.swift in Sources */,
 				78239A001E85E0A800207B56 /* Globals.swift in Sources */,
 				782399EF1E85A36A00207B56 /* KeyboardViewController.swift in Sources */,
-				78BEF43C1E89E4F100047212 /* GifCollectionViewController.swift in Sources */,
+				78BEF4401E89E82200047212 /* GifCollectionViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -580,6 +620,7 @@
 /* Begin XCBuildConfiguration section */
 		782399F51E85A36A00207B56 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2816F0DD14A7284C19D30662 /* Pods-MeKeyboard.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = MeKeyboard/MeKeyboard.entitlements;
 				DEVELOPMENT_TEAM = PY8CHQP699;
@@ -594,6 +635,7 @@
 		};
 		782399F61E85A36A00207B56 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 203D3A74F61E82E11825C409 /* Pods-MeKeyboard.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = MeKeyboard/MeKeyboard.entitlements;
 				DEVELOPMENT_TEAM = PY8CHQP699;
@@ -702,7 +744,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 54758DDE5EE3F1B539963AA4 /* Pods-figevil.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = figevil/figevil.entitlements;
 				DEVELOPMENT_TEAM = PY8CHQP699;
@@ -719,7 +761,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C2F66C55153B0C2F76D2DB9D /* Pods-figevil.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = figevil/figevil.entitlements;
 				DEVELOPMENT_TEAM = PY8CHQP699;
