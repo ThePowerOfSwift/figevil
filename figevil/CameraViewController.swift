@@ -16,7 +16,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     var lastconstant: CGFloat = 0
     
     func setupTest() {
-        print("setup")
+        print("setup test")
     }
     
     @IBOutlet var snapButton: UIButton!
