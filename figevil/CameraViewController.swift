@@ -207,13 +207,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     func setupEffectToolBubbles() {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = UICollectionViewScrollDirection.horizontal
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 0
-        layout.itemSize = CGSize(width: 77, height: 77)
-
+        let layout = StraightCollectionViewLayout()
         effectToolBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: layout)
         effectToolBubbleCVC.datasource = self
         effectToolBubbleCVC.delegate = self
