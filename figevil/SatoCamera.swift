@@ -96,13 +96,32 @@ class SatoCamera: NSObject {
     
     private var setupResult: SessionSetupResult = .success
     
+    // MARK: Orientation
+    /** Device orientation when image taken. This also set an integer value to be passed with kCGImagePropertyOrientation. */
+    var deviceOrientation = UIDeviceOrientation.portrait {
+        didSet {
+            switch deviceOrientation {
+            case .landscapeRight:
+                cgImageOrientation = CGImagePropertyOrientation.LandscapeRight
+            case .landscapeLeft:
+                cgImageOrientation = CGImagePropertyOrientation.LandscapeLeft
+            default:
+                cgImageOrientation = CGImagePropertyOrientation.Default
+            }
+        }
+    }
+    
+    /** an integer value to be passed with kCGImagePropertyOrientation. */
+    var cgImageOrientation: CGImagePropertyOrientation = CGImagePropertyOrientation.Default
+    
     // MARK: HDD saving
     /** To be rendered. */
     var filteredUIImages = [UIImage]()
     var originalURLs = [URL]()
     var resizedURLs = [URL]()
+    var renderedURLs = [URL]()
     let fileManager = FileManager()
-    let maxPixelSize = 667 //1334 is original
+    let maxPixelSize = 667 //1334 is screen size
     
     // MARK: - Setups
     init(frame: CGRect) {
@@ -121,9 +140,6 @@ class SatoCamera: NSObject {
         videoGLKPreview = GLKView(frame: frame, context: eaglContext)
         videoGLKPreview.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
 
-        // the original video image from the back SatoCamera is landscape. apply 90 degree transform
-        //videoGLKPreview.transform = backCameraTransform
-        // Always set frame after transformation
         videoGLKPreview.frame = frame
 
         videoGLKPreview.bindDrawable()
@@ -162,7 +178,6 @@ class SatoCamera: NSObject {
     /** Start running capture session. */
     internal func configureSession() {
         
-        //print("status bar orientation is landscape?: \(UIApplication.shared.statusBarOrientation.isLandscape)")
         // Get video device
         guard let videoDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo) else {
             print("video device is nil")
@@ -240,11 +255,14 @@ class SatoCamera: NSObject {
         askUserCameraAccessAuthorization { (authorized: Bool) in
             if authorized {
                 print("camera access authorized")
+                self.setupResult = .success
                 self.sessionQueue.resume()
             } else {
+                self.setupResult = .configurationFailed
                 print("camera access failed to authorize")
             }
         }
+        
         session.startRunning()
     }
     
@@ -376,7 +394,7 @@ class SatoCamera: NSObject {
     
     /** Toggles back camera or front camera. */
     internal func toggleCamera() {
-        let cameraDevice = getCameraDevice()
+        let cameraDevice = AVCaptureDevice.getCameraDevice(cameraFace: &cameraFace)
 
         didOutputSampleBufferMethodCallCount = 0
         session.beginConfiguration()
@@ -399,20 +417,6 @@ class SatoCamera: NSObject {
 
         configureVideoOrientation()
         session.commitConfiguration()
-    }
-    
-    /** Get camera device based on cameraState. */
-    private func getCameraDevice() -> AVCaptureDevice {
-        var cameraDevice: AVCaptureDevice
-        switch cameraFace {
-        case .Back:
-            cameraDevice = AVCaptureDevice.defaultDevice(withDeviceType: AVCaptureDeviceType.builtInWideAngleCamera, mediaType: AVMediaTypeVideo, position: AVCaptureDevicePosition.front)
-            cameraFace = .Front
-        case .Front:
-            cameraDevice = AVCaptureDevice.defaultDevice(withDeviceType: AVCaptureDeviceType.builtInWideAngleCamera, mediaType: AVMediaTypeVideo, position: AVCaptureDevicePosition.back)
-            cameraFace = .Back
-        }
-        return cameraDevice
     }
     
     // MARK: - Camera Controls
@@ -447,16 +451,12 @@ class SatoCamera: NSObject {
         }
         start()
     }
-    
-    
-    // func save cgimage to disk
-    // var renderedImage [url]
 
-    var renderedURLs = [URL]()
-    internal func render(drawImage: UIImage?, textImage: UIImage?) -> [URL] {
+    /** Render everything together. */
+    internal func render(imageUrls: [URL], drawImage: UIImage?, textImage: UIImage?) -> [URL] {
         
         var filteredResizedUIImages = [UIImage]()
-        for url in resizedURLs {
+        for url in imageUrls {
             if let image = url.makeUIImage(filter: currentFilter.filter) {
                 filteredResizedUIImages.append(image)
             } else {
@@ -489,7 +489,7 @@ class SatoCamera: NSObject {
 
     internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
         // render here
-        renderedURLs = render(drawImage: drawImage, textImage: textImage)
+        renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage)
         if let gifURL = renderedURLs.createGif(frameDelay: 0.5) {
             print(gifURL.filesize!)
             PHPhotoLibrary.requestAuthorization
@@ -539,23 +539,6 @@ class SatoCamera: NSObject {
         isSnappedGif = true
     }
     
-    /** Device orientation when image taken. This also set an integer value to be passed with kCGImagePropertyOrientation. */
-    var deviceOrientation = UIDeviceOrientation.portrait {
-        didSet {
-            switch deviceOrientation {
-            case .landscapeRight:
-                cgImageOrientation = CGImagePropertyOrientation.LandscapeRight
-            case .landscapeLeft:
-                cgImageOrientation = CGImagePropertyOrientation.LandscapeLeft
-            default:
-                cgImageOrientation = CGImagePropertyOrientation.Default
-            }
-        }
-    }
-    
-    /** an integer value to be passed with kCGImagePropertyOrientation. */
-    var cgImageOrientation: CGImagePropertyOrientation = CGImagePropertyOrientation.Default
-    
     /** Stops image post-storing. Calls showGif to show gif.*/
     fileprivate func stopLiveGif() {
         isSnappedGif = false
@@ -567,8 +550,6 @@ class SatoCamera: NSObject {
     
     /** Creates an image view with images for animation. Show the image view on output image view. */
     func showGif() {
-        
-        //if let gifImageView = getGifImageViewFromImageUrls(resizedURLs, filter: currentFilter.filter) {
         
         if let gifImageView = makeGif(urls: resizedURLs, filter: currentFilter.filter) {
             if let cameraOutput = cameraOutput {
@@ -586,6 +567,7 @@ class SatoCamera: NSObject {
         }
     }
 
+    /** Make a gif image view from urls. */
     func makeGif(urls: [URL], filter: CIFilter?) -> UIImageView? {
         
         filteredUIImages.removeAll()
@@ -655,8 +637,6 @@ extension URL {
             return nil
         }
         
-        //        var imageDestinationOptions: [NSObject: AnyObject] = [:]
-        //        imageDestinationOptions as CFDictionary?
         CGImageDestinationAddImage(imageDestination, resizedImage, nil)
         
         if !CGImageDestinationFinalize(imageDestination) {
@@ -666,6 +646,7 @@ extension URL {
         return outputURL
     }
     
+    /** Make UIImage from URL*/
     func makeUIImage(filter: CIFilter?) -> UIImage? {
         guard let cgImage = self.cgImage else {
             print("cgImage is nil in \(#function)")
@@ -859,6 +840,22 @@ extension Sequence where Iterator.Element == URL {
     }
 }
 
+extension AVCaptureDevice {
+    /** Get camera device based on cameraState. */
+    class func getCameraDevice(cameraFace: inout CameraFace) -> AVCaptureDevice {
+        var cameraDevice: AVCaptureDevice
+        switch cameraFace {
+        case .Back:
+            cameraDevice = AVCaptureDevice.defaultDevice(withDeviceType: AVCaptureDeviceType.builtInWideAngleCamera, mediaType: AVMediaTypeVideo, position: AVCaptureDevicePosition.front)
+            cameraFace = .Front
+        case .Front:
+            cameraDevice = AVCaptureDevice.defaultDevice(withDeviceType: AVCaptureDeviceType.builtInWideAngleCamera, mediaType: AVMediaTypeVideo, position: AVCaptureDevicePosition.back)
+            cameraFace = .Back
+        }
+        return cameraDevice
+    }
+}
+
 // MARK: - FilterImageEffectDelegate
 extension SatoCamera: FilterImageEffectDelegate {
     
@@ -885,9 +882,6 @@ extension SatoCamera: FilterImageEffectDelegate {
 // MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
 extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
     
-    /** Called the specified times (FPS) every second. Converts sample buffer into CIImage. 
-     Applies filter to it. Draw the CIImage into CIContext to update GLKView.
-     In background, store CIImages into array one by one. Resizing should be done in background.*/
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
         // Store in background thread
