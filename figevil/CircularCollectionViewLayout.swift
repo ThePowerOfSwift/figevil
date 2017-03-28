@@ -3,7 +3,7 @@
 //  CircularCollectionView
 //
 //  Created by Satoru Sasozaki on 3/10/17.
-//  Copyright © 2017 Rounak Jain. All rights reserved.
+//  Copyright © 2017 Jonathan Cheng. All rights reserved.
 //
 
 import UIKit

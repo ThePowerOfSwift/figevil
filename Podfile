@@ -7,4 +7,5 @@ target 'figevil' do
 
   # Pods for figevil
   pod 'Firebase/Core'
+  pod 'FLAnimatedImage', '~> 1.0'
 end
