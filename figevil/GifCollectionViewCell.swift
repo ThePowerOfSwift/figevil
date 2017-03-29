@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import FLAnimatedImage
 
 class GifCollectionViewCell: UICollectionViewCell {
 
@@ -41,7 +42,7 @@ class GifCollectionViewCell: UICollectionViewCell {
     }
     
     // MARK: Storyboard outlets
-    @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var imageView: FLAnimatedImageView!
 
     // MARK: Lifecycle
     
@@ -77,9 +78,9 @@ class GifCollectionViewCell: UICollectionViewCell {
     
     private func didSetGifContent() {
         if let gifContent = gifContent {
-            imageView.image = gifContent.image
+            imageView.animatedImage = gifContent.animatedImage
         } else {
-            imageView.image = nil
+            imageView.animatedImage = nil
         }
     }
     
@@ -111,11 +112,18 @@ class GifCollectionViewCell: UICollectionViewCell {
 /** Model for GifCollectionViewCellContent */
 class GifCollectionViewCellContent: NSObject {
     var url: URL?
-    var image: UIImage?
+    var animatedImage: FLAnimatedImage?
     
     init(_ url: URL) {
         super.init()
         self.url = url
-        self.image = UIImage(contentsOfFile: url.path)
+        do {
+            let data = try Data(contentsOf: url)
+            self.animatedImage = FLAnimatedImage(animatedGIFData: data)
+        } catch {
+            print("Error: Cannot get data for Gif at \(url.path)")
+            print(error.localizedDescription)
+        }
+        
     }
 }

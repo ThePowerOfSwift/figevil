@@ -9,3 +9,8 @@ target 'figevil' do
   pod 'Firebase/Core'
   pod 'FLAnimatedImage', '~> 1.0'
 end
+
+target 'MeKeyboard' do
+       use_frameworks!
+       pod 'FLAnimatedImage', '~> 1.0'
+end

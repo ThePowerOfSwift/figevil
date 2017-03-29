@@ -9,28 +9,38 @@
 /* Begin PBXBuildFile section */
 		13ADE84F672E4DF94AB419484FFAEAFA /* FLAnimatedImage-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = A2E3944B6293ADBBA517A037D8A52616 /* FLAnimatedImage-dummy.m */; };
 		2204BE1F2299F2256BA37026C325EDB7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3B7526E88C61A022CC05338CC8B1DAA /* Foundation.framework */; };
+		2FDD9EEE7AD30CA0AA6BBD76E2E5551F /* Pods-MeKeyboard-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F8130CC34D62D05A753D75F499C3BB /* Pods-MeKeyboard-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3159D7CAFD56B809F40CA3330DA10889 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3B7526E88C61A022CC05338CC8B1DAA /* Foundation.framework */; };
 		3F1A6D4ED1F5123E453693C4F43201A2 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83E845228FB970C5F42CDE9434FD6BB2 /* QuartzCore.framework */; };
 		541C5362289CC44D4F067D097F231250 /* GTMDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 667F336D83EFE36A8B27688A67217D92 /* GTMDefines.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		54B72BE8851E881007E5620B47F98A89 /* FLAnimatedImageView.h in Headers */ = {isa = PBXBuildFile; fileRef = BD86629D85C893F5A9A3F4620139C37F /* FLAnimatedImageView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		812EAAC6B0B59E3F1D90A819791E467C /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B16525CE151B2263EA6133F40B7C555 /* CoreGraphics.framework */; };
 		81E4B6988FF26F9249B79C6C8CC667B4 /* GoogleToolboxForMac-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 82CA5FA125DDD3481A8D3B80A611CC7C /* GoogleToolboxForMac-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		85B973976B5564062A60EFA99FD6ED49 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3B7526E88C61A022CC05338CC8B1DAA /* Foundation.framework */; };
 		879F3C72BF6A5122BA70CAEEDDC5B845 /* FLAnimatedImage-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 8803B87FDFB5044EE811D45719395154 /* FLAnimatedImage-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8C1771BECC0DA6C28D8EB206F8D62D67 /* FLAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = DDE57A7B92F1AF36B487CA46ABD75CBC /* FLAnimatedImage.m */; };
-		9ABC19A14C55BF530882BB0375473150 /* Pods-figevil-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = B177FAC10126396D7B4144E996796D4F /* Pods-figevil-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9ABC19A14C55BF530882BB0375473150 /* Pods-figevil-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = CDEA9E8B4913C6C693AC785BEA93486D /* Pods-figevil-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ACC4A6D5DFC94C2AF8DD9517A1393DC0 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C47FE23996994E1EAF8A5264C8322105 /* MobileCoreServices.framework */; };
 		ACEF52D266CBF9E8C7E9F7D5E2C0937A /* FLAnimatedImage.h in Headers */ = {isa = PBXBuildFile; fileRef = AEF83F16B4C3BE4C6A7F44852CF9EA7F /* FLAnimatedImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B6533EFF69AA9E2AB73837FD8950F1C8 /* FLAnimatedImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 28C0F518E4EEB45A25BFD410A605266A /* FLAnimatedImageView.m */; };
 		C650000055CCA5AF261AD2318CF00DFD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3B7526E88C61A022CC05338CC8B1DAA /* Foundation.framework */; };
 		D1D5902A721F733FCFCD48060F7E7FCA /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C547661E7C9FF7498ACAC16B354BAFE /* ImageIO.framework */; };
 		DBFECCB0BBE3F11CC41A3C1A8C4879D3 /* GTMNSData+zlib.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AF3D0FA3858F0C583B667AC3778A63E /* GTMNSData+zlib.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E43BC27F78C4EC78E56982E3DE352553 /* Pods-figevil-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = E3F300A6AB89ACFD648C8FAF63674241 /* Pods-figevil-dummy.m */; };
+		E43BC27F78C4EC78E56982E3DE352553 /* Pods-figevil-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 45D455601DE135A5D04582D8DB13145C /* Pods-figevil-dummy.m */; };
 		F7D889906DECB078EAAECB9D4A320E9C /* GTMNSData+zlib.m in Sources */ = {isa = PBXBuildFile; fileRef = F68567E54819A801DA0C43D725C8EEEF /* GTMNSData+zlib.m */; settings = {COMPILER_FLAGS = "-DOS_OBJECT_USE_OBJC=0"; }; };
 		FAC3F3CAABA60EF76069431C5BB5032A /* GoogleToolboxForMac-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = A75369ECE16DE4C2973FB202795B6E17 /* GoogleToolboxForMac-dummy.m */; };
+		FC392BB0710EFB54B4A4EF3411196DC0 /* Pods-MeKeyboard-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D3C08ADB2F434C00FC6CAF22F66B597 /* Pods-MeKeyboard-dummy.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		061A87993822465B3B2D01A3CED164D5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D41D8CD98F00B204E9800998ECF8427E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 83B5B60C676A8D31829A6AE91CE86A75;
+			remoteInfo = FLAnimatedImage;
+		};
+		7C50800163EF0DE67D77360E83B1AADB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D41D8CD98F00B204E9800998ECF8427E /* Project object */;
 			proxyType = 1;
@@ -47,51 +57,61 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		001F94E3F11799D110BB6D04670D4F16 /* Pods-MeKeyboard-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-MeKeyboard-acknowledgements.markdown"; sourceTree = "<group>"; };
+		08DC7FEA22A5C813C37E20DAA1F8A9E2 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0B16525CE151B2263EA6133F40B7C555 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
+		0E0B451DAE7D2FA861CCCD9D5D6FBE31 /* GoogleToolboxForMac.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = GoogleToolboxForMac.framework; path = GoogleToolboxForMac.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0F0068A768530F690EDFBDEBCDD4D38A /* Pods_figevil.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Pods_figevil.framework; path = "Pods-figevil.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
 		10C042964ACCBB33CF1D991D656B64C3 /* FIRInstanceID.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FIRInstanceID.h; path = Sources/FIRInstanceID.h; sourceTree = "<group>"; };
 		11DCD0C3D2AB9188081F2C577079F86D /* FirebaseAnalytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseAnalytics.framework; path = Frameworks/frameworks/FirebaseAnalytics.framework; sourceTree = "<group>"; };
 		13FADBACF006378C624800F7A04491DB /* GoogleToolboxForMac-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "GoogleToolboxForMac-prefix.pch"; sourceTree = "<group>"; };
 		15759098F504939B5D168201F6B37D38 /* GoogleToolboxForMac.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = GoogleToolboxForMac.xcconfig; sourceTree = "<group>"; };
-		16AB1D46E6A5B3A260E3BFAFE41F7069 /* FLAnimatedImage.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = FLAnimatedImage.framework; path = FLAnimatedImage.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		17D1D589712934498C7BF10ABCB71013 /* GoogleInterchangeUtilities.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleInterchangeUtilities.framework; path = Frameworks/frameworks/GoogleInterchangeUtilities.framework; sourceTree = "<group>"; };
 		1E5B6406BDC1901DFB4B35C375402261 /* GoogleSymbolUtilities.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleSymbolUtilities.framework; path = Frameworks/frameworks/GoogleSymbolUtilities.framework; sourceTree = "<group>"; };
-		2207C45895FC5BD82CE4E81B7FEEB66D /* Pods-figevil-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-figevil-acknowledgements.markdown"; sourceTree = "<group>"; };
-		262D104248649F03D0770804E014A531 /* Pods-figevil-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-figevil-frameworks.sh"; sourceTree = "<group>"; };
+		24AE1E07B6EFE34328A318CB7BD12A5E /* FLAnimatedImage.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = FLAnimatedImage.framework; path = FLAnimatedImage.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		25F8130CC34D62D05A753D75F499C3BB /* Pods-MeKeyboard-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-MeKeyboard-umbrella.h"; sourceTree = "<group>"; };
 		28C0F518E4EEB45A25BFD410A605266A /* FLAnimatedImageView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FLAnimatedImageView.m; path = FLAnimatedImage/FLAnimatedImageView.m; sourceTree = "<group>"; };
+		2CB7385F81EB58194F9E7C3DE90C675C /* Pods-MeKeyboard-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-MeKeyboard-acknowledgements.plist"; sourceTree = "<group>"; };
 		30006E696D57CF2AEEEF6BF92615009D /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		35B206244DD324AD0CB4F2702B9ED37D /* Pods-figevil-resources.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-figevil-resources.sh"; sourceTree = "<group>"; };
 		3AF3D0FA3858F0C583B667AC3778A63E /* GTMNSData+zlib.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "GTMNSData+zlib.h"; path = "Foundation/GTMNSData+zlib.h"; sourceTree = "<group>"; };
+		40A7CE88F88970F7D0AE25EDE34D34E6 /* Pods-figevil.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-figevil.debug.xcconfig"; sourceTree = "<group>"; };
+		41EAA89A83D836F2D290B8CD3FD54EBA /* Pods-MeKeyboard.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = "Pods-MeKeyboard.modulemap"; sourceTree = "<group>"; };
 		42C8A959AD01DC6B0A3A7C1E00D3B274 /* FLAnimatedImage.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = FLAnimatedImage.modulemap; sourceTree = "<group>"; };
+		45D455601DE135A5D04582D8DB13145C /* Pods-figevil-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-figevil-dummy.m"; sourceTree = "<group>"; };
+		47C80568E8527C1BEC19C3346F81FE1F /* Pods-figevil-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-figevil-frameworks.sh"; sourceTree = "<group>"; };
 		4C85682F0FB68154FDFD511A305B9CA8 /* GoogleToolboxForMac.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = GoogleToolboxForMac.modulemap; sourceTree = "<group>"; };
-		60A7395053345B8B7A97C39003121D73 /* Pods-figevil-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-figevil-acknowledgements.plist"; sourceTree = "<group>"; };
+		53392058F385A8731936A2020CC46D70 /* Pods-MeKeyboard-resources.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-MeKeyboard-resources.sh"; sourceTree = "<group>"; };
+		5703D0B6AA5FB42FE9CF53DB59E38642 /* Pods_MeKeyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Pods_MeKeyboard.framework; path = "Pods-MeKeyboard.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
 		61D6DFCC95C0198F55EBF7A6010F8C57 /* FirebaseInstanceID.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseInstanceID.framework; path = Frameworks/frameworks/FirebaseInstanceID.framework; sourceTree = "<group>"; };
-		6465C1BED8ACF6214B0701B526440778 /* Pods-figevil.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-figevil.debug.xcconfig"; sourceTree = "<group>"; };
 		667F336D83EFE36A8B27688A67217D92 /* GTMDefines.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = GTMDefines.h; sourceTree = "<group>"; };
 		6C547661E7C9FF7498ACAC16B354BAFE /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/ImageIO.framework; sourceTree = DEVELOPER_DIR; };
+		6D3C08ADB2F434C00FC6CAF22F66B597 /* Pods-MeKeyboard-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-MeKeyboard-dummy.m"; sourceTree = "<group>"; };
 		6F63F0C6133DF904274E8B3003114F89 /* FLAnimatedImage-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "FLAnimatedImage-prefix.pch"; sourceTree = "<group>"; };
-		716C4F62F6651B9EF2042D4FFD475E19 /* Pods-figevil-resources.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-figevil-resources.sh"; sourceTree = "<group>"; };
-		71E1A28652EDED4176396E6FCCB90F8F /* Pods-figevil.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-figevil.release.xcconfig"; sourceTree = "<group>"; };
+		71D02120FACD081E5607C9A76DD60627 /* Pods-figevil.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = "Pods-figevil.modulemap"; sourceTree = "<group>"; };
 		82CA5FA125DDD3481A8D3B80A611CC7C /* GoogleToolboxForMac-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "GoogleToolboxForMac-umbrella.h"; sourceTree = "<group>"; };
 		83E845228FB970C5F42CDE9434FD6BB2 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/QuartzCore.framework; sourceTree = DEVELOPER_DIR; };
 		8803B87FDFB5044EE811D45719395154 /* FLAnimatedImage-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "FLAnimatedImage-umbrella.h"; sourceTree = "<group>"; };
+		8F32E6269931E27833CBC4AE84045196 /* Pods-MeKeyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-MeKeyboard.release.xcconfig"; sourceTree = "<group>"; };
 		93A4A3777CF96A4AAC1D13BA6DCCEA73 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		96ACFF6C5B0A2FBC5AF0DF03F7512324 /* FirebaseCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseCore.framework; path = Frameworks/frameworks/FirebaseCore.framework; sourceTree = "<group>"; };
-		A295DE852955AC20769AF6F7DEC04548 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A26C8D016F50F37F9C656A63EC1405C4 /* Pods-figevil-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-figevil-acknowledgements.markdown"; sourceTree = "<group>"; };
 		A2E3944B6293ADBBA517A037D8A52616 /* FLAnimatedImage-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "FLAnimatedImage-dummy.m"; sourceTree = "<group>"; };
 		A75369ECE16DE4C2973FB202795B6E17 /* GoogleToolboxForMac-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "GoogleToolboxForMac-dummy.m"; sourceTree = "<group>"; };
 		AEF83F16B4C3BE4C6A7F44852CF9EA7F /* FLAnimatedImage.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FLAnimatedImage.h; path = FLAnimatedImage/FLAnimatedImage.h; sourceTree = "<group>"; };
-		B177FAC10126396D7B4144E996796D4F /* Pods-figevil-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-figevil-umbrella.h"; sourceTree = "<group>"; };
+		B20AEEE779823F8D4B2D6CDF7BB210BD /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BD86629D85C893F5A9A3F4620139C37F /* FLAnimatedImageView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FLAnimatedImageView.h; path = FLAnimatedImage/FLAnimatedImageView.h; sourceTree = "<group>"; };
 		C47FE23996994E1EAF8A5264C8322105 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/MobileCoreServices.framework; sourceTree = DEVELOPER_DIR; };
-		D2F9E1D359F13275445931D029E88FCE /* Pods_figevil.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Pods_figevil.framework; path = "Pods-figevil.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C88119559C6FCAE8CBD374FBA8D6D3AA /* Pods-MeKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-MeKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
+		CDEA9E8B4913C6C693AC785BEA93486D /* Pods-figevil-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-figevil-umbrella.h"; sourceTree = "<group>"; };
 		D6B55F7A8FD8512EF6C1708DF31D9BDB /* Firebase.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = Firebase.h; path = Core/Sources/Firebase.h; sourceTree = "<group>"; };
+		DAB2EDD5715C044C2BB5A2DDA229EC05 /* Pods-figevil.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-figevil.release.xcconfig"; sourceTree = "<group>"; };
 		DDE57A7B92F1AF36B487CA46ABD75CBC /* FLAnimatedImage.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FLAnimatedImage.m; path = FLAnimatedImage/FLAnimatedImage.m; sourceTree = "<group>"; };
 		DDE82E7A4FEEFE00604A402D7FEBFE30 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		DF35FCD5E3157CF50FDEBC05EB7FF291 /* Pods-figevil.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = "Pods-figevil.modulemap"; sourceTree = "<group>"; };
+		E2B5A433E0176A851E59711335A987B3 /* Pods-figevil-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-figevil-acknowledgements.plist"; sourceTree = "<group>"; };
 		E3B7526E88C61A022CC05338CC8B1DAA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		E3F300A6AB89ACFD648C8FAF63674241 /* Pods-figevil-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-figevil-dummy.m"; sourceTree = "<group>"; };
 		EE06AF4D8FBB73A6002479F5A86224FE /* FLAnimatedImage.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = FLAnimatedImage.xcconfig; sourceTree = "<group>"; };
 		F68567E54819A801DA0C43D725C8EEEF /* GTMNSData+zlib.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "GTMNSData+zlib.m"; path = "Foundation/GTMNSData+zlib.m"; sourceTree = "<group>"; };
-		FA6D7F3B8729B6E4AD546BEFC06523E8 /* GoogleToolboxForMac.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = GoogleToolboxForMac.framework; path = GoogleToolboxForMac.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,6 +132,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				2204BE1F2299F2256BA37026C325EDB7 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DD43EB75F73D33F4868DB34F8511A6D1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				85B973976B5564062A60EFA99FD6ED49 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -146,6 +174,17 @@
 			);
 			name = "Support Files";
 			path = "../Target Support Files/FLAnimatedImage";
+			sourceTree = "<group>";
+		};
+		1970A4CED68D2739838BD27D75CFAF1C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				24AE1E07B6EFE34328A318CB7BD12A5E /* FLAnimatedImage.framework */,
+				0E0B451DAE7D2FA861CCCD9D5D6FBE31 /* GoogleToolboxForMac.framework */,
+				0F0068A768530F690EDFBDEBCDD4D38A /* Pods_figevil.framework */,
+				5703D0B6AA5FB42FE9CF53DB59E38642 /* Pods_MeKeyboard.framework */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		1C4A1B879921BD623D8A4D237457774F /* Frameworks */ = {
@@ -202,14 +241,6 @@
 			path = GoogleToolboxForMac;
 			sourceTree = "<group>";
 		};
-		42AE09DD7A564A4378320718C86D20FB /* Targets Support Files */ = {
-			isa = PBXGroup;
-			children = (
-				86D26ED53228CD77344DF9F04C34A99D /* Pods-figevil */,
-			);
-			name = "Targets Support Files";
-			sourceTree = "<group>";
-		};
 		44D0A7A95A11ECF01BF98437022AA5AE /* iOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -228,27 +259,9 @@
 				93A4A3777CF96A4AAC1D13BA6DCCEA73 /* Podfile */,
 				20B56609144CE204DFA8221F742B2D76 /* Frameworks */,
 				974DFDA0B411F3EE21E604AA4D2453BA /* Pods */,
-				E487805E5A265492DA244B397D7765AD /* Products */,
-				42AE09DD7A564A4378320718C86D20FB /* Targets Support Files */,
+				1970A4CED68D2739838BD27D75CFAF1C /* Products */,
+				9CD00B9722C235DF0FBB59A25F1B5806 /* Targets Support Files */,
 			);
-			sourceTree = "<group>";
-		};
-		86D26ED53228CD77344DF9F04C34A99D /* Pods-figevil */ = {
-			isa = PBXGroup;
-			children = (
-				A295DE852955AC20769AF6F7DEC04548 /* Info.plist */,
-				DF35FCD5E3157CF50FDEBC05EB7FF291 /* Pods-figevil.modulemap */,
-				2207C45895FC5BD82CE4E81B7FEEB66D /* Pods-figevil-acknowledgements.markdown */,
-				60A7395053345B8B7A97C39003121D73 /* Pods-figevil-acknowledgements.plist */,
-				E3F300A6AB89ACFD648C8FAF63674241 /* Pods-figevil-dummy.m */,
-				262D104248649F03D0770804E014A531 /* Pods-figevil-frameworks.sh */,
-				716C4F62F6651B9EF2042D4FFD475E19 /* Pods-figevil-resources.sh */,
-				B177FAC10126396D7B4144E996796D4F /* Pods-figevil-umbrella.h */,
-				6465C1BED8ACF6214B0701B526440778 /* Pods-figevil.debug.xcconfig */,
-				71E1A28652EDED4176396E6FCCB90F8F /* Pods-figevil.release.xcconfig */,
-			);
-			name = "Pods-figevil";
-			path = "Target Support Files/Pods-figevil";
 			sourceTree = "<group>";
 		};
 		974DFDA0B411F3EE21E604AA4D2453BA /* Pods */ = {
@@ -277,6 +290,15 @@
 			);
 			name = FLAnimatedImage;
 			path = FLAnimatedImage;
+			sourceTree = "<group>";
+		};
+		9CD00B9722C235DF0FBB59A25F1B5806 /* Targets Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				C7FE3248A0E2AC32E11DA21AA1453403 /* Pods-figevil */,
+				EAE3926A01B53537895C88389A14813E /* Pods-MeKeyboard */,
+			);
+			name = "Targets Support Files";
 			sourceTree = "<group>";
 		};
 		A4CB96D2ADF61C232FEDFDDA82021EBB /* Support Files */ = {
@@ -319,6 +341,24 @@
 			path = Firebase;
 			sourceTree = "<group>";
 		};
+		C7FE3248A0E2AC32E11DA21AA1453403 /* Pods-figevil */ = {
+			isa = PBXGroup;
+			children = (
+				08DC7FEA22A5C813C37E20DAA1F8A9E2 /* Info.plist */,
+				71D02120FACD081E5607C9A76DD60627 /* Pods-figevil.modulemap */,
+				A26C8D016F50F37F9C656A63EC1405C4 /* Pods-figevil-acknowledgements.markdown */,
+				E2B5A433E0176A851E59711335A987B3 /* Pods-figevil-acknowledgements.plist */,
+				45D455601DE135A5D04582D8DB13145C /* Pods-figevil-dummy.m */,
+				47C80568E8527C1BEC19C3346F81FE1F /* Pods-figevil-frameworks.sh */,
+				35B206244DD324AD0CB4F2702B9ED37D /* Pods-figevil-resources.sh */,
+				CDEA9E8B4913C6C693AC785BEA93486D /* Pods-figevil-umbrella.h */,
+				40A7CE88F88970F7D0AE25EDE34D34E6 /* Pods-figevil.debug.xcconfig */,
+				DAB2EDD5715C044C2BB5A2DDA229EC05 /* Pods-figevil.release.xcconfig */,
+			);
+			name = "Pods-figevil";
+			path = "Target Support Files/Pods-figevil";
+			sourceTree = "<group>";
+		};
 		D970A1E96CA7BFCE33DD255B913CA7FB /* GoogleInterchangeUtilities */ = {
 			isa = PBXGroup;
 			children = (
@@ -328,22 +368,29 @@
 			path = GoogleInterchangeUtilities;
 			sourceTree = "<group>";
 		};
-		E487805E5A265492DA244B397D7765AD /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				16AB1D46E6A5B3A260E3BFAFE41F7069 /* FLAnimatedImage.framework */,
-				FA6D7F3B8729B6E4AD546BEFC06523E8 /* GoogleToolboxForMac.framework */,
-				D2F9E1D359F13275445931D029E88FCE /* Pods_figevil.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		EA1EA014BA63B1EFAE95F8584E26E071 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				17D1D589712934498C7BF10ABCB71013 /* GoogleInterchangeUtilities.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		EAE3926A01B53537895C88389A14813E /* Pods-MeKeyboard */ = {
+			isa = PBXGroup;
+			children = (
+				B20AEEE779823F8D4B2D6CDF7BB210BD /* Info.plist */,
+				41EAA89A83D836F2D290B8CD3FD54EBA /* Pods-MeKeyboard.modulemap */,
+				001F94E3F11799D110BB6D04670D4F16 /* Pods-MeKeyboard-acknowledgements.markdown */,
+				2CB7385F81EB58194F9E7C3DE90C675C /* Pods-MeKeyboard-acknowledgements.plist */,
+				6D3C08ADB2F434C00FC6CAF22F66B597 /* Pods-MeKeyboard-dummy.m */,
+				53392058F385A8731936A2020CC46D70 /* Pods-MeKeyboard-resources.sh */,
+				25F8130CC34D62D05A753D75F499C3BB /* Pods-MeKeyboard-umbrella.h */,
+				C88119559C6FCAE8CBD374FBA8D6D3AA /* Pods-MeKeyboard.debug.xcconfig */,
+				8F32E6269931E27833CBC4AE84045196 /* Pods-MeKeyboard.release.xcconfig */,
+			);
+			name = "Pods-MeKeyboard";
+			path = "Target Support Files/Pods-MeKeyboard";
 			sourceTree = "<group>";
 		};
 		EB6426055B577710AC2ACDC6E2C6A477 /* Defines */ = {
@@ -391,6 +438,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE1A01994008A7C8AFD683675A3BFDDE /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2FDD9EEE7AD30CA0AA6BBD76E2E5551F /* Pods-MeKeyboard-umbrella.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FA64BDF07F033D7C01125C73FCCFEC87 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -428,7 +483,25 @@
 			);
 			name = GoogleToolboxForMac;
 			productName = GoogleToolboxForMac;
-			productReference = FA6D7F3B8729B6E4AD546BEFC06523E8 /* GoogleToolboxForMac.framework */;
+			productReference = 0E0B451DAE7D2FA861CCCD9D5D6FBE31 /* GoogleToolboxForMac.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		5285E8082EAEA92B2D8B705A55C94B05 /* Pods-MeKeyboard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5556A3F66BF17C4B208A0839560B97EE /* Build configuration list for PBXNativeTarget "Pods-MeKeyboard" */;
+			buildPhases = (
+				0FB981DE0CDD9E306EF2EB3093523519 /* Sources */,
+				DD43EB75F73D33F4868DB34F8511A6D1 /* Frameworks */,
+				EE1A01994008A7C8AFD683675A3BFDDE /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F06CBACF856FF97A1E8ECC973F570DFF /* PBXTargetDependency */,
+			);
+			name = "Pods-MeKeyboard";
+			productName = "Pods-MeKeyboard";
+			productReference = 5703D0B6AA5FB42FE9CF53DB59E38642 /* Pods_MeKeyboard.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		83B5B60C676A8D31829A6AE91CE86A75 /* FLAnimatedImage */ = {
@@ -445,7 +518,7 @@
 			);
 			name = FLAnimatedImage;
 			productName = FLAnimatedImage;
-			productReference = 16AB1D46E6A5B3A260E3BFAFE41F7069 /* FLAnimatedImage.framework */;
+			productReference = 24AE1E07B6EFE34328A318CB7BD12A5E /* FLAnimatedImage.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		EC4571C6FD07A95753099D4F85C199DF /* Pods-figevil */ = {
@@ -464,7 +537,7 @@
 			);
 			name = "Pods-figevil";
 			productName = "Pods-figevil";
-			productReference = D2F9E1D359F13275445931D029E88FCE /* Pods_figevil.framework */;
+			productReference = 0F0068A768530F690EDFBDEBCDD4D38A /* Pods_figevil.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -484,18 +557,27 @@
 				en,
 			);
 			mainGroup = 7DB346D0F39D3F0E887471402A8071AB;
-			productRefGroup = E487805E5A265492DA244B397D7765AD /* Products */;
+			productRefGroup = 1970A4CED68D2739838BD27D75CFAF1C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				83B5B60C676A8D31829A6AE91CE86A75 /* FLAnimatedImage */,
 				00103D6C821BE85971C563025527BA5D /* GoogleToolboxForMac */,
 				EC4571C6FD07A95753099D4F85C199DF /* Pods-figevil */,
+				5285E8082EAEA92B2D8B705A55C94B05 /* Pods-MeKeyboard */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0FB981DE0CDD9E306EF2EB3093523519 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FC392BB0710EFB54B4A4EF3411196DC0 /* Pods-MeKeyboard-dummy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4AAEDB21198D433CF90C7195F1F02A6F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -538,12 +620,18 @@
 			target = 83B5B60C676A8D31829A6AE91CE86A75 /* FLAnimatedImage */;
 			targetProxy = 061A87993822465B3B2D01A3CED164D5 /* PBXContainerItemProxy */;
 		};
+		F06CBACF856FF97A1E8ECC973F570DFF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = FLAnimatedImage;
+			target = 83B5B60C676A8D31829A6AE91CE86A75 /* FLAnimatedImage */;
+			targetProxy = 7C50800163EF0DE67D77360E83B1AADB /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		2D259C3E20A5510A040190421B5C8E1B /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6465C1BED8ACF6214B0701B526440778 /* Pods-figevil.debug.xcconfig */;
+			baseConfigurationReference = 40A7CE88F88970F7D0AE25EDE34D34E6 /* Pods-figevil.debug.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
@@ -575,6 +663,39 @@
 				VERSION_INFO_PREFIX = "";
 			};
 			name = Debug;
+		};
+		4BD75A4C2F8BDB57CBBF737AE481B837 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = EE06AF4D8FBB73A6002479F5A86224FE /* FLAnimatedImage.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREFIX_HEADER = "Target Support Files/FLAnimatedImage/FLAnimatedImage-prefix.pch";
+				INFOPLIST_FILE = "Target Support Files/FLAnimatedImage/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MODULEMAP_FILE = "Target Support Files/FLAnimatedImage/FLAnimatedImage.modulemap";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = FLAnimatedImage;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
 		};
 		673254EEAF0B5BF4596080C749645884 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -616,10 +737,47 @@
 			};
 			name = Release;
 		};
-		80AD0162D44B23A934E4F20240DD2BDD /* Release */ = {
+		6B75C01F6EEDDBA15ED970D5A564EA6C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = EE06AF4D8FBB73A6002479F5A86224FE /* FLAnimatedImage.xcconfig */;
+			baseConfigurationReference = C88119559C6FCAE8CBD374FBA8D6D3AA /* Pods-MeKeyboard.debug.xcconfig */;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = "Target Support Files/Pods-MeKeyboard/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-MeKeyboard/Pods-MeKeyboard.modulemap";
+				MTL_ENABLE_DEBUG_INFO = YES;
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = Pods_MeKeyboard;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		AA7B31EAE6D098D3353DBFE5CABC3655 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8F32E6269931E27833CBC4AE84045196 /* Pods-MeKeyboard.release.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
@@ -631,17 +789,20 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_PREFIX_HEADER = "Target Support Files/FLAnimatedImage/FLAnimatedImage-prefix.pch";
-				INFOPLIST_FILE = "Target Support Files/FLAnimatedImage/Info.plist";
+				INFOPLIST_FILE = "Target Support Files/Pods-MeKeyboard/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MODULEMAP_FILE = "Target Support Files/FLAnimatedImage/FLAnimatedImage.modulemap";
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-MeKeyboard/Pods-MeKeyboard.modulemap";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_NAME = FLAnimatedImage;
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = Pods_MeKeyboard;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -650,7 +811,7 @@
 		};
 		D0C2871466497471FA48960F9A983041 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 71E1A28652EDED4176396E6FCCB90F8F /* Pods-figevil.release.xcconfig */;
+			baseConfigurationReference = DAB2EDD5715C044C2BB5A2DDA229EC05 /* Pods-figevil.release.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
@@ -791,10 +952,11 @@
 			};
 			name = Release;
 		};
-		F830DB7721EB752D3B48EAFEFCFF6617 /* Debug */ = {
+		F84F224C9047C69E274F1F6B8D59954D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = EE06AF4D8FBB73A6002479F5A86224FE /* FLAnimatedImage.xcconfig */;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
@@ -844,11 +1006,20 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		5556A3F66BF17C4B208A0839560B97EE /* Build configuration list for PBXNativeTarget "Pods-MeKeyboard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B75C01F6EEDDBA15ED970D5A564EA6C /* Debug */,
+				AA7B31EAE6D098D3353DBFE5CABC3655 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		5BE17412EAFC0423EA482DB389779961 /* Build configuration list for PBXNativeTarget "FLAnimatedImage" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F830DB7721EB752D3B48EAFEFCFF6617 /* Debug */,
-				80AD0162D44B23A934E4F20240DD2BDD /* Release */,
+				F84F224C9047C69E274F1F6B8D59954D /* Debug */,
+				4BD75A4C2F8BDB57CBBF737AE481B837 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
