@@ -331,57 +331,61 @@ class SatoCamera: NSObject {
     
     /** Focus on where it's tapped. */
     internal func tapToFocusAndExposure(touch: UITouch) {
-        // http://stackoverflow.com/questions/15838443/iphone-camera-show-focus-rectangle
+        
         let touchPoint = touch.location(in: videoGLKPreview)
-        let adjustedCoordinatePoint = CGPoint(x: frame.width - touchPoint.y, y: touchPoint.x)
-
-        guard let videoDevice = videoDevice else {
-            print("video device is nil")
-            return
+        // https://developer.apple.com/library/content/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/04_MediaCapture.html
+        // convert device point to image point in unit
+        let convertedX = touchPoint.y / frame.height
+        let convertedY = (frame.width - touchPoint.x) / frame.width
+        let convertedPoint = CGPoint(x: convertedX, y: convertedY)
+        focus(with: .autoFocus, exposureMode: .autoExpose, at: convertedPoint)
+        
+        // feedback rect view
+        let feedbackView = UIView(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 50)))
+        feedbackView.center = touchPoint
+        feedbackView.layer.borderColor = UIColor.white.cgColor
+        feedbackView.layer.borderWidth = 2.0
+        feedbackView.backgroundColor = UIColor.clear
+        
+        DispatchQueue.main.async {
+            self.cameraOutput?.sampleBufferView?.addSubview(feedbackView)
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+                // Put your code which should be executed with a delay here
+                feedbackView.removeFromSuperview()
+            })
         }
         
-        // (1 - ) changes the origin to top, right
-        // You pass a CGPoint where {0,0} represents the top left of the picture area, and {1,1} represents the bottom right in landscape mode with the home button on the right—this applies even if the device is in portrait mode.
-        // https://developer.apple.com/library/content/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/04_MediaCapture.html
-        let adjustedPoint = CGPoint(x: 1 - adjustedCoordinatePoint.x / frame.width, y: adjustedCoordinatePoint.y / frame.height)
-        
+    }
+    
+    private func focus(with focusMode: AVCaptureFocusMode, exposureMode: AVCaptureExposureMode, at unitPoint: CGPoint) {
         sessionQueue.async { [unowned self] in
-            if videoDevice.isFocusPointOfInterestSupported && videoDevice.isFocusModeSupported(AVCaptureFocusMode.autoFocus) && videoDevice.isExposureModeSupported(AVCaptureExposureMode.autoExpose) {
+            if let device = self.videoDevice {
                 do {
-                    // lock device to change
-                    try videoDevice.lockForConfiguration()
-                    // https://developer.apple.com/reference/avfoundation/avcapturedevice/1385853-focuspointofinterest
+                    try device.lockForConfiguration()
                     
-                    // set point
-                    videoDevice.focusPointOfInterest = adjustedPoint
-                    videoDevice.exposurePointOfInterest = adjustedPoint
+                    /*
+                     Setting (focus/exposure)PointOfInterest alone does not initiate a (focus/exposure) operation.
+                     Call set(Focus/Exposure)Mode() to apply the new point of interest.
+                     */
+                    if device.isFocusPointOfInterestSupported && device.isFocusModeSupported(focusMode) {
+                        device.focusPointOfInterest = unitPoint
+                        device.focusMode = focusMode
+                    }
                     
-                    // execute operation now
-                    videoDevice.focusMode = AVCaptureFocusMode.autoFocus
-                    videoDevice.exposureMode = AVCaptureExposureMode.autoExpose
+                    if device.isExposurePointOfInterestSupported && device.isExposureModeSupported(exposureMode) {
+                        device.exposurePointOfInterest = unitPoint
+                        device.exposureMode = exposureMode
+                    }
                     
-                    videoDevice.unlockForConfiguration()
-                } catch let error as NSError {
-                    print(error.localizedDescription)
+                    device.unlockForConfiguration()
                 }
-            }
-            
-            // feedback rect view
-            let feedbackView = UIView(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 50)))
-            feedbackView.center = adjustedCoordinatePoint
-            feedbackView.layer.borderColor = UIColor.white.cgColor
-            feedbackView.layer.borderWidth = 2.0
-            feedbackView.backgroundColor = UIColor.clear
-            
-            DispatchQueue.main.async {
-                self.cameraOutput?.sampleBufferView?.addSubview(feedbackView)
-                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
-                    // Put your code which should be executed with a delay here
-                    feedbackView.removeFromSuperview()
-                })
+                catch {
+                    print("Could not lock device for configuration: \(error)")
+                }
             }
         }
     }
+    
     
     // MARK: - Camera Settings
     internal func toggleFlash() -> String {
