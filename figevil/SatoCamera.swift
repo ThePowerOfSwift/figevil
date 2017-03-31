@@ -43,6 +43,7 @@ class SatoCamera: NSObject {
     fileprivate var session = AVCaptureSession()
     //internal var sessionQueue: DispatchQueue = DispatchQueue.main
     internal var sessionQueue = DispatchQueue(label: "sessionQueue", attributes: [], target: nil)
+    internal var serialQueue = DispatchQueue(label: "serialQueue")
     /** Frame of sampleBufferView of CameraOutput delegate. Should be set when being initialized. */
     fileprivate var frame: CGRect
     
@@ -589,6 +590,8 @@ class SatoCamera: NSObject {
         
         return imageView
     }
+    
+    var frameSavedCount = 0
 }
 
 // MARK: - Other Extensions
@@ -727,7 +730,7 @@ extension CGImage {
 
 extension CMSampleBuffer {
     /** Save image from CVPixelBuffer to disk without loading into memory */
-    func saveFrameToDisk(outputURL: URL? = nil) -> URL? {
+    func saveFrameToDisk(outputURL: URL? = nil, count: inout Int) -> URL? {
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(self) else {
             print("Error: Image buffer is nil")
             return nil
@@ -770,7 +773,8 @@ extension CMSampleBuffer {
                                     return nil
         }
         
-        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
+        //let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
+        let path = NSTemporaryDirectory().appending(String(count))
         let url = outputURL ?? URL(fileURLWithPath: path)
         guard let imageDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeJPEG, 1, nil) else {
             print("Error: cannot create image destination")
@@ -788,6 +792,7 @@ extension CMSampleBuffer {
             print("Error: failed to finalize image destination")
             return nil
         }
+        count += 1
         return url
     }
 }
@@ -887,11 +892,14 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
         // Store in background thread
-        DispatchQueue.global(qos: .utility).async { [unowned self] in
+        //DispatchQueue.global(qos: .utility).async { [unowned self] in
+        serialQueue.async { [unowned self] in
+        
+        
             self.didOutputSampleBufferMethodCallCount += 1
             if self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0 {
                 
-                if let url = sampleBuffer.saveFrameToDisk() {
+                if let url = sampleBuffer.saveFrameToDisk(count: &self.frameSavedCount) {
                     self.originalURLs.append(url)
                     
                     //if let resizedUrl = self.resize(image: url, maxSize: self.maxPixelSize) {
@@ -906,6 +914,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                         if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                             // Remove the first item in the array
                             let firstItem = self.originalURLs.removeFirst()
+                            print("first item is removed: \(firstItem), original urls count: \(self.originalURLs.count)")
                             //let firstItem = self.originalURLs[0]
                             //self.originalURLs.remove(at: 0)
                             do {
@@ -914,6 +923,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                             } catch let e {
                                 print(e)
                             }
+                            
                         }
                         
                         if self.resizedURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
@@ -940,7 +950,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
             }
         }
-        
+    
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             print("image buffer is nil")
             return
