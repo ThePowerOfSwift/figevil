@@ -262,8 +262,6 @@ class SatoCamera: NSObject {
                 print("camera access failed to authorize")
             }
         }
-        
-        session.startRunning()
     }
     
     /** Setup frame rate for video device. captureSession.addInput must be called before this method is called. */
@@ -963,6 +961,9 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
 
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: sourceImage.extent)
-        videoGLKPreview?.display()
+        // Dispatch display() so that display() won't be executed when views are not ready to use in Camera VC
+        DispatchQueue.main.async {
+            self.videoGLKPreview.display()
+        }
     }
 }
