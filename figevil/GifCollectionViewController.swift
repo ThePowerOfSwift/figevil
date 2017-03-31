@@ -16,6 +16,15 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
     var datasource: GifCollectionViewControllerDatasource?
     var delegate: GifCollectionViewControllerDelegate?
     
+    // Editing & Reordering
+    var isEditingMode = false {
+        didSet {
+            didSetEditingMode()
+        }
+    }
+    var tap: UITapGestureRecognizer!
+    var pan: UIPanGestureRecognizer!
+    
     // MARK: Lifecycle
     
     override func viewDidLoad() {
@@ -32,10 +41,12 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
         collectionView?.showsVerticalScrollIndicator = false
         collectionView?.showsHorizontalScrollIndicator = false
 
-        // Add long press for movement
+        // Gestures for editing & reordering
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(didLongPress(_:)))
         collectionView?.addGestureRecognizer(longPress)
 
+        tap = UITapGestureRecognizer(target: self, action: #selector(didTap(_:)))
+        pan = UIPanGestureRecognizer(target: self, action: #selector(didPan(_:)))
     }
 
     override func didReceiveMemoryWarning() {
@@ -62,7 +73,9 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellType.name, for: indexPath) as! GifCollectionViewCell
+        
         cell.delegate = self
+        cell.isEditingMode = isEditingMode
         
         if let gif = datasource?.gifCollectionViewCellContent(for: self)[indexPath.row] {
             // Configure the cell
@@ -73,23 +86,6 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
     
     override func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         datasource?.gifCollectionViewCellContent(for: self, moveItemAt: sourceIndexPath, to: destinationIndexPath)
-    }
-    
-    // MARK: GifCollectionViewCellDelegate
-    
-    func remove(_ sender: GifCollectionViewCell) {
-        guard let url = sender.gifContent?.url else {
-            print("Error: No url to delete")
-            return
-        }
-        
-        do {
-            try FileManager.default.removeItem(at: url)
-            datasource?.reloadData(for: self)
-        } catch {
-            print("Error: cannot delete file at url \(url.path)")
-            print(error.localizedDescription)
-        }
     }
     
     // MARK: UICollectionViewDelegate
@@ -139,31 +135,110 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
         return 10
     }
     
+    // MARK: GifCollectionViewCellDelegate
+    
+    func remove(_ sender: GifCollectionViewCell) {
+        guard let url = sender.gifContent?.url else {
+            print("Error: No url to delete")
+            return
+        }
+        
+        do {
+            try FileManager.default.removeItem(at: url)
+            datasource?.reloadData(for: self)
+        } catch {
+            print("Error: cannot delete file at url \(url.path)")
+            print(error.localizedDescription)
+        }
+    }
     
     // MARK: Methods
     
-    // MARK: Reordering
+    // MARK: Editing & Reordering
     
     func didLongPress(_ sender: UILongPressGestureRecognizer) {
-        
-        // Trigger cell item movement
-        switch sender.state {
-        case .began:
-            if let selectedIndexPath = collectionView?.indexPathForItem(at: sender.location(in: collectionView))
-            {
-                collectionView?.beginInteractiveMovementForItem(at: selectedIndexPath)
+        if isEditingMode {
+            switch sender.state {
+            case .began:
+                if let selectedIndexPath = collectionView?.indexPathForItem(at: sender.location(in: collectionView))
+                {
+                    collectionView?.beginInteractiveMovementForItem(at: selectedIndexPath)
+                }
+            case .changed:
+                collectionView?.updateInteractiveMovementTargetPosition(sender.location(in: sender.view!))
+                
+            case .ended:
+                collectionView?.endInteractiveMovement()
+                
+            default:
+                collectionView?.cancelInteractiveMovement()
             }
-        case .changed:
-            collectionView?.updateInteractiveMovementTargetPosition(sender.location(in: sender.view!))
-            
-        case .ended:
-            collectionView?.endInteractiveMovement()
-            
-        default:
-            collectionView?.cancelInteractiveMovement()
+        } else {
+            isEditingMode = true
         }
     }
+    
+    func didTap(_ sender: UITapGestureRecognizer) {
+        if isEditingMode {
+            guard let selectedIndexPath = collectionView?.indexPathForItem(at: sender.location(in: collectionView)) else {
+                return
+            }
+            let cell = collectionView?.cellForItem(at: selectedIndexPath) as! GifCollectionViewCell
+            let location = sender.location(in: cell.deleteButton)
 
+            if cell.deleteButton.point(inside: location, with: nil) {
+                cell.deleteTapped(sender, forEvent: nil)
+            }
+            else {
+                isEditingMode = false
+            }
+
+        } else {
+        }
+    }
+    
+    func didPan(_ sender: UIPanGestureRecognizer) {
+        if isEditingMode {
+            switch sender.state {
+            case .began:
+                if let selectedIndexPath = collectionView?.indexPathForItem(at: sender.location(in: collectionView))
+                {
+                    collectionView?.beginInteractiveMovementForItem(at: selectedIndexPath)
+                }
+            case .changed:
+                collectionView?.updateInteractiveMovementTargetPosition(sender.location(in: sender.view!))
+                
+            case .ended:
+                collectionView?.endInteractiveMovement()
+                
+            default:
+                collectionView?.cancelInteractiveMovement()
+            }
+        }
+    }
+    
+    func didSetEditingMode() {
+        
+        // Add (or remove) gestures for editing & reordering
+        if isEditingMode {
+            view.addGestureRecognizer(tap)
+            collectionView?.addGestureRecognizer(pan)
+        } else {
+            view.removeGestureRecognizer(tap)
+            collectionView?.removeGestureRecognizer(pan)
+        }
+        
+        // Tell visible cells to enter (exit) editing mode
+        guard let visibleCells = collectionView?.visibleCells else {
+            return
+        }
+        
+        for visibleCell in visibleCells {
+            if let cell = visibleCell as? GifCollectionViewCell {
+                cell.isEditingMode = isEditingMode
+            }
+        }
+    }
 }
 
 protocol GifCollectionViewControllerDatasource {

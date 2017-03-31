@@ -27,7 +27,7 @@
                     <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="yPZ-xX-hFA" customClass="FLAnimatedImageView">
                         <rect key="frame" x="0.0" y="0.0" width="149" height="146"/>
                     </imageView>
-                    <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RX0-yF-1rg">
+                    <view hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RX0-yF-1rg">
                         <rect key="frame" x="0.0" y="0.0" width="149" height="146"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Ready to paste!  Copied to clipboard" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2Gz-aP-JZR">
@@ -45,11 +45,14 @@
                             <constraint firstItem="2Gz-aP-JZR" firstAttribute="top" secondItem="RX0-yF-1rg" secondAttribute="top" constant="8" id="oja-kP-4OK"/>
                         </constraints>
                     </view>
-                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="L4w-mB-Ytg">
+                    <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="L4w-mB-Ytg">
                         <rect key="frame" x="103" y="1" width="45" height="30"/>
-                        <state key="normal" title="Delete"/>
+                        <state key="normal" title="Delete">
+                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        </state>
                         <connections>
-                            <action selector="deleteTapped:forEvent:" destination="-1" eventType="touchUpInside" id="wrf-gy-JQj"/>
+                            <action selector="deleteTapped:" destination="-1" eventType="touchUpInside" id="zFm-kT-OLC"/>
+                            <action selector="deleteTapped:forEvent:" destination="-1" eventType="touchUpInside" id="Dte-NJ-23w"/>
                         </connections>
                     </button>
                 </subviews>

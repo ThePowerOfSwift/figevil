@@ -19,6 +19,12 @@ class GifCollectionViewCell: UICollectionViewCell {
             didSetGifContent()
         }
     }
+    
+    var isEditingMode = false {
+        didSet {
+            didSetEditingMode()
+        }
+    }
 
     // Highlights are triggered by touch (one tap = highlight + unhiglight)
     /** Override flag to animate highlight on change */
@@ -101,37 +107,62 @@ class GifCollectionViewCell: UICollectionViewCell {
         overlayView.layer.cornerRadius = 5
         overlayView.clipsToBounds = true
         overlayView.alpha = 0
+        overlayView.isHidden = true
         
-        // Delete Butotn
-//        deleteButton.isHidden = true
+        // Delete Button
+        deleteButton.isHidden = true
     }
     
     // MARK: Selection and highlight
     
     private func didSelect() {
-        UIView.animate(withDuration: selectionAnimationTime / 2) {
+        self.overlayView.isHidden = false
+        UIView.animate(withDuration: selectionAnimationTime / 2, animations: {
             self.overlayView.alpha = 1
+        }) { (success) in
+            if success {
+                UIView.animate(withDuration: 4.0, animations: {
+                    self.overlayView.alpha = 0
+                }, completion: { (success) in
+                    if success {
+                        self.overlayView.isHidden = true
+                    }
+                })
+            }
         }
     }
     
     private func didDeselect() {
-        UIView.animate(withDuration: selectionAnimationTime) {
+        UIView.animate(withDuration: selectionAnimationTime, animations: {
             self.overlayView.alpha = 0
-        }
+        }, completion: { (success) in
+            self.overlayView.isHidden = true
+        })
     }
     
     // Performed on highlight
     private func didHighlight() {
-        print("Did highlight gif collection view cell")
     }
     
-    @IBAction func deleteTapped(_ sender: Any, forEvent event: UIEvent) {
-        delegate?.remove?(self)
+    private func didSetEditingMode() {
+        if isEditingMode {
+            deleteButton.isHidden = false
+        } else {
+            deleteButton.isHidden = true
+        }
+    }
+    
+    func toggleEditingMode() {
+        isEditingMode = !isEditingMode
+    }
+
+    @IBAction func deleteTapped(_ sender: Any, forEvent event: UIEvent?) {
+        delegate?.remove(self)
     }
 }
 
 @objc protocol GifCollectionViewCellDelegate: class {
-    @objc optional func remove(_ sender: GifCollectionViewCell)
+    func remove(_ sender: GifCollectionViewCell)
 }
 
 /** Model for GifCollectionViewCellContent */
