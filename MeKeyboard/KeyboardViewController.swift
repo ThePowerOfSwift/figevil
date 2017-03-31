@@ -25,9 +25,12 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Perform custom UI setup here
+
+        // Setup the gif collection view
         setupGifCollectionView()
+
+        // Perform custom UI setup here
+        // Setup the UI
         setupNextKeyboardButton()
     }
     
@@ -44,7 +47,7 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
     }
     
     /// Add the gif collection view as a child view controller
-    func setupGifCollectionView() {
+    func setupGifCollectionView() {        
         gifContainerView.frame = view.bounds
         gifContainerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(gifContainerView)
@@ -57,7 +60,7 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
         gifContainerView.addSubview(gifCVC.view)
         gifCVC.view.frame = gifContainerView.bounds
         gifCVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        gifCVC.didMove(toParentViewController: self)
+        gifCVC.didMove(toParentViewController: self)        
     }
     
     /// Load user generated gifs into VC model
@@ -75,13 +78,14 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
             gifContents = []
             for url in gifURLs {
                 gifContents.append(GifCollectionViewCellContent(url))
+                
             }
         } catch {
             print("Error: Cannot get contents of gif directory \(error.localizedDescription)")
             return
         }
         
-        gifCVC.reloadData()
+        gifCVC.collectionView?.reloadData()
     }
     
     func setupNextKeyboardButton() {
@@ -116,8 +120,20 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
     
     // MARK: GifCollectionViewDatasource
         
-    func gifCollectionViewController(for gifCollectionViewController: GifCollectionViewController) -> [GifCollectionViewCellContent] {
+    func gifCollectionViewCellContent(for gifCollectionViewController: GifCollectionViewController) -> [GifCollectionViewCellContent] {
         return gifContents
+    }
+    
+    func gifCollectionViewCellContent(for gifCollectionViewController: GifCollectionViewController, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        let moveItemAt = gifContents.remove(at: sourceIndexPath.row)
+        gifContents.insert(moveItemAt, at: destinationIndexPath.row)
+        gifCollectionViewController.collectionViewLayout.invalidateLayout()
+        //TODO: need to effect the changes permanently (only works for current session right now)
+        
+    }
+    
+    func reloadData(for gifCollectionViewController: GifCollectionViewController) {
+        loadDatasource()
     }
     
     // MARK: GifCollectionViewDelegate
@@ -131,7 +147,7 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
         do {
             // Put gif to pasteboard
             UIPasteboard.general.setData(try Data(contentsOf: gifURL), forPasteboardType: kUTTypeGIF as String)
-            print("Copied gif to pastedboard")
+            print("Copied gif to pasteboard")
             
         } catch {
             print("Error: could not read data contents of gif URL at (\(gifURL.path))")

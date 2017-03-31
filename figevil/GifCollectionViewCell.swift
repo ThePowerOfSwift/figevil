@@ -13,6 +13,13 @@ class GifCollectionViewCell: UICollectionViewCell {
 
     static let name = "GifCollectionViewCell"
     
+    /** Model */
+    var gifContent: GifCollectionViewCellContent? {
+        didSet {
+            didSetGifContent()
+        }
+    }
+
     // Highlights are triggered by touch (one tap = highlight + unhiglight)
     /** Override flag to animate highlight on change */
     override var isHighlighted: Bool {
@@ -34,15 +41,12 @@ class GifCollectionViewCell: UICollectionViewCell {
         }
     }
     
-    /** Model */
-    var gifContent: GifCollectionViewCellContent? {
-        didSet {
-            didSetGifContent()
-        }
-    }
+    var delegate: GifCollectionViewCellDelegate?
     
     // MARK: Storyboard outlets
     @IBOutlet weak var imageView: FLAnimatedImageView!
+    @IBOutlet weak var overlayView: UIView!
+    @IBOutlet weak var deleteButton: UIButton!
 
     // MARK: Lifecycle
     
@@ -86,20 +90,33 @@ class GifCollectionViewCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         gifContent = nil
-        didDeselect()        
+        didDeselect()
+        
+        // Image view
+        imageView.layer.cornerRadius = 5
+        imageView.clipsToBounds = true
+        imageView.layer.backgroundColor = UIColor.clear.cgColor
+        
+        // Overlay view
+        overlayView.layer.cornerRadius = 5
+        overlayView.clipsToBounds = true
+        overlayView.alpha = 0
+        
+        // Delete Butotn
+//        deleteButton.isHidden = true
     }
     
     // MARK: Selection and highlight
     
     private func didSelect() {
-        print("Did select gif collection view cell")
         UIView.animate(withDuration: selectionAnimationTime / 2) {
+            self.overlayView.alpha = 1
         }
     }
     
     private func didDeselect() {
-        print("Did deselect gif collection view cell")
         UIView.animate(withDuration: selectionAnimationTime) {
+            self.overlayView.alpha = 0
         }
     }
     
@@ -107,23 +124,37 @@ class GifCollectionViewCell: UICollectionViewCell {
     private func didHighlight() {
         print("Did highlight gif collection view cell")
     }
+    
+    @IBAction func deleteTapped(_ sender: Any, forEvent event: UIEvent) {
+        delegate?.remove?(self)
+    }
+}
+
+@objc protocol GifCollectionViewCellDelegate: class {
+    @objc optional func remove(_ sender: GifCollectionViewCell)
 }
 
 /** Model for GifCollectionViewCellContent */
 class GifCollectionViewCellContent: NSObject {
     var url: URL?
-    var animatedImage: FLAnimatedImage?
+    var animatedImage: FLAnimatedImage? {
+        get {
+            guard let url = url else {
+                return nil
+            }
+            do {
+                let data = try Data(contentsOf: url)
+                return FLAnimatedImage(animatedGIFData: data)
+            } catch {
+                print("Error: Cannot get data for Gif at \(url.path)")
+                print(error.localizedDescription)
+                return nil
+            }
+        }
+    }
     
     init(_ url: URL) {
         super.init()
         self.url = url
-        do {
-            let data = try Data(contentsOf: url)
-            self.animatedImage = FLAnimatedImage(animatedGIFData: data)
-        } catch {
-            print("Error: Cannot get data for Gif at \(url.path)")
-            print(error.localizedDescription)
-        }
-        
     }
 }
