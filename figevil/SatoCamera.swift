@@ -43,7 +43,7 @@ class SatoCamera: NSObject {
     fileprivate var session = AVCaptureSession()
     //internal var sessionQueue: DispatchQueue = DispatchQueue.main
     internal var sessionQueue = DispatchQueue(label: "sessionQueue", attributes: [], target: nil)
-    internal var serialQueue = DispatchQueue(label: "serialQueue")
+    internal var frameSavingSerialQueue = DispatchQueue(label: "frameSavingSerialQueue")
     /** Frame of sampleBufferView of CameraOutput delegate. Should be set when being initialized. */
     fileprivate var frame: CGRect
     
@@ -891,18 +891,15 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
-        // Store in background thread
-        //DispatchQueue.global(qos: .utility).async { [unowned self] in
-        serialQueue.async { [unowned self] in
-        
-        
+        // Save and remove serially
+        frameSavingSerialQueue.async { [unowned self] in
+            
             self.didOutputSampleBufferMethodCallCount += 1
             if self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0 {
                 
                 if let url = sampleBuffer.saveFrameToDisk(count: &self.frameSavedCount) {
                     self.originalURLs.append(url)
                     
-                    //if let resizedUrl = self.resize(image: url, maxSize: self.maxPixelSize) {
                     if let resizedUrl = url.resize(maxSize: self.maxPixelSize) {
                         self.resizedURLs.append(resizedUrl)
                     } else {
@@ -914,22 +911,15 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                         if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                             // Remove the first item in the array
                             let firstItem = self.originalURLs.removeFirst()
-                            print("first item is removed: \(firstItem), original urls count: \(self.originalURLs.count)")
-                            //let firstItem = self.originalURLs[0]
-                            //self.originalURLs.remove(at: 0)
                             do {
-                                // Remove data at the first URL. If this fails data, the data should be collected at some point.
                                 try self.fileManager.removeItem(at: firstItem)
                             } catch let e {
                                 print(e)
                             }
-                            
                         }
                         
                         if self.resizedURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                             let firstItem = self.resizedURLs.removeFirst()
-                            //let firstItem = self.resizedURLs[0]
-                            //self.resizedURLs.remove(at: 0)
                             do {
                                 try self.fileManager.removeItem(at: firstItem)
                             } catch let e {
