@@ -11,28 +11,63 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="GifCollectionViewCell" customModule="MeKeyboard" customModuleProvider="target">
             <connections>
+                <outlet property="deleteButton" destination="L4w-mB-Ytg" id="y59-bS-YZy"/>
                 <outlet property="imageView" destination="yPZ-xX-hFA" id="LqW-9L-nwD"/>
+                <outlet property="overlayView" destination="RX0-yF-1rg" id="ejI-9m-48s"/>
             </connections>
         </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
         <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" userInteractionEnabled="NO" contentMode="center" id="gTV-IL-0wX">
-            <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+            <rect key="frame" x="0.0" y="0.0" width="149" height="146"/>
             <autoresizingMask key="autoresizingMask"/>
             <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
-                <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                <rect key="frame" x="0.0" y="0.0" width="149" height="146"/>
                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                 <subviews>
-                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="yPZ-xX-hFA" customClass="FLAnimatedImageView">
-                        <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="yPZ-xX-hFA" customClass="FLAnimatedImageView">
+                        <rect key="frame" x="0.0" y="0.0" width="149" height="146"/>
                     </imageView>
+                    <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RX0-yF-1rg">
+                        <rect key="frame" x="0.0" y="0.0" width="149" height="146"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Ready to paste!  Copied to clipboard" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2Gz-aP-JZR">
+                                <rect key="frame" x="8" y="8" width="133" height="130"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="2Gz-aP-JZR" secondAttribute="bottom" constant="8" id="EHL-Xx-Fm0"/>
+                            <constraint firstItem="2Gz-aP-JZR" firstAttribute="leading" secondItem="RX0-yF-1rg" secondAttribute="leading" constant="8" id="Rne-F8-U9t"/>
+                            <constraint firstAttribute="trailing" secondItem="2Gz-aP-JZR" secondAttribute="trailing" constant="8" id="j8b-IY-U7L"/>
+                            <constraint firstItem="2Gz-aP-JZR" firstAttribute="top" secondItem="RX0-yF-1rg" secondAttribute="top" constant="8" id="oja-kP-4OK"/>
+                        </constraints>
+                    </view>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="L4w-mB-Ytg">
+                        <rect key="frame" x="103" y="1" width="45" height="30"/>
+                        <state key="normal" title="Delete"/>
+                        <connections>
+                            <action selector="deleteTapped:forEvent:" destination="-1" eventType="touchUpInside" id="wrf-gy-JQj"/>
+                        </connections>
+                    </button>
                 </subviews>
             </view>
             <constraints>
                 <constraint firstItem="yPZ-xX-hFA" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="JwB-VR-Hbq"/>
                 <constraint firstAttribute="bottom" secondItem="yPZ-xX-hFA" secondAttribute="bottom" id="Lsb-fz-gyz"/>
+                <constraint firstItem="RX0-yF-1rg" firstAttribute="trailing" secondItem="yPZ-xX-hFA" secondAttribute="trailing" id="Q3W-tz-KFU"/>
+                <constraint firstAttribute="trailing" secondItem="L4w-mB-Ytg" secondAttribute="trailing" constant="1" id="VQc-ZN-Cby"/>
+                <constraint firstItem="RX0-yF-1rg" firstAttribute="leading" secondItem="yPZ-xX-hFA" secondAttribute="leading" id="Y4M-BB-Y3o"/>
+                <constraint firstItem="L4w-mB-Ytg" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" constant="1" id="dRc-eh-0iu"/>
+                <constraint firstItem="RX0-yF-1rg" firstAttribute="top" secondItem="yPZ-xX-hFA" secondAttribute="top" id="lOr-El-mCJ"/>
                 <constraint firstAttribute="trailing" secondItem="yPZ-xX-hFA" secondAttribute="trailing" id="nRC-cc-SKT"/>
+                <constraint firstItem="RX0-yF-1rg" firstAttribute="bottom" secondItem="yPZ-xX-hFA" secondAttribute="bottom" id="uth-Kt-2w2"/>
                 <constraint firstItem="yPZ-xX-hFA" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="wwl-wa-Wu0"/>
             </constraints>
+            <size key="customSize" width="149" height="146"/>
+            <point key="canvasLocation" x="83.5" y="76"/>
         </collectionViewCell>
     </objects>
 </document>

@@ -36,6 +36,7 @@
 		7857A02E1E6504EC00660B68 /* chinatown.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 7857A02B1E6504EC00660B68 /* chinatown.jpg */; };
 		7857A02F1E6504EC00660B68 /* golden_gate_bridge.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 7857A02C1E6504EC00660B68 /* golden_gate_bridge.jpg */; };
 		7857A0301E6504EC00660B68 /* montgomery.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 7857A02D1E6504EC00660B68 /* montgomery.jpg */; };
+		7863631C1E8B1CEE00B902B5 /* StraightCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E377C1421E89DF5200573E12 /* StraightCollectionViewLayout.swift */; };
 		78B5DD181E675EC500192135 /* camera.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD101E675EC500192135 /* camera.png */; };
 		78B5DD191E675EC500192135 /* paintbrush.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD111E675EC500192135 /* paintbrush.png */; };
 		78B5DD1A1E675EC500192135 /* text.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD121E675EC500192135 /* text.png */; };
@@ -557,6 +558,7 @@
 			files = (
 				78BEF43E1E89E82200047212 /* GifCollectionViewCell.swift in Sources */,
 				78239A001E85E0A800207B56 /* Globals.swift in Sources */,
+				7863631C1E8B1CEE00B902B5 /* StraightCollectionViewLayout.swift in Sources */,
 				782399EF1E85A36A00207B56 /* KeyboardViewController.swift in Sources */,
 				78BEF4401E89E82200047212 /* GifCollectionViewController.swift in Sources */,
 			);
@@ -591,8 +593,6 @@
 				E335FE721E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift in Sources */,
 				E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */,
 				E36FA67E1E7714AC00F70925 /* CircularCollectionViewLayout.swift in Sources */,
-
-				E335FE781E70EEFE00A5BAD2 /* UIImageView+Gif.swift in Sources */,
 				78BEF43B1E89E4F100047212 /* GifCollectionViewController.swift in Sources */,
 				7854BA091E64FD7D00591255 /* BubbleMenuCollectionViewController.swift in Sources */,
 			);
@@ -737,7 +737,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -771,7 +771,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.sunsethq.figevil;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
