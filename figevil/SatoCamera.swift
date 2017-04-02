@@ -125,18 +125,21 @@ class SatoCamera: NSObject {
     let maxPixelSize = 667 //1334 is screen size
     let thumbnailPixelSize = 50
     
+    /** Documents/thumbnail/{UUID}. */
     var thumbnailUrlPath: URL {
         let path = URL.pathWith(subpath: "/thumbnail")
         print(URL(fileURLWithPath: path))
         return URL(fileURLWithPath: path)
     }
     
+    /** Documents/resized/{UUID}. */
     var resizedUrlPath: URL {
         let path = URL.pathWith(subpath: "/resized")
         print(URL(fileURLWithPath: path))
         return URL(fileURLWithPath: path)
     }
     
+    /** Documents/original/{UUID}. */
     var originalUrlPath: URL {
         let path = URL.pathWith(subpath: "/original")
         print(URL(fileURLWithPath: path))
