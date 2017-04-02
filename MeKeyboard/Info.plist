@@ -22,6 +22,8 @@
 	<string>1</string>
 	<key>NSExtension</key>
 	<dict>
+		<key>New item</key>
+		<string></string>
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>IsASCIICapable</key>
@@ -36,7 +38,7 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.keyboard-service</string>
 		<key>NSExtensionPrincipalClass</key>
-		<string>$(PRODUCT_MODULE_NAME).KeyboardViewController</string>
+		<string>$(PRODUCT_MODULE_NAME).MeKeyboardViewController</string>
 	</dict>
 </dict>
 </plist>

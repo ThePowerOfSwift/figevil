@@ -9,33 +9,48 @@
 import UIKit
 import MobileCoreServices
 
-class KeyboardViewController: UIInputViewController, GifCollectionViewControllerDatasource, GifCollectionViewControllerDelegate {
+private let toolbarHeight: CGFloat = 44.0
+private let marginBuffer: CGFloat = 5.0
 
+class MeKeyboardViewController: UIInputViewController, GifCollectionViewControllerDatasource, GifCollectionViewControllerDelegate {
+    
     // MARK: Gif Collection View
-    /// Container for Gif Collection View
-    let gifContainerView = UIView()
-    /// Collection view for gifs
-    var gifCVC: GifCollectionViewController!
     /// Model
     var gifContents: [GifCollectionViewCellContent] = []
+    /// Collection view for gifs
+    var gifCVC: GifCollectionViewController!
     
-    let nextKeyboardButton = UIButton(type: .system)
+    var collectionViewLayout: UICollectionViewLayout {
+        get {
+            let layout = UICollectionViewFlowLayout()
+            layout.scrollDirection = UICollectionViewScrollDirection.vertical
+            layout.sectionInset = UIEdgeInsets(top: marginBuffer, left: marginBuffer, bottom: toolbarHeight + marginBuffer, right: marginBuffer)
+            layout.minimumInteritemSpacing = marginBuffer
+            layout.minimumLineSpacing = marginBuffer
+            layout.itemSize = CGSize.zero
+            
+            return layout
+        }
+    }
     
+    // MARK: Toolbar
+    let toolbar = UIToolbar()
+
     // MARK: Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        // Setup toolbar
+        setupToolbar()
         // Setup the gif collection view
         setupGifCollectionView()
-
-        // Perform custom UI setup here
-        // Setup the UI
-        setupNextKeyboardButton()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // Order views
+        inputView?.bringSubview(toFront: toolbar)
         
         // Refresh contents of user generated gifs
         loadDatasource()
@@ -44,23 +59,57 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated
+        print("memory warning")
+    }
+    
+    // Initialize toolbar and add to view
+    func setupToolbar() {
+        // Appearance
+        toolbar.barStyle = .default
+        toolbar.isTranslucent = true
+        // Orientation
+        toolbar.sizeToFit()
+        toolbar.translatesAutoresizingMaskIntoConstraints = false
+        inputView?.addSubview(toolbar)
+        // Auto layout
+        toolbar.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        toolbar.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+        toolbar.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        toolbar.heightAnchor.constraint(equalToConstant: toolbarHeight)
+        // Populate toolbar items
+        let nextKeyboardBarButtonItem = UIBarButtonItem(title: "🌐", style: .plain, target: self, action: #selector(nextInputMode))
+        let deleteButton = UIBarButtonItem(title: "⌫", style: .plain, target: self, action: #selector(deleteBackward))
+        
+        let barButtonItems = [nextKeyboardBarButtonItem, UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil), deleteButton]
+        toolbar.setItems(barButtonItems, animated: false)
+    }
+
+    func nextInputMode() {
+        super.advanceToNextInputMode()
+        advanceToNextInputMode()
+//        handleInputModeList(from: UIView, with: UIEvent)
+    }
+    
+    func deleteBackward() {
+        textDocumentProxy.deleteBackward()
     }
     
     /// Add the gif collection view as a child view controller
-    func setupGifCollectionView() {        
-        gifContainerView.frame = view.bounds
-        gifContainerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(gifContainerView)
+    func setupGifCollectionView() {
+        guard let inputView = inputView else {
+            print("Error: cannot get input view of keyboard to add gif collection")
+            return
+        }
         
         gifCVC = GifCollectionViewController(collectionViewLayout: collectionViewLayout)
         gifCVC.datasource = self
         gifCVC.delegate = self
         
         addChildViewController(gifCVC)
-        gifContainerView.addSubview(gifCVC.view)
-        gifCVC.view.frame = gifContainerView.bounds
+        inputView.addSubview(gifCVC.view)
+        gifCVC.view.frame = inputView.bounds
         gifCVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        gifCVC.didMove(toParentViewController: self)        
+        gifCVC.didMove(toParentViewController: self)
     }
     
     /// Load user generated gifs into VC model
@@ -88,31 +137,6 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
         gifCVC.collectionView?.reloadData()
     }
     
-    func setupNextKeyboardButton() {
-        self.nextKeyboardButton.setTitle(NSLocalizedString("Next Keyboard", comment: "Title for 'Next Keyboard' button"), for: [])
-        self.nextKeyboardButton.sizeToFit()
-        self.nextKeyboardButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        self.nextKeyboardButton.addTarget(self, action: #selector(handleInputModeList(from:with:)), for: .allTouchEvents)
-        
-        self.view.addSubview(self.nextKeyboardButton)
-        self.nextKeyboardButton.leftAnchor.constraint(equalTo: self.view.leftAnchor).isActive = true
-        self.nextKeyboardButton.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
-    }
-
-    var collectionViewLayout: UICollectionViewLayout {
-        get {
-            let layout = UICollectionViewFlowLayout()
-            layout.scrollDirection = UICollectionViewScrollDirection.horizontal
-            layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-            layout.minimumInteritemSpacing = 0
-            layout.minimumLineSpacing = 0
-            layout.itemSize = CGSize(width: 77, height: 77)
-            
-            return layout
-        }
-    }
-    
     override func updateViewConstraints() {
         super.updateViewConstraints()
         // Add custom view sizing constraints here
@@ -137,6 +161,7 @@ class KeyboardViewController: UIInputViewController, GifCollectionViewController
     }
     
     // MARK: GifCollectionViewDelegate
+    
     /// Perform result of user tapping on gif in collection view
     func gifCollectionViewController(_ gifCollectionViewController: GifCollectionViewController, didSelectItemAt indexPath: IndexPath) {
         guard let gifURL = gifContents[indexPath.row].url else  {

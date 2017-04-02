@@ -144,11 +144,15 @@ class GifCollectionViewCell: UICollectionViewCell {
     private func didHighlight() {
     }
     
+    // MARK: Editing and reordering
+
     private func didSetEditingMode() {
         if isEditingMode {
             deleteButton.isHidden = false
+            startQuivering()
         } else {
             deleteButton.isHidden = true
+            stopQuivering()
         }
     }
     
@@ -158,6 +162,34 @@ class GifCollectionViewCell: UICollectionViewCell {
 
     @IBAction func deleteTapped(_ sender: Any, forEvent event: UIEvent?) {
         delegate?.remove(self)
+    }
+    
+    // MARK: Quiver animation
+    
+    private let quiverExtent: Float = 1.25
+    private let quiverDuration: CFTimeInterval = 0.075
+    private let quiverKeyPath = "transform.rotation"
+    private let quiverKey = "quivering"
+    
+    private func startQuivering() {
+        let quiver = CABasicAnimation(keyPath: quiverKeyPath)
+        
+        let startAngle: Float = -quiverExtent * Float(M_PI) / Float(180.0)
+        let stopAngle: Float = -startAngle
+        
+        quiver.fromValue = startAngle
+        quiver.toValue = stopAngle * quiverExtent
+        quiver.autoreverses = true
+        quiver.duration = quiverDuration
+        quiver.repeatCount = HUGE
+        let random: CFTimeInterval = Double(arc4random_uniform(50)) / 100
+        quiver.timeOffset = random
+        
+        self.layer.add(quiver, forKey: quiverKey)
+    }
+    
+    private func stopQuivering() {
+        self.layer.removeAnimation(forKey: quiverKey)
     }
 }
 

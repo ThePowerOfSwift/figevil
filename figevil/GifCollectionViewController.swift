@@ -11,7 +11,7 @@ import ImageIO
 
 private let cellType = GifCollectionViewCell.self
 
-class GifCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, GifCollectionViewCellDelegate {
+class GifCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, GifCollectionViewCellDelegate, UIGestureRecognizerDelegate {
 
     var datasource: GifCollectionViewControllerDatasource?
     var delegate: GifCollectionViewControllerDelegate?
@@ -37,7 +37,7 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
         self.collectionView!.register(cellType, forCellWithReuseIdentifier: cellType.name)
 
         // Configure appearance
-        collectionView?.backgroundColor = UIColor.clear
+        collectionView?.backgroundColor = UIColor.lightGray
         collectionView?.showsVerticalScrollIndicator = false
         collectionView?.showsHorizontalScrollIndicator = false
 
@@ -47,6 +47,7 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
 
         tap = UITapGestureRecognizer(target: self, action: #selector(didTap(_:)))
         pan = UIPanGestureRecognizer(target: self, action: #selector(didPan(_:)))
+        pan.delegate = self
     }
 
     override func didReceiveMemoryWarning() {
@@ -121,19 +122,6 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
         
         return size
     }
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        
-        return UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-    }
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 10
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 10
-    }
     
     // MARK: GifCollectionViewCellDelegate
     
@@ -156,6 +144,30 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
     
     // MARK: Editing & Reordering
     
+    func didSetEditingMode() {
+        
+        // Add (or remove) gestures for editing & reordering
+        if isEditingMode {
+            collectionView?.addGestureRecognizer(tap)
+            collectionView?.addGestureRecognizer(pan)
+            
+        } else {
+            collectionView?.removeGestureRecognizer(tap)
+            collectionView?.removeGestureRecognizer(pan)
+        }
+        
+        // Tell visible cells to enter (exit) editing mode
+        guard let visibleCells = collectionView?.visibleCells else {
+            return
+        }
+        
+        for visibleCell in visibleCells {
+            if let cell = visibleCell as? GifCollectionViewCell {
+                cell.isEditingMode = isEditingMode
+            }
+        }
+    }
+    
     func didLongPress(_ sender: UILongPressGestureRecognizer) {
         if isEditingMode {
             switch sender.state {
@@ -175,12 +187,17 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
             }
         } else {
             isEditingMode = true
+            if let selectedIndexPath = collectionView?.indexPathForItem(at: sender.location(in: collectionView))
+            {
+                collectionView?.beginInteractiveMovementForItem(at: selectedIndexPath)
+            }
         }
     }
     
     func didTap(_ sender: UITapGestureRecognizer) {
         if isEditingMode {
             guard let selectedIndexPath = collectionView?.indexPathForItem(at: sender.location(in: collectionView)) else {
+                isEditingMode = false
                 return
             }
             let cell = collectionView?.cellForItem(at: selectedIndexPath) as! GifCollectionViewCell
@@ -217,27 +234,13 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
         }
     }
     
-    func didSetEditingMode() {
-        
-        // Add (or remove) gestures for editing & reordering
-        if isEditingMode {
-            view.addGestureRecognizer(tap)
-            collectionView?.addGestureRecognizer(pan)
-        } else {
-            view.removeGestureRecognizer(tap)
-            collectionView?.removeGestureRecognizer(pan)
+    // MARK: UIGestureRecognizerDelegate
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer == pan {
+            return true
         }
         
-        // Tell visible cells to enter (exit) editing mode
-        guard let visibleCells = collectionView?.visibleCells else {
-            return
-        }
-        
-        for visibleCell in visibleCells {
-            if let cell = visibleCell as? GifCollectionViewCell {
-                cell.isEditingMode = isEditingMode
-            }
-        }
+        return false
     }
 }
 
