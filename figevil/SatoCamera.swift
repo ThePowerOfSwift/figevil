@@ -489,8 +489,67 @@ class SatoCamera: NSObject {
         }
         return urls
     }
+    
+    let thumbnailPixelSize = 337
+    var thumbnailUrlPath: URL {
+        let path = SatoCamera.makePath(subpath: "/thumbnail")
+        print(URL(fileURLWithPath: path))
+        return URL(fileURLWithPath: path)
+    }
+    
+    var resizedUrlPath: URL {
+        let path = SatoCamera.makePath(subpath: "/resized")
+        print(URL(fileURLWithPath: path))
+        return URL(fileURLWithPath: path)    }
+    
+    var originalUrlPath: URL {
+        
+        let path = SatoCamera.makePath(subpath: "/original")
+        print(URL(fileURLWithPath: path))
+        return URL(fileURLWithPath: path)
+    }
+    
+    class func makePath(subpath: String) -> String {
+        let intermediate​Path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0].appending(subpath)
+        let intermediateUrl = URL(fileURLWithPath: intermediate​Path)
+        
+        let fileManager = FileManager()
+        
+        do {
+            try fileManager.createDirectory(at: intermediateUrl, withIntermediateDirectories: true, attributes: nil)
+        } catch let e {
+            print(e)
+        }
+        
+        if fileManager.fileExists(atPath: intermediate​Path) {
+            return intermediate​Path.appending("/\(UUID().uuidString)")
+        }
+        
+        print("failed to make path in \(#function)")
+        return NSTemporaryDirectory().appending(UUID().uuidString)
+    }
+    
+    
+    
+    internal func makeThumbnail(urls: [URL]) -> [URL]? {
+        
+        var thumbnailUrls = [URL]()
+        for url in urls {
+            
+            if let resizedUrl = url.resize(maxSize: thumbnailPixelSize, destinationURL: thumbnailUrlPath) {
+                thumbnailUrls.append(resizedUrl)
+                print("thumbnail url: \(resizedUrl)")
+            } else {
+                print("failed to create thumbnail")
+            }
+        }
+        return thumbnailUrls
+    }
 
     internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
+        
+        let thumbnailUrls = makeThumbnail(urls: originalURLs)
+        
         // render here
         renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage)
         if let gifURL = renderedURLs.createGif(frameDelay: 0.5) {
@@ -618,7 +677,7 @@ extension URL {
     }
     
     /** Resize an image at a given url. */
-    func resize(maxSize: Int) -> URL? {
+    func resize(maxSize: Int, destinationURL: URL) -> URL? {
         var sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
         guard let imageSource = CGImageSourceCreateWithURL(self as CFURL, sourceOptions as CFDictionary?) else {
             print("Error: cannot create image source for resize")
@@ -634,10 +693,12 @@ extension URL {
             return nil
         }
         
-        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
-        let outputURL = URL(fileURLWithPath: path)
         
-        guard let imageDestination = CGImageDestinationCreateWithURL(outputURL as CFURL, kUTTypeJPEG, 1, nil) else {
+        //let outputURL = URL(fileURLWithPath: path)
+        //outputURL.appendingPathExtension(".gif")
+
+        
+        guard let imageDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, kUTTypeJPEG, 1, nil) else {
             print("Error: cannot create image destination")
             return nil
         }
@@ -648,7 +709,7 @@ extension URL {
             print("Error: cannot finalize and write image destination for resize")
             return nil
         }
-        return outputURL
+        return destinationURL
     }
     
     /** Make UIImage from URL*/
@@ -897,10 +958,10 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             self.didOutputSampleBufferMethodCallCount += 1
             if self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0 {
                 
-                if let url = sampleBuffer.saveFrameToDisk(count: &self.frameSavedCount) {
+                if let url = sampleBuffer.saveFrameToDisk(outputURL: self.originalUrlPath, count: &self.frameSavedCount) {
                     self.originalURLs.append(url)
                     
-                    if let resizedUrl = url.resize(maxSize: self.maxPixelSize) {
+                    if let resizedUrl = url.resize(maxSize: self.maxPixelSize, destinationURL: self.resizedUrlPath) {
                         self.resizedURLs.append(resizedUrl)
                     } else {
                         print("failed to get resized URL")
