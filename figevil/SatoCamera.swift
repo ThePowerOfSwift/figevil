@@ -122,27 +122,24 @@ class SatoCamera: NSObject {
     var resizedURLs = [URL]()
     var renderedURLs = [URL]()
     let fileManager = FileManager.default
-    let maxPixelSize = 667 //1334 is screen size
+    let resizedPixelSize = 667 //1334 is screen size
     let thumbnailPixelSize = 50
     
     /** Documents/thumbnail/{UUID}. */
     var thumbnailUrlPath: URL {
         let path = URL.pathWith(subpath: "/thumbnail")
-        print(URL(fileURLWithPath: path))
         return URL(fileURLWithPath: path)
     }
     
     /** Documents/resized/{UUID}. */
     var resizedUrlPath: URL {
         let path = URL.pathWith(subpath: "/resized")
-        print(URL(fileURLWithPath: path))
         return URL(fileURLWithPath: path)
     }
     
     /** Documents/original/{UUID}. */
     var originalUrlPath: URL {
         let path = URL.pathWith(subpath: "/original")
-        print(URL(fileURLWithPath: path))
         return URL(fileURLWithPath: path)
     }
     
@@ -593,8 +590,19 @@ class SatoCamera: NSObject {
     
     /** Creates an image view with images for animation. Show the image view on output image view. */
     func showGif() {
+        // make resized images from originals here
+        var resizedTempURLs = [URL]()
+        for url in originalURLs {
+            if let resizedUrl = url.resize(maxSize: resizedPixelSize, destinationURL: resizedUrlPath) {
+                resizedTempURLs.append(resizedUrl)
+            } else {
+                print("failed to get resized URL")
+            }
+        }
         
-        if let gifImageView = makeGif(urls: resizedURLs, filter: currentFilter.filter) {
+        resizedURLs = resizedTempURLs
+        
+        if let gifImageView = makeGif(urls: resizedTempURLs, filter: currentFilter.filter) {
             if let cameraOutput = cameraOutput {
                 if let outputImageView = cameraOutput.outputImageView {
                     outputImageView.isHidden = false
@@ -614,7 +622,7 @@ class SatoCamera: NSObject {
     func makeGif(urls: [URL], filter: CIFilter?) -> UIImageView? {
         
         filteredUIImages.removeAll()
-        for url in resizedURLs {
+        for url in urls {
             
             if let image = url.makeUIImage(filter: filter) {
                 filteredUIImages.append(image)
@@ -961,26 +969,11 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                 if let url = sampleBuffer.saveFrameToDisk(outputURL: self.originalUrlPath, count: &self.frameSavedCount) {
                     self.originalURLs.append(url)
                     
-                    if let resizedUrl = url.resize(maxSize: self.maxPixelSize, destinationURL: self.resizedUrlPath) {
-                        self.resizedURLs.append(resizedUrl)
-                    } else {
-                        print("failed to get resized URL")
-                    }
-                    
                     if !self.isSnappedGif {
                         // pre-saving
                         if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
                             // Remove the first item in the array
                             let firstItem = self.originalURLs.removeFirst()
-                            do {
-                                try self.fileManager.removeItem(at: firstItem)
-                            } catch let e {
-                                print(e)
-                            }
-                        }
-                        
-                        if self.resizedURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
-                            let firstItem = self.resizedURLs.removeFirst()
                             do {
                                 try self.fileManager.removeItem(at: firstItem)
                             } catch let e {
