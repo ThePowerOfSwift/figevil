@@ -121,8 +121,27 @@ class SatoCamera: NSObject {
     var originalURLs = [URL]()
     var resizedURLs = [URL]()
     var renderedURLs = [URL]()
-    let fileManager = FileManager()
+    let fileManager = FileManager.default
     let maxPixelSize = 667 //1334 is screen size
+    let thumbnailPixelSize = 50
+    
+    var thumbnailUrlPath: URL {
+        let path = URL.pathWith(subpath: "/thumbnail")
+        print(URL(fileURLWithPath: path))
+        return URL(fileURLWithPath: path)
+    }
+    
+    var resizedUrlPath: URL {
+        let path = URL.pathWith(subpath: "/resized")
+        print(URL(fileURLWithPath: path))
+        return URL(fileURLWithPath: path)
+    }
+    
+    var originalUrlPath: URL {
+        let path = URL.pathWith(subpath: "/original")
+        print(URL(fileURLWithPath: path))
+        return URL(fileURLWithPath: path)
+    }
     
     // MARK: - Setups
     init(frame: CGRect) {
@@ -490,47 +509,6 @@ class SatoCamera: NSObject {
         return urls
     }
     
-    let thumbnailPixelSize = 337
-    var thumbnailUrlPath: URL {
-        let path = SatoCamera.makePath(subpath: "/thumbnail")
-        print(URL(fileURLWithPath: path))
-        return URL(fileURLWithPath: path)
-    }
-    
-    var resizedUrlPath: URL {
-        let path = SatoCamera.makePath(subpath: "/resized")
-        print(URL(fileURLWithPath: path))
-        return URL(fileURLWithPath: path)    }
-    
-    var originalUrlPath: URL {
-        
-        let path = SatoCamera.makePath(subpath: "/original")
-        print(URL(fileURLWithPath: path))
-        return URL(fileURLWithPath: path)
-    }
-    
-    class func makePath(subpath: String) -> String {
-        let intermediate​Path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0].appending(subpath)
-        let intermediateUrl = URL(fileURLWithPath: intermediate​Path)
-        
-        let fileManager = FileManager()
-        
-        do {
-            try fileManager.createDirectory(at: intermediateUrl, withIntermediateDirectories: true, attributes: nil)
-        } catch let e {
-            print(e)
-        }
-        
-        if fileManager.fileExists(atPath: intermediate​Path) {
-            return intermediate​Path.appending("/\(UUID().uuidString)")
-        }
-        
-        print("failed to make path in \(#function)")
-        return NSTemporaryDirectory().appending(UUID().uuidString)
-    }
-    
-    
-    
     internal func makeThumbnail(urls: [URL]) -> [URL]? {
         
         var thumbnailUrls = [URL]()
@@ -551,7 +529,7 @@ class SatoCamera: NSObject {
         let thumbnailUrls = makeThumbnail(urls: originalURLs)
         
         // render here
-        renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage)
+        renderedURLs = render(imageUrls: thumbnailUrls!, drawImage: drawImage, textImage: textImage)
         if let gifURL = renderedURLs.createGif(frameDelay: 0.5) {
             print(gifURL.filesize!)
             PHPhotoLibrary.requestAuthorization
@@ -732,6 +710,25 @@ extension URL {
         let uiImage = UIImage(cgImage: filteredCGImage!)
         
         return uiImage
+    }
+    
+    /** Create path at the specified directory under document directory. subpath will be something like /original or /resized */
+    static func pathWith(subpath: String) -> String {
+        let intermediate​Path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0].appending(subpath)
+        let intermediateUrl = URL(fileURLWithPath: intermediate​Path)
+        
+        do {
+            try FileManager.default.createDirectory(at: intermediateUrl, withIntermediateDirectories: true, attributes: nil)
+        } catch let e {
+            print(e)
+        }
+        
+        if FileManager.default.fileExists(atPath: intermediate​Path) {
+            return intermediate​Path.appending("/\(UUID().uuidString)")
+        }
+        
+        print("failed to make path in \(#function)")
+        return NSTemporaryDirectory().appending(UUID().uuidString)
     }
 }
 
