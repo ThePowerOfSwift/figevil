@@ -553,8 +553,9 @@ class SatoCamera: NSObject {
             }
         }
         
+        let url = userGeneratedGifURL!.appendingPathComponent(String(Date().timeIntervalSinceReferenceDate).appending(".gif"), isDirectory: false)
         
-        if let gifURL = resizedRenderedURLs.createGif(frameDelay: 0.5) {
+        if let gifURL = resizedRenderedURLs.createGif(frameDelay: 0.5, destinationURL: url) {
             print(gifURL.filesize!)
             PHPhotoLibrary.requestAuthorization
                 { (status) -> Void in
@@ -902,7 +903,7 @@ extension CMSampleBuffer {
 }
 
 extension Sequence where Iterator.Element == URL {
-    func createGif(loopCount: Int = 0, frameDelay: Double) -> Iterator.Element? {
+    func createGif(loopCount: Int = 0, frameDelay: Double, destinationURL: URL) -> Iterator.Element? {
         let imageURLs = self as! [URL]
         // Data check
         if imageURLs.count <= 0 {
@@ -911,10 +912,10 @@ extension Sequence where Iterator.Element == URL {
         
         // Generate default output url
         
-        let url = userGeneratedGifURL!.appendingPathComponent(String(Date().timeIntervalSinceReferenceDate).appending(".gif"), isDirectory: false)
+//        let url = userGeneratedGifURL!.appendingPathComponent(String(Date().timeIntervalSinceReferenceDate).appending(".gif"), isDirectory: false)
         
         // Create write-to destination
-        guard let gifDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeGIF, imageURLs.count, nil) else {
+        guard let gifDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, kUTTypeGIF, imageURLs.count, nil) else {
             print("Error: cannot create image destination is nil")
             return nil
         }
@@ -944,10 +945,10 @@ extension Sequence where Iterator.Element == URL {
             print("Error: cannot finalize gif")
             return nil
         } else {
-            print("Saved gif to \(url.path)")
+            print("Saved gif to \(destinationURL.path)")
         }
         
-        return url
+        return destinationURL
     }
 }
 
