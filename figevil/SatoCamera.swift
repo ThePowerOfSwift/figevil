@@ -122,7 +122,7 @@ class SatoCamera: NSObject {
     var resizedURLs = [URL]()
     var renderedURLs = [URL]()
     let fileManager = FileManager.default
-    let resizedPixelSize = 667 //1334 is screen size
+    let resizedPixelSize = 1000 //1334 is screen size
     let thumbnailPixelSize = 50
     
     /** Documents/thumbnail/{UUID}. */
@@ -141,6 +141,13 @@ class SatoCamera: NSObject {
     var originalUrlPath: URL {
         let path = URL.pathWith(subpath: "/original")
         return URL(fileURLWithPath: path)
+    }
+    
+    var maxPixelScale = 3.0
+    
+    func getMaxPixel(scale: Double) -> Int {
+        let longerSide = Double(max(frame.height, frame.width))
+        return Int(longerSide / scale)
     }
     
     // MARK: - Setups
@@ -592,8 +599,9 @@ class SatoCamera: NSObject {
     func showGif() {
         // make resized images from originals here
         var resizedTempURLs = [URL]()
+        let resizedMaxPixel = getMaxPixel(scale: 1)
         for url in originalURLs {
-            if let resizedUrl = url.resize(maxSize: resizedPixelSize, destinationURL: resizedUrlPath) {
+            if let resizedUrl = url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
                 resizedTempURLs.append(resizedUrl)
             } else {
                 print("failed to get resized URL")
@@ -665,6 +673,8 @@ extension URL {
         }
     }
     
+    //try print out each CGImage to see if max pixel effect the size
+    
     /** Resize an image at a given url. */
     func resize(maxSize: Int, destinationURL: URL) -> URL? {
         var sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
@@ -672,6 +682,9 @@ extension URL {
             print("Error: cannot create image source for resize")
             return nil
         }
+        
+        let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil)
+        print("properties before resizing: \(properties)")
         
         sourceOptions[kCGImageSourceCreateThumbnailFromImageAlways as NSObject] = true as AnyObject
         sourceOptions[kCGImageSourceCreateThumbnailWithTransform as NSObject] = true as AnyObject
@@ -698,6 +711,11 @@ extension URL {
             print("Error: cannot finalize and write image destination for resize")
             return nil
         }
+        
+        if let destImageSource = CGImageSourceCreateWithURL(destinationURL as CFURL, nil) {
+            let properties = CGImageSourceCopyPropertiesAtIndex(destImageSource, 0, nil)
+            print("properties after resizing: \(properties)")
+        }
         return destinationURL
     }
     
@@ -719,7 +737,7 @@ extension URL {
         let filteredCGImage = context.createCGImage(ciImage, from: ciImage.extent)
         
         let uiImage = UIImage(cgImage: filteredCGImage!)
-        
+        print("UIImage size: \(uiImage.size)")
         return uiImage
     }
     
