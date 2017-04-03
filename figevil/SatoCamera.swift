@@ -533,7 +533,7 @@ class SatoCamera: NSObject {
 
     internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
         
-        let thumbnailUrls = makeThumbnail(urls: originalURLs, scale: self.thumbnailPixelSize)
+//        let thumbnailUrls = makeThumbnail(urls: originalURLs, scale: self.thumbnailPixelSize)
         
         // render here
         renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage)
@@ -543,44 +543,64 @@ class SatoCamera: NSObject {
         // scale 2 is around 800KB ~ 1000KB
         // scale 2.1 is 900KB with text and drawing
         // scale 1 is around 3000KB
-        let pixelSizeForMessaging = getMaxPixel(scale: 3)
-        var resizedRenderedURLs = [URL]()
+        let pixelSizeForMessaging = getMaxPixel(scale: 2.1)
+        let pixelSizeForThumbnail = getMaxPixel(scale: 3)
+        var thumbnailURLs = [URL]()
+        var messageURLs = [URL]()
         for url in renderedURLs {
-            if let resizedURL = url.resize(maxSize: pixelSizeForMessaging, destinationURL: resizedUrlPath) {
-                resizedRenderedURLs.append(resizedURL)
+            if let thumbnailURL = url.resize(maxSize: pixelSizeForMessaging, destinationURL: resizedUrlPath) {
+                thumbnailURLs.append(thumbnailURL)
             } else {
-                print("resizing failed in \(#function)")
+                print("resizing to thumbnail failed in \(#function)")
+            }
+            
+            if let messageURL = url.resize(maxSize: pixelSizeForThumbnail, destinationURL: resizedUrlPath) {
+                messageURLs.append(messageURL)
+            } else {
+                print("resizing to message failed in \(#function)")
             }
         }
         
-        if let gifURL = resizedRenderedURLs.createGif(frameDelay: 0.5, destinationURL: UserGenerated.thumbnailURL) {
-            print(gifURL.filesize!)
-            PHPhotoLibrary.requestAuthorization
-                { (status) -> Void in
-                    switch (status)
-                    {
-                    case .authorized:
-                        // Permission Granted
-                        //print("Photo library usage authorized")
-                        // save data to the url
-                        PHPhotoLibrary.shared().performChanges({
-                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifURL)
-                        }, completionHandler: { (saved: Bool, error: Error?) in
-                            if saved {
-                                completion?(true, gifURL.filesize!)
-                            } else {
-                                print("did not save gif")
-                                completion?(false, nil)
-                            }
-                        })
-                    case .denied:
-                        // Permission Denied
-                        print("User denied")
-                    default:
-                        print("Restricted")
-                    }
-            }
+        if let messageGifURL = messageURLs.createGif(frameDelay: 0.5, destinationURL: UserGenerated.messageURL) {
+            print("message gif URL filesize: \(messageGifURL.filesize!)")
+        } else {
+            print("message gif URL failed to save in \(#function)")
         }
+        
+        if let thumbnailGifURL = thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: UserGenerated.thumbnailURL) {
+            print("thumbnail gif URL filesize: \(thumbnailGifURL.filesize!)")
+        } else {
+            print("thumbnail gif URL failed to save in \(#function)")
+        }
+        
+//        if let gifURL = thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: UserGenerated.thumbnailURL) {
+//            print(gifURL.filesize!)
+//            PHPhotoLibrary.requestAuthorization
+//                { (status) -> Void in
+//                    switch (status)
+//                    {
+//                    case .authorized:
+//                        // Permission Granted
+//                        //print("Photo library usage authorized")
+//                        // save data to the url
+//                        PHPhotoLibrary.shared().performChanges({
+//                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifURL)
+//                        }, completionHandler: { (saved: Bool, error: Error?) in
+//                            if saved {
+//                                completion?(true, gifURL.filesize!)
+//                            } else {
+//                                print("did not save gif")
+//                                completion?(false, nil)
+//                            }
+//                        })
+//                    case .denied:
+//                        // Permission Denied
+//                        print("User denied")
+//                    default:
+//                        print("Restricted")
+//                    }
+//            }
+//        }
     }
     
     // MARK: - Gif Controls

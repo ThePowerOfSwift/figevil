@@ -24,7 +24,8 @@ enum ApplicationGroup {
 }
 
 enum UserGenerated {
-    static let thumbnailTag = "@thumbnail"
+    private static let thumbnailTag = "@thumbnail"
+    private static let messageTag = "@message"
     /// URL for user generated gifsg
     static var gifDirectoryURL: URL? {
         guard let url = ApplicationGroup.containerURL?.appendingPathComponent("gifs", isDirectory: true) else {
@@ -49,6 +50,20 @@ enum UserGenerated {
         if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
             
             let path = UUID().uuidString.appending(UserGenerated.thumbnailTag).appending(".gif")
+            url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
+            
+        } else {
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString).appending(".gif"))
+            print("failed to create thumbnail URL")
+        }
+        return url
+    }
+    
+    static var messageURL: URL {
+        var url: URL
+        if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
+            
+            let path = UUID().uuidString.appending(UserGenerated.messageTag).appending(".gif")
             url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
             
         } else {
