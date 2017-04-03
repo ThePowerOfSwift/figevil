@@ -543,18 +543,18 @@ class SatoCamera: NSObject {
         // scale 2 is around 800KB ~ 1000KB
         // scale 2.1 is 900KB with text and drawing
         // scale 1 is around 3000KB
-        let pixelSizeForMessaging = getMaxPixel(scale: 2.1)
+        let pixelSizeForMessage = getMaxPixel(scale: 2.1)
         let pixelSizeForThumbnail = getMaxPixel(scale: 3)
         var thumbnailURLs = [URL]()
         var messageURLs = [URL]()
         for url in renderedURLs {
-            if let thumbnailURL = url.resize(maxSize: pixelSizeForMessaging, destinationURL: resizedUrlPath) {
+            if let thumbnailURL = url.resize(maxSize: pixelSizeForThumbnail, destinationURL: resizedUrlPath) {
                 thumbnailURLs.append(thumbnailURL)
             } else {
                 print("resizing to thumbnail failed in \(#function)")
             }
             
-            if let messageURL = url.resize(maxSize: pixelSizeForThumbnail, destinationURL: resizedUrlPath) {
+            if let messageURL = url.resize(maxSize: pixelSizeForMessage, destinationURL: resizedUrlPath) {
                 messageURLs.append(messageURL)
             } else {
                 print("resizing to message failed in \(#function)")
@@ -567,17 +567,16 @@ class SatoCamera: NSObject {
         let messageURL = URL.messageURL(uuidString: uuidString)
         let originalURL = URL.originalURL(uuidString: uuidString)
         
+        if let thumbnailGifURL = thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: thumbnailURL) {
+            print("thumbnail gif URL filesize: \(thumbnailGifURL.filesize!)")
+        } else {
+            print("thumbnail gif URL failed to save in \(#function)")
+        }
         
         if let messageGifURL = messageURLs.createGif(frameDelay: 0.5, destinationURL: messageURL) {
             print("message gif URL filesize: \(messageGifURL.filesize!)")
         } else {
             print("message gif URL failed to save in \(#function)")
-        }
-        
-        if let thumbnailGifURL = thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: thumbnailURL) {
-            print("thumbnail gif URL filesize: \(thumbnailGifURL.filesize!)")
-        } else {
-            print("thumbnail gif URL failed to save in \(#function)")
         }
         
         if let originalGifURL = renderedURLs.createGif(frameDelay: 0.5, destinationURL: originalURL) {
@@ -732,9 +731,6 @@ extension URL {
             return nil
         }
         
-        let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil)
-        print("properties before resizing: \(properties)")
-        
         sourceOptions[kCGImageSourceCreateThumbnailFromImageAlways as NSObject] = true as AnyObject
         sourceOptions[kCGImageSourceCreateThumbnailWithTransform as NSObject] = true as AnyObject
         sourceOptions[kCGImageSourceThumbnailMaxPixelSize as NSObject] = maxSize as AnyObject
@@ -743,11 +739,6 @@ extension URL {
             print("Error: failed to resize image")
             return nil
         }
-        
-        
-        //let outputURL = URL(fileURLWithPath: path)
-        //outputURL.appendingPathExtension(".gif")
-
         
         guard let imageDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, kUTTypeJPEG, 1, nil) else {
             print("Error: cannot create image destination")
@@ -761,10 +752,6 @@ extension URL {
             return nil
         }
         
-        if let destImageSource = CGImageSourceCreateWithURL(destinationURL as CFURL, nil) {
-            let properties = CGImageSourceCopyPropertiesAtIndex(destImageSource, 0, nil)
-            print("properties after resizing: \(properties)")
-        }
         return destinationURL
     }
     
@@ -786,7 +773,6 @@ extension URL {
         let filteredCGImage = context.createCGImage(ciImage, from: ciImage.extent)
         
         let uiImage = UIImage(cgImage: filteredCGImage!)
-        print("UIImage size: \(uiImage.size)")
         return uiImage
     }
     
