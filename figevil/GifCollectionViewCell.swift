@@ -117,11 +117,11 @@ class GifCollectionViewCell: UICollectionViewCell {
     
     private func didSelect() {
         self.overlayView.isHidden = false
-        UIView.animate(withDuration: selectionAnimationTime / 2, animations: {
+        UIView.animate(withDuration: AnimationTime.select, animations: {
             self.overlayView.alpha = 1
         }) { (success) in
             if success {
-                UIView.animate(withDuration: 4.0, animations: {
+                UIView.animate(withDuration: AnimationTime.fadeout, animations: {
                     self.overlayView.alpha = 0
                 }, completion: { (success) in
                     if success {
@@ -133,7 +133,7 @@ class GifCollectionViewCell: UICollectionViewCell {
     }
     
     private func didDeselect() {
-        UIView.animate(withDuration: selectionAnimationTime, animations: {
+        UIView.animate(withDuration: AnimationTime.deselect, animations: {
             self.overlayView.alpha = 0
         }, completion: { (success) in
             self.overlayView.isHidden = true
@@ -174,7 +174,7 @@ class GifCollectionViewCell: UICollectionViewCell {
     private func startQuivering() {
         let quiver = CABasicAnimation(keyPath: quiverKeyPath)
         
-        let startAngle: Float = -quiverExtent * Float(M_PI) / Float(180.0)
+        let startAngle: Float = -quiverExtent * Float.pi / Float(180.0)
         let stopAngle: Float = -startAngle
         
         quiver.fromValue = startAngle

@@ -10,7 +10,7 @@ import UIKit
 import MobileCoreServices
 
 private let toolbarHeight: CGFloat = 44.0
-private let marginBuffer: CGFloat = 5.0
+private let marginBuffer: CGFloat = 7.0
 
 class MeKeyboardViewController: UIInputViewController, GifCollectionViewControllerDatasource, GifCollectionViewControllerDelegate {
     
@@ -114,7 +114,7 @@ class MeKeyboardViewController: UIInputViewController, GifCollectionViewControll
     
     /// Load user generated gifs into VC model
     func loadDatasource() {
-        guard let directory = userGeneratedGifURL else {
+        guard let directory = UserGenerated.gifDirectoryURL else {
             print("Error: Directory for user generated gifs cannot be found")
             return
         }
@@ -122,7 +122,7 @@ class MeKeyboardViewController: UIInputViewController, GifCollectionViewControll
         // Get gif contents and load to datasource
         do {
             // Get gif files in application container that end
-            let gifURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter { $0.pathExtension == gifFileExtension }
+            let gifURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter { $0.pathExtension == "gif" }
             
             gifContents = []
             for url in gifURLs {

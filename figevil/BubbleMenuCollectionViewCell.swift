@@ -114,7 +114,7 @@ class BubbleMenuCollectionViewCell: UICollectionViewCell {
     // MARK: Selection and highlight
     
     private func didSelect() {
-        UIView.animate(withDuration: selectionAnimationTime / 2) {
+        UIView.animate(withDuration: AnimationTime.select) {
             self.imageView.alpha = 0.25
             self.imageView.layer.borderColor = UIColor.white.cgColor
             self.imageView.layer.borderWidth = 2.0
@@ -124,7 +124,7 @@ class BubbleMenuCollectionViewCell: UICollectionViewCell {
     }
     
     private func didDeselect() {
-        UIView.animate(withDuration: selectionAnimationTime) {
+        UIView.animate(withDuration: AnimationTime.deselect) {
             self.imageView.alpha = 1.0
             self.imageView.layer.borderWidth = 0.0
 
