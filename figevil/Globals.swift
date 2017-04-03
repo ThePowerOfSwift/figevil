@@ -24,6 +24,7 @@ enum ApplicationGroup {
 }
 
 enum UserGenerated {
+    static let thumbnailTag = "@thumbnail"
     /// URL for user generated gifsg
     static var gifDirectoryURL: URL? {
         guard let url = ApplicationGroup.containerURL?.appendingPathComponent("gifs", isDirectory: true) else {
