@@ -122,8 +122,7 @@ class SatoCamera: NSObject {
     var resizedURLs = [URL]()
     var renderedURLs = [URL]()
     let fileManager = FileManager.default
-    let resizedPixelSize = 1000 //1334 is screen size
-    let thumbnailPixelSize = 50
+    let thumbnailPixelSize = 50.0
     
     /** Documents/thumbnail/{UUID}. */
     var thumbnailUrlPath: URL {
@@ -516,12 +515,13 @@ class SatoCamera: NSObject {
         return urls
     }
     
-    internal func makeThumbnail(urls: [URL]) -> [URL]? {
+    internal func makeThumbnail(urls: [URL], scale: Double) -> [URL]? {
         
+        let maxPixelSize = getMaxPixel(scale: scale)
         var thumbnailUrls = [URL]()
         for url in urls {
             
-            if let resizedUrl = url.resize(maxSize: thumbnailPixelSize, destinationURL: thumbnailUrlPath) {
+            if let resizedUrl = url.resize(maxSize: maxPixelSize, destinationURL: thumbnailUrlPath) {
                 thumbnailUrls.append(resizedUrl)
                 print("thumbnail url: \(resizedUrl)")
             } else {
@@ -533,11 +533,28 @@ class SatoCamera: NSObject {
 
     internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
         
-        let thumbnailUrls = makeThumbnail(urls: originalURLs)
+        let thumbnailUrls = makeThumbnail(urls: originalURLs, scale: self.thumbnailPixelSize)
         
         // render here
-        renderedURLs = render(imageUrls: thumbnailUrls!, drawImage: drawImage, textImage: textImage)
-        if let gifURL = renderedURLs.createGif(frameDelay: 0.5) {
+        renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage)
+        // TODO: make this class property
+        // TODO: make resizing array of URL method
+        // scale 3 is around 500KB
+        // scale 2 is around 800KB ~ 1000KB
+        // scale 2.1 is 900KB with text and drawing
+        // scale 1 is around 3000KB
+        let pixelSizeForMessaging = getMaxPixel(scale: 2.1)
+        var resizedRenderedURLs = [URL]()
+        for url in renderedURLs {
+            if let resizedURL = url.resize(maxSize: pixelSizeForMessaging, destinationURL: resizedUrlPath) {
+                resizedRenderedURLs.append(resizedURL)
+            } else {
+                print("resizing failed in \(#function)")
+            }
+        }
+        
+        
+        if let gifURL = resizedRenderedURLs.createGif(frameDelay: 0.5) {
             print(gifURL.filesize!)
             PHPhotoLibrary.requestAuthorization
                 { (status) -> Void in
