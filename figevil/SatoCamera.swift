@@ -553,9 +553,7 @@ class SatoCamera: NSObject {
             }
         }
         
-        let url = userGeneratedGifURL!.appendingPathComponent(String(Date().timeIntervalSinceReferenceDate).appending(".gif"), isDirectory: false)
-        
-        if let gifURL = resizedRenderedURLs.createGif(frameDelay: 0.5, destinationURL: url) {
+        if let gifURL = resizedRenderedURLs.createGif(frameDelay: 0.5, destinationURL: UserGenerated.thumbnailURL) {
             print(gifURL.filesize!)
             PHPhotoLibrary.requestAuthorization
                 { (status) -> Void in

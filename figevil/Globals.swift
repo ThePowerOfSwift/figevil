@@ -43,6 +43,20 @@ enum UserGenerated {
         }
         return url
     }
+    
+    static var thumbnailURL: URL {
+        var url: URL
+        if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
+            
+            let path = UUID().uuidString.appending(UserGenerated.thumbnailTag).appending(".gif")
+            url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
+            
+        } else {
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString).appending(".gif"))
+            print("failed to create thumbnail URL")
+        }
+        return url
+    }
 }
 
 /// Storyboard constants
