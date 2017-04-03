@@ -8,26 +8,27 @@
 
 import UIKit
 
-public let debug = false
-/// Time for selection animation
-public let selectionAnimationTime = 0.25
-/// Application Group Identifier
-public let applicationGroupIdentifier = "group.com.sunsethq.figevil"
-/// URL for group container folder
-public var groupContainerURL: URL? {
-    get {
-        return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: applicationGroupIdentifier)
-    }
+let debug: Bool = false
+
+/// Time Internals for animation
+enum AnimationTime {
+    static let select = 0.25 / 2
+    static let deselect = 0.25
+    static let fadeout = 3.5
 }
-/// GIF file extension
-public let gifFileExtension = "gif"
-/// Directory to save user generated gifs
-public let userGeneratedGifDirectory = "gifs"
-/// URL for user generated gifs
-public var userGeneratedGifURL: URL? {
-    get {
-        guard let url = groupContainerURL?.appendingPathComponent(userGeneratedGifDirectory, isDirectory: true) else {
-            print("Error: Could not obtain URL for user GIF directory")
+
+enum ApplicationGroup {
+    static let identifier = "group.com.sunsethq.figevil"
+    /// URL for group container folder
+    static let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: ApplicationGroup.identifier)
+}
+
+enum UserGenerated {
+    static let thumbnailTag = "@thumbnail"
+    /// URL for user generated gifsg
+    static var gifDirectoryURL: URL? {
+        guard let url = ApplicationGroup.containerURL?.appendingPathComponent("gifs", isDirectory: true) else {
+            print("Error: Could not obtain container URL for user generated GIF")
             return nil
         }
         
@@ -36,36 +37,30 @@ public var userGeneratedGifURL: URL? {
             do {
                 try FileManager.default.createDirectory(at: url, withIntermediateDirectories: false, attributes: nil)
             } catch {
-                print("Error: Cannot create user directory for GIFs: \(error.localizedDescription)")
+                print("Error: Cannot create directory for user GIFs: \(error.localizedDescription)")
                 return nil
             }
         }
-        
         return url
     }
 }
 
 /// Storyboard constants
-struct Storyboard {
-    struct Names {
+enum Storyboard {
+    enum Names {
         static let Camera = "Camera"
         static let FTE = "FirstTimeExperience"
     }
  
     static var FTEViewContoller: UIViewController {
-        get {
-            let storyboard = UIStoryboard(name: Storyboard.Names.FTE, bundle: nil)
-            assert((storyboard.instantiateInitialViewController() != nil), "FTE does not have an initial VC")
-            return storyboard.instantiateInitialViewController()!
-        }
+        let storyboard = UIStoryboard(name: Storyboard.Names.FTE, bundle: nil)
+        assert((storyboard.instantiateInitialViewController() != nil), "FTE does not have an initial VC")
+        return storyboard.instantiateInitialViewController()!
     }
     
     static var rootViewController: UIViewController {
-        get {
-            let storyboard = UIStoryboard(name: Storyboard.Names.Camera, bundle: nil)
-            assert((storyboard.instantiateInitialViewController() != nil), "Main view controller does not have an initial VC")
-            return storyboard.instantiateInitialViewController()!
-
-        }
+        let storyboard = UIStoryboard(name: Storyboard.Names.Camera, bundle: nil)
+        assert((storyboard.instantiateInitialViewController() != nil), "Main view controller does not have an initial VC")
+        return storyboard.instantiateInitialViewController()!
     }
 }
