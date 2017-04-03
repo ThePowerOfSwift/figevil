@@ -543,7 +543,7 @@ class SatoCamera: NSObject {
         // scale 2 is around 800KB ~ 1000KB
         // scale 2.1 is 900KB with text and drawing
         // scale 1 is around 3000KB
-        let pixelSizeForMessaging = getMaxPixel(scale: 2.1)
+        let pixelSizeForMessaging = getMaxPixel(scale: 3)
         var resizedRenderedURLs = [URL]()
         for url in renderedURLs {
             if let resizedURL = url.resize(maxSize: pixelSizeForMessaging, destinationURL: resizedUrlPath) {
