@@ -514,22 +514,6 @@ class SatoCamera: NSObject {
         }
         return urls
     }
-    
-    internal func makeThumbnail(urls: [URL], scale: Double) -> [URL]? {
-        
-        let maxPixelSize = getMaxPixel(scale: scale)
-        var thumbnailUrls = [URL]()
-        for url in urls {
-            
-            if let resizedUrl = url.resize(maxSize: maxPixelSize, destinationURL: thumbnailUrlPath) {
-                thumbnailUrls.append(resizedUrl)
-                print("thumbnail url: \(resizedUrl)")
-            } else {
-                print("failed to create thumbnail")
-            }
-        }
-        return thumbnailUrls
-    }
 
     internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
         
@@ -827,7 +811,7 @@ extension URL {
         var url: URL
         if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
             
-            let path = uuidString.appending(UserGenerated.messageTag).appending(".gif")
+            let path = uuidString.appending(UserGenerated.originalTag).appending(".gif")
             url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
             
         } else {
