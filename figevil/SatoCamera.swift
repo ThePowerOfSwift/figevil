@@ -561,16 +561,29 @@ class SatoCamera: NSObject {
             }
         }
         
-        if let messageGifURL = messageURLs.createGif(frameDelay: 0.5, destinationURL: UserGenerated.messageURL) {
+        let uuidString = UUID().uuidString
+        
+        let thumbnailURL = URL.thumbnailURL(uuidString: uuidString)
+        let messageURL = URL.messageURL(uuidString: uuidString)
+        let originalURL = URL.originalURL(uuidString: uuidString)
+        
+        
+        if let messageGifURL = messageURLs.createGif(frameDelay: 0.5, destinationURL: messageURL) {
             print("message gif URL filesize: \(messageGifURL.filesize!)")
         } else {
             print("message gif URL failed to save in \(#function)")
         }
         
-        if let thumbnailGifURL = thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: UserGenerated.thumbnailURL) {
+        if let thumbnailGifURL = thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: thumbnailURL) {
             print("thumbnail gif URL filesize: \(thumbnailGifURL.filesize!)")
         } else {
             print("thumbnail gif URL failed to save in \(#function)")
+        }
+        
+        if let originalGifURL = renderedURLs.createGif(frameDelay: 0.5, destinationURL: originalURL) {
+            print("original gif URL filesize: \(originalGifURL.filesize!)")
+        } else {
+            print("original gif URL failed to save in \(#function)")
         }
         
 //        if let gifURL = thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: UserGenerated.thumbnailURL) {
@@ -794,6 +807,48 @@ extension URL {
         
         print("failed to make path in \(#function)")
         return NSTemporaryDirectory().appending(UUID().uuidString)
+    }
+    
+    static func thumbnailURL(uuidString: String) -> URL {
+        var url: URL
+        if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
+
+            let path = uuidString.appending(UserGenerated.thumbnailTag).appending(".gif")
+            url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
+
+        } else {
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString).appending(".gif"))
+            print("failed to create thumbnail URL")
+        }
+        return url
+    }
+    
+    static func messageURL(uuidString: String) -> URL {
+        var url: URL
+        if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
+
+            let path = uuidString.appending(UserGenerated.messageTag).appending(".gif")
+            url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
+
+        } else {
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString).appending(".gif"))
+            print("failed to create thumbnail URL")
+        }
+        return url
+    }
+    
+    static func originalURL(uuidString: String) -> URL {
+        var url: URL
+        if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
+            
+            let path = uuidString.appending(UserGenerated.messageTag).appending(".gif")
+            url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
+            
+        } else {
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString).appending(".gif"))
+            print("failed to create thumbnail URL")
+        }
+        return url
     }
 }
 
