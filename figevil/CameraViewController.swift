@@ -131,16 +131,15 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         //selectFirstEffect()
         satoCamera.start()
         
-//        let transparentPNGImageView = UIImageView(image: UIImage(named: "transparent.png"))
-//        transparentPNGImageView.frame = view.bounds
-//        pngOverlayImage = transparentPNGImageView.image
-//        view.insertSubview(transparentPNGImageView, at: 2)
+        let transparentPNGImageView = UIImageView(image: UIImage(named: "transparent.png"))
+        transparentPNGImageView.frame = view.bounds
+        pngOverlayImage = transparentPNGImageView.image
+        view.insertSubview(transparentPNGImageView, at: 2)
         
-        let dogImageView = UIImageView(image: UIImage(named: "dog.png"))
-        dogImageView.frame = view.bounds
-        pngOverlayImage = dogImageView.image
-        view.insertSubview(dogImageView, at: 2)
-        
+//        let dogImageView = UIImageView(image: UIImage(named: "dog.png"))
+//        dogImageView.frame = view.bounds
+//        pngOverlayImage = dogImageView.image
+//        view.insertSubview(dogImageView, at: 2)
     }
     
     override func viewWillAppear(_ animated: Bool) {

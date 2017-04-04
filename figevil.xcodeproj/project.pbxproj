@@ -63,6 +63,7 @@
 		E377C1451E89E9C200573E12 /* UIImageView+Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E377C1441E89E9C200573E12 /* UIImageView+Gif.swift */; };
 		E385EE1B1E9330BE00D6A456 /* transparent.png in Resources */ = {isa = PBXBuildFile; fileRef = E385EE1A1E9330BE00D6A456 /* transparent.png */; };
 		E385EE1D1E933D4E00D6A456 /* dog.png in Resources */ = {isa = PBXBuildFile; fileRef = E385EE1C1E933D4E00D6A456 /* dog.png */; };
+		E385EE1F1E9341D400D6A456 /* beard.png in Resources */ = {isa = PBXBuildFile; fileRef = E385EE1E1E9341D400D6A456 /* beard.png */; };
 		E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B491491E68E16B007C8F29 /* Gif.swift */; };
 /* End PBXBuildFile section */
 
@@ -152,6 +153,7 @@
 		E377C1441E89E9C200573E12 /* UIImageView+Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImageView+Gif.swift"; sourceTree = "<group>"; };
 		E385EE1A1E9330BE00D6A456 /* transparent.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = transparent.png; sourceTree = "<group>"; };
 		E385EE1C1E933D4E00D6A456 /* dog.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dog.png; sourceTree = "<group>"; };
+		E385EE1E1E9341D400D6A456 /* beard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = beard.png; sourceTree = "<group>"; };
 		E3B491491E68E16B007C8F29 /* Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Gif.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -235,6 +237,7 @@
 				7854B9F81E64FD7D00591255 /* TextView.swift */,
 				7854B9FB1E64FD7D00591255 /* DrawImageEffectView.swift */,
 				7854B9FC1E64FD7D00591255 /* DrawView.swift */,
+				E385EE1E1E9341D400D6A456 /* beard.png */,
 				E385EE1A1E9330BE00D6A456 /* transparent.png */,
 				E385EE1C1E933D4E00D6A456 /* dog.png */,
 				7854B9F91E64FD7D00591255 /* FilterImageEffect.swift */,
@@ -463,6 +466,7 @@
 				78B5DD1C1E675EC500192135 /* checkmark.png in Resources */,
 				7857A02F1E6504EC00660B68 /* golden_gate_bridge.jpg in Resources */,
 				78B5DD191E675EC500192135 /* paintbrush.png in Resources */,
+				E385EE1F1E9341D400D6A456 /* beard.png in Resources */,
 				782399E21E8489C200207B56 /* FirstTimeExperience.storyboard in Resources */,
 				782BB2621E7C7F5000EFD135 /* BbgL7x3.gif in Resources */,
 				78B5DD181E675EC500192135 /* camera.png in Resources */,
