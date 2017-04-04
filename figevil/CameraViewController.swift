@@ -112,6 +112,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     /** Collection view for effect option selection */
     var effectOptionBubbleCVC: BubbleMenuCollectionViewController!
     
+    var pngOverlayImage: UIImage?
+    
     // MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -128,6 +130,12 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         // Must manually select first effect
         //selectFirstEffect()
         satoCamera.start()
+        
+        let transparentPNGImageView = UIImageView(image: UIImage(named: "transparent.png"))
+        transparentPNGImageView.frame = view.bounds
+        pngOverlayImage = transparentPNGImageView.image
+        
+        view.insertSubview(transparentPNGImageView, at: 2)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -253,7 +261,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         textImageEffectView?.textView.render()
         let textImage = textImageEffectView?.textView.imageView.image
         
-        satoCamera.save(drawImage: drawImage, textImage: textImage, completion: { (saved: Bool, savedUrl: URL?, fileSize: String?) in
+        satoCamera.save(drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage, completion: { (saved: Bool, savedUrl: URL?, fileSize: String?) in
             if saved {
                 if let fileSize = fileSize {
                     let alertController = UIAlertController(title: "Original gif is saved", message: fileSize, preferredStyle: .alert)
@@ -276,7 +284,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         let textImageEffectView = effects[2] as? TextImageEffectView
         textImageEffectView?.textView.render()
         let textImage = textImageEffectView?.textView.imageView.image
-        satoCamera.share(drawImage: drawImage, textImage: textImage) { (saved: Bool, savedUrl: URL?, filesize: String?) in
+        satoCamera.share(drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage) { (saved: Bool, savedUrl: URL?, filesize: String?) in
             if saved {
                 let image = UIImage(named: "BbgL7x3.gif")
                 

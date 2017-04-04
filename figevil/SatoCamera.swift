@@ -493,7 +493,7 @@ class SatoCamera: NSObject {
     }
 
     /** Render everything together. */
-    internal func render(imageUrls: [URL], drawImage: UIImage?, textImage: UIImage?) -> [URL] {
+    internal func render(imageUrls: [URL], drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?) -> [URL] {
         
         var filteredResizedUIImages = [UIImage]()
         for url in imageUrls {
@@ -508,7 +508,7 @@ class SatoCamera: NSObject {
         
         for image in filteredResizedUIImages {
             
-            guard let renderedImage = image.render(drawImage: drawImage, textImage: textImage, frame: frame) else {
+            guard let renderedImage = image.render(drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage, frame: frame) else {
                 print("rendered image is nil in \(#function)")
                 break
             }
@@ -527,10 +527,10 @@ class SatoCamera: NSObject {
         return urls
     }
 
-    internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
+    internal func save(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
         
         // render here
-        renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage)
+        renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage)
 
         var thumbnailURLs = [URL]()
         var messageURLs = [URL]()
@@ -598,8 +598,8 @@ class SatoCamera: NSObject {
         }
     }
     
-    func share(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
-        renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage)
+    func share(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
+        renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage)
 
         let pixelSizeForMessage = getMaxPixel(scale: 2.1)
         
@@ -676,6 +676,7 @@ class SatoCamera: NSObject {
                 }
             }
             cameraOutput?.outputImageView?.addSubview(gifImageView)
+            cameraOutput?.outputImageView?.sendSubview(toBack: gifImageView)
             gifImageView.startAnimating()
         } else {
             print("gifImageView is nil")
@@ -847,9 +848,10 @@ extension URL {
 }
 
 extension UIImage {
-    func render(drawImage: UIImage?, textImage: UIImage?, frame: CGRect) -> UIImage? {
+    func render(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, frame: CGRect) -> UIImage? {
         UIGraphicsBeginImageContext(frame.size)
         self.draw(in: frame)
+        pngOverlayImage?.draw(in: frame)
         drawImage?.draw(in: frame)
         textImage?.draw(in: frame)
         if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {

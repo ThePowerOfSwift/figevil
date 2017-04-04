@@ -61,6 +61,7 @@
 		E36FA67E1E7714AC00F70925 /* CircularCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36FA67D1E7714AC00F70925 /* CircularCollectionViewLayout.swift */; };
 		E377C1431E89DF5200573E12 /* StraightCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E377C1421E89DF5200573E12 /* StraightCollectionViewLayout.swift */; };
 		E377C1451E89E9C200573E12 /* UIImageView+Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E377C1441E89E9C200573E12 /* UIImageView+Gif.swift */; };
+		E385EE1B1E9330BE00D6A456 /* transparent.png in Resources */ = {isa = PBXBuildFile; fileRef = E385EE1A1E9330BE00D6A456 /* transparent.png */; };
 		E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B491491E68E16B007C8F29 /* Gif.swift */; };
 /* End PBXBuildFile section */
 
@@ -148,6 +149,7 @@
 		E36FA67D1E7714AC00F70925 /* CircularCollectionViewLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularCollectionViewLayout.swift; sourceTree = "<group>"; };
 		E377C1421E89DF5200573E12 /* StraightCollectionViewLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StraightCollectionViewLayout.swift; sourceTree = "<group>"; };
 		E377C1441E89E9C200573E12 /* UIImageView+Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImageView+Gif.swift"; sourceTree = "<group>"; };
+		E385EE1A1E9330BE00D6A456 /* transparent.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = transparent.png; sourceTree = "<group>"; };
 		E3B491491E68E16B007C8F29 /* Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Gif.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -231,6 +233,7 @@
 				7854B9F81E64FD7D00591255 /* TextView.swift */,
 				7854B9FB1E64FD7D00591255 /* DrawImageEffectView.swift */,
 				7854B9FC1E64FD7D00591255 /* DrawView.swift */,
+				E385EE1A1E9330BE00D6A456 /* transparent.png */,
 				7854B9F91E64FD7D00591255 /* FilterImageEffect.swift */,
 				7854B9FA1E64FD7D00591255 /* Filter.swift */,
 			);
@@ -449,6 +452,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E385EE1B1E9330BE00D6A456 /* transparent.png in Resources */,
 				7854B9E71E64F98300591255 /* LaunchScreen.storyboard in Resources */,
 				7854B9EF1E64F9B600591255 /* GoogleService-Info.plist in Resources */,
 				7857A0301E6504EC00660B68 /* montgomery.jpg in Resources */,
