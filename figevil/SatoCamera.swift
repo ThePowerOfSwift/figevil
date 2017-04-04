@@ -31,6 +31,12 @@ protocol SatoCameraOutput {
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
     
+    /** To use, SatoCamera.shared, 
+     1. conform to SatoCameraOutput protocol.
+     2. set your VC to shared.cameraOutput.
+     3. call start(). */
+    static let shared: SatoCamera = SatoCamera(frame: UIScreen.main.bounds)
+    
     // MARK: Basic Configuration for capturing
     fileprivate var videoGLKPreview: GLKView!
     fileprivate var videoDevice: AVCaptureDevice?
@@ -66,6 +72,30 @@ class SatoCamera: NSObject {
     // MARK: Delegate
     /** Delegate for SatoCamera. videoGLKPreview will be added subview to sampleBufferOutput in dataSource. */
     var cameraOutput: SatoCameraOutput? {
+        willSet {
+            guard let cameraOutput = cameraOutput else {
+                return
+            }
+            
+            if let outputImageView = cameraOutput.outputImageView {
+                for subview in outputImageView.subviews {
+                    subview.removeFromSuperview()
+                }
+            } else {
+                print("cameraOutput's outputImageView is nil in \(#function)")
+            }
+            
+            if let sampleBufferView = cameraOutput.sampleBufferView {
+                for subview in sampleBufferView.subviews {
+                    subview.removeFromSuperview()
+                }
+            } else {
+                print("cameraOutput's sampleBufferView is nil in \(#function)")
+            }
+            session.stopRunning()
+            self.cameraOutput = nil
+        }
+        
         didSet {
             
             guard let videoGLKPreview = videoGLKPreview, let cameraOutput = cameraOutput else {
@@ -78,11 +108,27 @@ class SatoCamera: NSObject {
                 return
             }
             
-            for subview in sampleBufferOutput.subviews {
-                subview.removeFromSuperview()
+            sampleBufferOutput.addSubview(videoGLKPreview)
+        }
+    }
+    
+    func releaseCameraOutput() {
+        if let cameraOutput = cameraOutput {
+            if let outputImageView = cameraOutput.outputImageView {
+                for subview in outputImageView.subviews {
+                    subview.removeFromSuperview()
+                }
+            } else {
+                print("cameraOutput's outputImageView is nil in \(#function)")
             }
             
-            sampleBufferOutput.addSubview(videoGLKPreview)
+            if let sampleBufferView = cameraOutput.sampleBufferView {
+                for subview in sampleBufferView.subviews {
+                    subview.removeFromSuperview()
+                }
+            } else {
+                print("cameraOutput's sampleBufferView is nil in \(#function)")
+            }
         }
     }
     

@@ -71,7 +71,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
 
     /** Model */
-    var satoCamera: SatoCamera!
+    var satoCamera: SatoCamera = SatoCamera.shared
 
     @IBOutlet var sampleBufferContainerView: UIView!
     @IBOutlet var outputImageContainerView: UIView!
@@ -129,7 +129,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         view.bringSubview(toFront: controlView)
         // Must manually select first effect
         //selectFirstEffect()
-        satoCamera.start()
         
         let transparentPNGImageView = UIImageView(image: UIImage(named: "transparent.png"))
         transparentPNGImageView.frame = view.bounds
@@ -144,12 +143,14 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        satoCamera.start()
         setupKeyboardObserver()
 
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        satoCamera.stop()
         removeKeyboardObserver()
     }
 
@@ -178,7 +179,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             outputImageContainerView.addSubview(outputImageView)
         }
         //view.bringSubview(toFront: outputImageContainerView)
-        satoCamera = SatoCamera(frame: view.bounds)
+        //satoCamera = SatoCamera(frame: view.bounds)
         satoCamera.cameraOutput = self
     }
     
