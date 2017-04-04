@@ -103,7 +103,7 @@ class GifCollectionViewController: UICollectionViewController, UICollectionViewD
         // Calculate item size depending on orientation and max length
 
         let url = datasource?.gifCollectionViewCellContent(for: self)[indexPath.row].url
-        guard let datasource = CGImageSourceCreateWithURL(url as! CFURL, nil) else {
+        guard let datasource = CGImageSourceCreateWithURL(url! as CFURL, nil) else {
             print("Error: Cannot create CGImage datasource for collection view item sizing")
             return size
         }

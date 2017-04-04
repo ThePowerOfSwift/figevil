@@ -122,7 +122,7 @@ class MeKeyboardViewController: UIInputViewController, GifCollectionViewControll
         // Get gif contents and load to datasource
         do {
             // Get gif files in application container that end
-            let gifURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter { $0.pathExtension == "gif" }
+            let gifURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter { $0.path.contains(UserGenerated.thumbnailTag) && $0.pathExtension == "gif" }
             
             gifContents = []
             for url in gifURLs {
@@ -164,17 +164,19 @@ class MeKeyboardViewController: UIInputViewController, GifCollectionViewControll
     
     /// Perform result of user tapping on gif in collection view
     func gifCollectionViewController(_ gifCollectionViewController: GifCollectionViewController, didSelectItemAt indexPath: IndexPath) {
-        guard let gifURL = gifContents[indexPath.row].url else  {
+        guard let thumbGifURL = gifContents[indexPath.row].url else  {
             print("Error retrieving gif content of selected cell")
             return
         }
         
+        let gifURL = URL(fileURLWithPath: thumbGifURL.path.replacingOccurrences(of: UserGenerated.thumbnailTag, with: UserGenerated.messageTag))
+        
         do {
             // Put gif to pasteboard
             UIPasteboard.general.setData(try Data(contentsOf: gifURL), forPasteboardType: kUTTypeGIF as String)
-            print("Copied gif to pasteboard")
-            
         } catch {
+            //TODO: raise error message when not correctly pasted
+            // TODO: turn off low quality images
             print("Error: could not read data contents of gif URL at (\(gifURL.path))")
             print("\(error.localizedDescription)")
         }
