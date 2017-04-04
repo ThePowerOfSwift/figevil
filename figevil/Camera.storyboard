@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16D32" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="KW6-Bc-DhJ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12118" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="KW6-Bc-DhJ">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12086"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -166,7 +166,7 @@
                         <outlet property="sampleBufferContainerView" destination="MWL-Oi-NMW" id="wQI-ga-qKX"/>
                         <outlet property="saveButton" destination="N54-oQ-fkW" id="oOD-yS-6ve"/>
                         <outlet property="selfieButton" destination="QEg-zn-yZI" id="puq-4o-mzU"/>
-                        <outlet property="share" destination="poT-B2-yE5" id="XoG-Tz-dDG"/>
+                        <outlet property="shareButton" destination="poT-B2-yE5" id="LrC-Ee-HZY"/>
                         <outlet property="snapButton" destination="4pJ-iu-cBa" id="f6V-9r-VL7"/>
                     </connections>
                 </viewController>

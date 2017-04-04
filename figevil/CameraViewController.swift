@@ -55,13 +55,9 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         save()
     }
     
-    @IBOutlet weak var share: UIButton!
+    @IBOutlet weak var shareButton: UIButton!
     @IBAction func tappedShare(_ sender: Any) {
-        let image = UIImage(named: "BbgL7x3.gif")
-        
-        let activityItems: [Any] = [image as Any]
-        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-        present(activityViewController, animated: true, completion: nil)
+        share()
     }
     
     @IBOutlet weak var selfieButton: UIButton!
@@ -257,10 +253,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         textImageEffectView?.textView.render()
         let textImage = textImageEffectView?.textView.imageView.image
         
-        satoCamera.save(drawImage: drawImage, textImage: textImage, completion: { (saved: Bool, fileSize: String?) in
+        satoCamera.save(drawImage: drawImage, textImage: textImage, completion: { (saved: Bool, savedUrl: URL?, fileSize: String?) in
             if saved {
                 if let fileSize = fileSize {
-                    let alertController = UIAlertController(title: "Saved", message: fileSize, preferredStyle: .alert)
+                    let alertController = UIAlertController(title: "Original gif is saved", message: fileSize, preferredStyle: .alert)
                     let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
                     alertController.addAction(okAction)
                     self.present(alertController, animated: true, completion: nil)
@@ -269,8 +265,33 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 print("failed to save gif to camera roll")
             }
         })
-        //satoCamera.save()
         cancel()
+    }
+    
+    /** Saves gif and open share sheet. */
+    func share() {
+        let drawImageEffectView = effects[1] as? DrawImageEffectView
+        let drawImage = drawImageEffectView?.drawView.imageView.image
+        
+        let textImageEffectView = effects[2] as? TextImageEffectView
+        textImageEffectView?.textView.render()
+        let textImage = textImageEffectView?.textView.imageView.image
+        satoCamera.share(drawImage: drawImage, textImage: textImage) { (saved: Bool, savedUrl: URL?, filesize: String?) in
+            if saved {
+                let image = UIImage(named: "BbgL7x3.gif")
+                
+                let activityItems: [Any] = [image as Any]
+                let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+                self.present(activityViewController, animated: true, completion: nil)
+            } else {
+                print("failed to save gif before sharing in \(#function)")
+            }
+        }
+        let image = UIImage(named: "BbgL7x3.gif")
+        
+        let activityItems: [Any] = [image as Any]
+        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        self.present(activityViewController, animated: true, completion: nil)
     }
     
     func toggleSelfie() {

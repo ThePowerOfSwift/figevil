@@ -515,9 +515,7 @@ class SatoCamera: NSObject {
         return urls
     }
 
-    internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ fileSize: String?) -> ())?) {
-        
-//        let thumbnailUrls = makeThumbnail(urls: originalURLs, scale: self.thumbnailPixelSize)
+    internal func save(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
         
         // render here
         renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage)
@@ -551,52 +549,74 @@ class SatoCamera: NSObject {
         let messageURL = URL.messageURL(uuidString: uuidString)
         let originalURL = URL.originalURL(uuidString: uuidString)
         
-        if let thumbnailGifURL = thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: thumbnailURL) {
-            print("thumbnail gif URL filesize: \(thumbnailGifURL.filesize!)")
+        if thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: thumbnailURL) {
+            print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
         } else {
             print("thumbnail gif URL failed to save in \(#function)")
         }
         
-        if let messageGifURL = messageURLs.createGif(frameDelay: 0.5, destinationURL: messageURL) {
-            print("message gif URL filesize: \(messageGifURL.filesize!)")
+        if messageURLs.createGif(frameDelay: 0.5, destinationURL: messageURL) {
+            print("message gif URL filesize: \(messageURL.filesize!)")
         } else {
             print("message gif URL failed to save in \(#function)")
         }
         
-        if let originalGifURL = renderedURLs.createGif(frameDelay: 0.5, destinationURL: originalURL) {
-            print("original gif URL filesize: \(originalGifURL.filesize!)")
+        if renderedURLs.createGif(frameDelay: 0.5, destinationURL: originalURL) {
+            print("original gif URL filesize: \(originalURL.filesize!)")
+            PHPhotoLibrary.requestAuthorization
+                { (status) -> Void in
+                    switch (status)
+                    {
+                    case .authorized:
+                        // Permission Granted
+                        //print("Photo library usage authorized")
+                        // save data to the url
+                        PHPhotoLibrary.shared().performChanges({
+                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
+                        }, completionHandler: { (saved: Bool, error: Error?) in
+                            if saved {
+                                completion?(true, originalURL, originalURL.filesize!)
+                            } else {
+                                print("did not save gif")
+                                completion?(false, nil, nil)
+                            }
+                        })
+                    case .denied:
+                        // Permission Denied
+                        print("User denied")
+                    default:
+                        print("Restricted")
+                    }
+            }
+
         } else {
             print("original gif URL failed to save in \(#function)")
         }
+    }
+    
+    func share(drawImage: UIImage?, textImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
+        renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage)
+
+        let pixelSizeForMessage = getMaxPixel(scale: 2.1)
         
-//        if let gifURL = thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: UserGenerated.thumbnailURL) {
-//            print(gifURL.filesize!)
-//            PHPhotoLibrary.requestAuthorization
-//                { (status) -> Void in
-//                    switch (status)
-//                    {
-//                    case .authorized:
-//                        // Permission Granted
-//                        //print("Photo library usage authorized")
-//                        // save data to the url
-//                        PHPhotoLibrary.shared().performChanges({
-//                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifURL)
-//                        }, completionHandler: { (saved: Bool, error: Error?) in
-//                            if saved {
-//                                completion?(true, gifURL.filesize!)
-//                            } else {
-//                                print("did not save gif")
-//                                completion?(false, nil)
-//                            }
-//                        })
-//                    case .denied:
-//                        // Permission Denied
-//                        print("User denied")
-//                    default:
-//                        print("Restricted")
-//                    }
-//            }
-//        }
+        var messageURLs = [URL]()
+        for url in renderedURLs {
+            
+            if let messageURL = url.resize(maxSize: pixelSizeForMessage, destinationURL: resizedUrlPath) {
+                messageURLs.append(messageURL)
+            } else {
+                print("resizing to message failed in \(#function)")
+            }
+        }
+        
+        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
+        let url = URL(fileURLWithPath: path)
+        
+        if messageURLs.createGif(frameDelay: 0.5, destinationURL: url) {
+            print("gif is saved to \(url). Filesize is \(String(describing: url.filesize!))")
+        } else {
+            print("gif file is not saved in \(#function)")
+        }
     }
     
     // MARK: - Gif Controls
@@ -946,11 +966,13 @@ extension CMSampleBuffer {
 }
 
 extension Sequence where Iterator.Element == URL {
-    func createGif(loopCount: Int = 0, frameDelay: Double, destinationURL: URL) -> Iterator.Element? {
+//    func createGif(loopCount: Int = 0, frameDelay: Double, destinationURL: URL) -> Iterator.Element? {
+
+    func createGif(loopCount: Int = 0, frameDelay: Double, destinationURL: URL) -> Bool {
         let imageURLs = self as! [URL]
         // Data check
         if imageURLs.count <= 0 {
-            return nil
+            return false
         }
         
         // Generate default output url
@@ -960,7 +982,7 @@ extension Sequence where Iterator.Element == URL {
         // Create write-to destination
         guard let gifDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, kUTTypeGIF, imageURLs.count, nil) else {
             print("Error: cannot create image destination is nil")
-            return nil
+            return false
         }
         
         // ImageSource options- do not cache
@@ -986,12 +1008,12 @@ extension Sequence where Iterator.Element == URL {
         // Write gif to disk
         if !CGImageDestinationFinalize(gifDestination) {
             print("Error: cannot finalize gif")
-            return nil
+            return false
         } else {
             print("Saved gif to \(destinationURL.path)")
         }
         
-        return destinationURL
+        return true
     }
 }
 
