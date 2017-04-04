@@ -122,7 +122,6 @@ class SatoCamera: NSObject {
     var resizedURLs = [URL]()
     var renderedURLs = [URL]()
     let fileManager = FileManager.default
-    let thumbnailPixelSize = 50.0
     
     /** Documents/thumbnail/{UUID}. */
     var thumbnailUrlPath: URL {
@@ -148,6 +147,19 @@ class SatoCamera: NSObject {
         let longerSide = Double(max(frame.height, frame.width))
         return Int(longerSide / scale)
     }
+    
+    // TODO: make this class property
+    // TODO: make resizing array of URL method
+    // scale 3 is around 500KB
+    // scale 2 is around 800KB ~ 1000KB
+    // scale 2.1 is 900KB with text and drawing
+    // scale 1 is around 3000KB
+    
+    //let pixelSizeForMessage = getMaxPixel(scale: 2.1) // 350 on iPhone 7 plus, 317 on iPhone 6
+    //let pixelSizeForThumbnail = getMaxPixel(scale: 3) // 245 on iPhone 7 plus, 222 on iphone 6
+    
+    var messagePixelSize = 350
+    var thumbnailPixelSize = 245
     
     // MARK: - Setups
     init(frame: CGRect) {
@@ -519,35 +531,28 @@ class SatoCamera: NSObject {
         
         // render here
         renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage)
-        // TODO: make this class property
-        // TODO: make resizing array of URL method
-        // scale 3 is around 500KB
-        // scale 2 is around 800KB ~ 1000KB
-        // scale 2.1 is 900KB with text and drawing
-        // scale 1 is around 3000KB
-        let pixelSizeForMessage = getMaxPixel(scale: 2.1)
-        let pixelSizeForThumbnail = getMaxPixel(scale: 3)
+
         var thumbnailURLs = [URL]()
         var messageURLs = [URL]()
         for url in renderedURLs {
-            if let thumbnailURL = url.resize(maxSize: pixelSizeForThumbnail, destinationURL: resizedUrlPath) {
+            if let thumbnailURL = url.resize(maxSize: thumbnailPixelSize, destinationURL: resizedUrlPath) {
                 thumbnailURLs.append(thumbnailURL)
             } else {
                 print("resizing to thumbnail failed in \(#function)")
             }
             
-            if let messageURL = url.resize(maxSize: pixelSizeForMessage, destinationURL: resizedUrlPath) {
+            if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
                 messageURLs.append(messageURL)
             } else {
                 print("resizing to message failed in \(#function)")
             }
         }
         
-        let uuidString = UUID().uuidString
+        let path = String(Date().timeIntervalSinceReferenceDate)
         
-        let thumbnailURL = URL.thumbnailURL(uuidString: uuidString)
-        let messageURL = URL.messageURL(uuidString: uuidString)
-        let originalURL = URL.originalURL(uuidString: uuidString)
+        let thumbnailURL = URL.thumbnailURL(path: path)
+        let messageURL = URL.messageURL(path: path)
+        let originalURL = URL.originalURL(path: path)
         
         if thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: thumbnailURL) {
             print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
@@ -569,7 +574,6 @@ class SatoCamera: NSObject {
                     {
                     case .authorized:
                         // Permission Granted
-                        //print("Photo library usage authorized")
                         // save data to the url
                         PHPhotoLibrary.shared().performChanges({
                             PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
@@ -799,43 +803,43 @@ extension URL {
         return NSTemporaryDirectory().appending(UUID().uuidString)
     }
     
-    static func thumbnailURL(uuidString: String) -> URL {
+    static func thumbnailURL(path: String) -> URL {
         var url: URL
         if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
 
-            let path = uuidString.appending(UserGenerated.thumbnailTag).appending(".gif")
+            let path = path.appending(UserGenerated.thumbnailTag).appending(".gif")
             url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
 
         } else {
-            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString).appending(".gif"))
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif"))
             print("failed to create thumbnail URL")
         }
         return url
     }
     
-    static func messageURL(uuidString: String) -> URL {
+    static func messageURL(path: String) -> URL {
         var url: URL
         if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
 
-            let path = uuidString.appending(UserGenerated.messageTag).appending(".gif")
+            let path = path.appending(UserGenerated.messageTag).appending(".gif")
             url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
 
         } else {
-            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString).appending(".gif"))
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif"))
             print("failed to create thumbnail URL")
         }
         return url
     }
     
-    static func originalURL(uuidString: String) -> URL {
+    static func originalURL(path: String) -> URL {
         var url: URL
         if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
             
-            let path = uuidString.appending(UserGenerated.originalTag).appending(".gif")
+            let path = path.appending(UserGenerated.originalTag).appending(".gif")
             url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
             
         } else {
-            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString).appending(".gif"))
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif"))
             print("failed to create thumbnail URL")
         }
         return url
