@@ -98,7 +98,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     /** All the effects to be loaded */
     var effects: [AnyObject] = [FilterImageEffect(),
                                 DrawImageEffectView(),
-                                TextImageEffectView()]
+                                TextImageEffectView(),
+                                StickerView(),]
     
     // MARK: Camera Controls & Tools
     // Tools
@@ -129,16 +130,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         view.bringSubview(toFront: controlView)
         // Must manually select first effect
         //selectFirstEffect()
-        
-        let transparentPNGImageView = UIImageView(image: UIImage(named: "transparent.png"))
-        transparentPNGImageView.frame = view.bounds
-        pngOverlayImage = transparentPNGImageView.image
-        view.insertSubview(transparentPNGImageView, at: 2)
-        
-//        let dogImageView = UIImageView(image: UIImage(named: "dog.png"))
-//        dogImageView.frame = view.bounds
-//        pngOverlayImage = dogImageView.image
-//        view.insertSubview(dogImageView, at: 2)
     }
     
     override func viewWillAppear(_ animated: Bool) {

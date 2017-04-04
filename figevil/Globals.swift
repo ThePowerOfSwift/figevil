@@ -45,6 +45,24 @@ enum UserGenerated {
         }
         return url
     }
+    
+    static var stickerDirectoryURL: URL? {
+        guard let url = ApplicationGroup.containerURL?.appendingPathComponent("stickers", isDirectory: true) else {
+            print("Error: Could not obtain container URL for user stickers")
+            return nil
+        }
+        
+        // Create the diretory if it doesn't exist
+        if !FileManager.default.fileExists(atPath: url.path) {
+            do {
+                try FileManager.default.createDirectory(at: url, withIntermediateDirectories: false, attributes: nil)
+            } catch {
+                print("Error: Cannot create directory for user stickers: \(error.localizedDescription)")
+                return nil
+            }
+        }
+        return url
+    }
 }
 
 /// Storyboard constants
