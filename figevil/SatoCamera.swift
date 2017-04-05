@@ -80,25 +80,6 @@ class SatoCamera: NSObject {
     /** Delegate for SatoCamera. videoGLKPreview will be added subview to sampleBufferOutput in dataSource. */
     var cameraOutput: SatoCameraOutput? {
         willSet {
-            guard let cameraOutput = cameraOutput else {
-                return
-            }
-            
-//            if let outputImageView = cameraOutput.outputImageView {
-//                for subview in outputImageView.subviews {
-//                    subview.removeFromSuperview()
-//                }
-//            } else {
-//                print("cameraOutput's outputImageView is nil in \(#function)")
-//            }
-//            
-//            if let sampleBufferView = cameraOutput.sampleBufferView {
-//                for subview in sampleBufferView.subviews {
-//                    subview.removeFromSuperview()
-//                }
-//            } else {
-//                print("cameraOutput's sampleBufferView is nil in \(#function)")
-//            }
             session.stopRunning()
             self.cameraOutput = nil
         }
@@ -118,8 +99,6 @@ class SatoCamera: NSObject {
             
             sampleBufferOutput.addSubview(videoGLKPreview)
             session.startRunning()
-            print("cam is running \(session.isRunning)")
-            print("glk super \(videoGLKPreview.superview)")
         }
     }
     
@@ -518,6 +497,7 @@ class SatoCamera: NSObject {
     
     // MARK: - Camera Controls
     internal func start() {
+        cameraOutput?.sampleBufferView?.isHidden = false
         session.startRunning()
         if !session.isRunning {
             print("camera failed to run.")
