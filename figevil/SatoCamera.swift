@@ -546,7 +546,6 @@ class SatoCamera: NSObject {
     }
 
     /** Render everything together. */
-    //internal func render(imageUrls: [URL], drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?) -> [URL] {
     internal func render(imageUrls: [URL], renderItems: [UIImage]?) -> [URL] {
 
         var filteredResizedUIImages = [UIImage]()
@@ -561,11 +560,6 @@ class SatoCamera: NSObject {
         var urls = [URL]()
         
         for image in filteredResizedUIImages {
-            
-//            guard let renderedImage = image.render(drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage, frame: frame) else {
-//                print("rendered image is nil in \(#function)")
-//                break
-//            }
             
             let renderedImage = image.render(items: renderItems, frame: frame)
             
@@ -657,7 +651,7 @@ class SatoCamera: NSObject {
     }
     
     func share(renderItems: [UIImage], completion: ((_ saved: Bool, _ savedUrl: URL?) -> ())?) {
-        //renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage)
+
         renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
 
         let pixelSizeForMessage = getMaxPixel(scale: 2.1)
