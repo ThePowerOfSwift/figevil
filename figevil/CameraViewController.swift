@@ -82,6 +82,31 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // Must always be on top of sampleBuffer
     var outputImageView: UIImageView? = UIImageView()
     
+    /** Collected items that should be rendered. */
+    var renderItems: [UIImage] {
+        var items = [UIImage]()
+        
+        if let drawImageEffectView = effects[1] as? DrawImageEffectView {
+            if let drawImage = drawImageEffectView.drawView.imageView.image {
+                items.append(drawImage)
+            }
+        }
+        
+        if let textImageEffectView = effects[2] as? TextImageEffectView {
+            textImageEffectView.textView.render()
+            if let textImage = textImageEffectView.textView.imageView.image {
+                items.append(textImage)
+            }
+        }
+        
+        if let stickerEffectView = effects[3] as? StickerEffectView {
+            if let stickerImage = stickerEffectView.imageView.image {
+                items.append(stickerImage)
+            }
+        }
+        return items
+    }
+
     /**
      View that holds all control views and the active effect tool; always floating.
      When an effect is active, the effect is moved to be above flashView (under control containers)
@@ -167,8 +192,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             outputImageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             outputImageContainerView.addSubview(outputImageView)
         }
-        //view.bringSubview(toFront: outputImageContainerView)
-        //satoCamera = SatoCamera(frame: view.bounds)
+
         satoCamera.cameraOutput = self
     }
     
@@ -247,18 +271,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         }
     }
     
-    func save() {        
-        let drawImageEffectView = effects[1] as? DrawImageEffectView
-        let drawImage = drawImageEffectView?.drawView.imageView.image
-        
-        let textImageEffectView = effects[2] as? TextImageEffectView
-        textImageEffectView?.textView.render()
-        let textImage = textImageEffectView?.textView.imageView.image
-        
-        let stickerEffectView = effects[3] as? StickerEffectView
-        let stickerImage = stickerEffectView?.imageView.image
-        
-        satoCamera.save(drawImage: drawImage, textImage: textImage, pngOverlayImage: stickerImage, completion: { (saved: Bool, savedUrl: URL?, fileSize: String?) in
+    func save() {
+        satoCamera.save(renderItems: renderItems) { (saved: Bool, savedUrl: SavedURLs?, fileSize: String?) in
             if saved {
                 if let fileSize = fileSize {
                     let alertController = UIAlertController(title: "Original gif is saved", message: fileSize, preferredStyle: .alert)
@@ -269,23 +283,13 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             } else {
                 print("Error: Failed to save gif to camera roll")
             }
-        })
+        }
         cancel()
     }
     
     /** Saves gif and open share sheet. */
     func share() {
-        let drawImageEffectView = effects[1] as? DrawImageEffectView
-        let drawImage = drawImageEffectView?.drawView.imageView.image
-        
-        let textImageEffectView = effects[2] as? TextImageEffectView
-        textImageEffectView?.textView.render()
-        let textImage = textImageEffectView?.textView.imageView.image
-        
-        let stickerEffectView = effects[3] as? StickerEffectView
-        let stickerImage = stickerEffectView?.imageView.image
-        
-        satoCamera.share(drawImage: drawImage, textImage: textImage, pngOverlayImage: stickerImage) { (saved: Bool, savedUrl: URL?) in
+        satoCamera.share(renderItems: renderItems) { (saved: Bool, savedUrl: URL?) in
             if saved {
                 guard let savedUrl = savedUrl else {
                     print("Error: Cannot get saved url of rendered camera object")
