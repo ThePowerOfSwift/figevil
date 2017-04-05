@@ -533,8 +533,9 @@ class SatoCamera: NSObject {
     internal func render(imageUrls: [URL], renderItems: [UIImage]?) -> [URL] {
 
         var filteredResizedUIImages = [UIImage]()
+        let ciContext = CIContext()
         for url in imageUrls {
-            if let image = url.makeUIImage(filter: currentFilter.filter) {
+            if let image = url.makeUIImage(filter: currentFilter.filter, context: ciContext) {
                 filteredResizedUIImages.append(image)
             } else {
                 print("resized image is nil in \(#function)")
@@ -727,9 +728,10 @@ class SatoCamera: NSObject {
     func makeGif(urls: [URL], filter: CIFilter?) -> UIImageView? {
         
         filteredUIImages.removeAll()
+        let ciContext = CIContext()
         for url in urls {
             
-            if let image = url.makeUIImage(filter: filter) {
+            if let image = url.makeUIImage(filter: filter, context: ciContext) {
                 filteredUIImages.append(image)
             } else {
                 print("original image is nil in \(#function)")
@@ -805,7 +807,7 @@ extension URL {
     }
     
     /** Make UIImage from URL*/
-    func makeUIImage(filter: CIFilter?) -> UIImage? {
+    func makeUIImage(filter: CIFilter?, context: CIContext) -> UIImage? {
         guard let cgImage = self.cgImage else {
             print("cgImage is nil in \(#function)")
             return nil
@@ -813,13 +815,21 @@ extension URL {
         
         var ciImage = CIImage()
         if let filter = filter {
-            ciImage = cgImage.ciImage.applyingFilter(filter.name, withInputParameters: nil)
+            
+            filter.setValue(cgImage.ciImage, forKeyPath: kCIInputImageKey)
+            if let image = filter.outputImage {
+                ciImage = image
+            } else {
+                print("Error: failed to make filtered image in \(#function)")
+                ciImage = cgImage.ciImage
+            }
+            
         } else {
             ciImage = cgImage.ciImage
         }
         
-        let context = CIContext(options: nil)
-        let filteredCGImage = context.createCGImage(ciImage, from: ciImage.extent)
+        // use cgImage.ciImage.extent because the new ciImage does not have extent
+        let filteredCGImage = context.createCGImage(ciImage, from: cgImage.ciImage.extent)
         
         let uiImage = UIImage(cgImage: filteredCGImage!)
         return uiImage
@@ -1167,8 +1177,9 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
 
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: sourceImage.extent)
         // Dispatch display() so that display() won't be executed when views are not ready to use in Camera VC
-        DispatchQueue.main.async {
-            self.videoGLKPreview.display()
-        }
+//        DispatchQueue.main.async {
+//            self.videoGLKPreview.display()
+//        }
+        videoGLKPreview.display()
     }
 }

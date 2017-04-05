@@ -50,14 +50,33 @@ class Filter: NSObject {
                 Filter(name: "Sepia", filter: CIFilter(name: "CISepiaTone"), imageUrlString: "golden_gate_bridge.jpg"),
                 Filter(name: "False", filter: CIFilter(name: "CIFalseColor"), imageUrlString: "chinatown.jpg"),
                 Filter(name: "Plain", filter: nil, imageUrlString: "chinatown.jpg"),
-                Filter(name: "Sepia", filter: CIFilter(name: "CISepiaTone"), imageUrlString: "golden_gate_bridge.jpg"),
-                Filter(name: "False", filter: CIFilter(name: "CIFalseColor"), imageUrlString: "chinatown.jpg"),
-                Filter(name: "Plain", filter: nil, imageUrlString: "chinatown.jpg"),
-                Filter(name: "Sepia", filter: CIFilter(name: "CISepiaTone"), imageUrlString: "golden_gate_bridge.jpg"),
-                Filter(name: "False", filter: CIFilter(name: "CIFalseColor"), imageUrlString: "chinatown.jpg"),
-                Filter(name: "Plain", filter: nil, imageUrlString: "chinatown.jpg"),
-                Filter(name: "Sepia", filter: CIFilter(name: "CISepiaTone"), imageUrlString: "golden_gate_bridge.jpg"),
-                Filter(name: "False", filter: CIFilter(name: "CIFalseColor"), imageUrlString: "chinatown.jpg")
+                Filter(name: "Clamp", filter: colorClamp, imageUrlString: "chinatown.jpg"),
+                Filter(name: "Controls", filter: colorControls, imageUrlString: "chinatown.jpg"),
+                Filter(name: "Matrix", filter: colorMatrix, imageUrlString: "chinatown.jpg")
         ]
     }
+    
+    class var colorClamp: CIFilter? {
+        let filter = CIFilter(name: "CIColorClamp")
+        let n: CGFloat = 0.05
+        let minComp = CIVector(x: n, y: n, z: n, w: 1)
+        let maxComp = CIVector(x: 1, y: 1, z: 1, w: 1)
+        filter?.setValue(minComp, forKeyPath: "inputMinComponents")
+        filter?.setValue(maxComp, forKeyPath: "inputMaxComponents")
+        return filter
+    }
+    
+    class var colorControls: CIFilter? {
+        let filter = CIFilter(name: "CIColorControls")
+        return filter
+    }
+    
+    class var colorMatrix: CIFilter? {
+        let filter = CIFilter(name: "CIColorMatrix")
+        return filter
+    }
+    
+    
+    
+    
 }
