@@ -539,8 +539,9 @@ class SatoCamera: NSObject {
     }
 
     /** Render everything together. */
-    internal func render(imageUrls: [URL], drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?) -> [URL] {
-        
+    //internal func render(imageUrls: [URL], drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?) -> [URL] {
+    internal func render(imageUrls: [URL], renderItems: [UIImage]?) -> [URL] {
+
         var filteredResizedUIImages = [UIImage]()
         for url in imageUrls {
             if let image = url.makeUIImage(filter: currentFilter.filter) {
@@ -554,10 +555,12 @@ class SatoCamera: NSObject {
         
         for image in filteredResizedUIImages {
             
-            guard let renderedImage = image.render(drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage, frame: frame) else {
-                print("rendered image is nil in \(#function)")
-                break
-            }
+//            guard let renderedImage = image.render(drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage, frame: frame) else {
+//                print("rendered image is nil in \(#function)")
+//                break
+//            }
+            
+            let renderedImage = image.render(items: renderItems, frame: frame)
             
             guard let cgImage = renderedImage.cgImage else {
                 print("Could not get cgImage from rendered UIImage in \(#function)")
@@ -573,10 +576,12 @@ class SatoCamera: NSObject {
         return urls
     }
 
-    internal func save(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
-        
+//    internal func save(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
+    internal func save(renderItems: [UIImage]?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
+
         // render here
-        renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage)
+        //renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage)
+        renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
 
         var thumbnailURLs = [URL]()
         var messageURLs = [URL]()
@@ -644,8 +649,9 @@ class SatoCamera: NSObject {
         }
     }
     
-    func share(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?) -> ())?) {
-        renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage)
+    func share(renderItems: [UIImage], completion: ((_ saved: Bool, _ savedUrl: URL?) -> ())?) {
+        //renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage)
+        renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
 
         let pixelSizeForMessage = getMaxPixel(scale: 2.1)
         
@@ -898,19 +904,23 @@ extension URL {
 }
 
 extension UIImage {
-    func render(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, frame: CGRect) -> UIImage? {
+    //func render(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, frame: CGRect) ->
+    func render(items: [UIImage]?, frame: CGRect) ->UIImage {
         UIGraphicsBeginImageContext(frame.size)
-        self.draw(in: frame)
-        pngOverlayImage?.draw(in: frame)
-        drawImage?.draw(in: frame)
-        textImage?.draw(in: frame)
-        if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {
-            UIGraphicsEndImageContext()
-            return renderedImage
+        if let images = items {
+            self.draw(in: frame)
+            
+            for image in images {
+                image.draw(in: frame)
+            }
+
+            if let renderedImage = UIGraphicsGetImageFromCurrentImageContext() {
+                UIGraphicsEndImageContext()
+                return renderedImage
+            }
         }
-        
         UIGraphicsEndImageContext()
-        return nil
+        return self
     }
 }
 
