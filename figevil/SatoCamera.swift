@@ -21,6 +21,13 @@ enum CameraFace {
     case Front
 }
 
+/** Holds URLs saved in SatoCamera. */
+struct SavedURLs {
+    var thumbnail: URL
+    var message: URL
+    var original: URL
+}
+
 protocol SatoCameraOutput {
     /** Show the filtered output image view. */
     var outputImageView: UIImageView? { get set }
@@ -576,11 +583,9 @@ class SatoCamera: NSObject {
         return urls
     }
 
-//    internal func save(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
-    internal func save(renderItems: [UIImage]?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
+    internal func save(renderItems: [UIImage]?, completion: ((_ saved: Bool, _ savedUrl: SavedURLs?, _ fileSize: String?) -> ())?) {
 
         // render here
-        //renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage)
         renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
 
         var thumbnailURLs = [URL]()
@@ -604,6 +609,8 @@ class SatoCamera: NSObject {
         let thumbnailURL = URL.thumbnailURL(path: path)
         let messageURL = URL.messageURL(path: path)
         let originalURL = URL.originalURL(path: path)
+        
+        let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL)
         
         if thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: thumbnailURL) {
             print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
@@ -630,7 +637,7 @@ class SatoCamera: NSObject {
                             PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
                         }, completionHandler: { (saved: Bool, error: Error?) in
                             if saved {
-                                completion?(true, originalURL, originalURL.filesize!)
+                                completion?(true, savedURLs, originalURL.filesize!)
                             } else {
                                 print("did not save gif")
                                 completion?(false, nil, nil)
@@ -672,11 +679,10 @@ class SatoCamera: NSObject {
         
         if success {
             print("gif is saved to \(url). Filesize is \(String(describing: url.filesize!))")
+            completion?(success, url)
         } else {
             print("gif file is not saved in \(#function)")
         }
-        
-        completion?(success, url)
     }
     
     // MARK: - Gif Controls

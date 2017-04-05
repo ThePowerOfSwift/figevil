@@ -192,8 +192,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             outputImageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             outputImageContainerView.addSubview(outputImageView)
         }
-        //view.bringSubview(toFront: outputImageContainerView)
-        //satoCamera = SatoCamera(frame: view.bounds)
+
         satoCamera.cameraOutput = self
     }
     
@@ -274,7 +273,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     func save() {
         
-        satoCamera.save(renderItems: renderItems) { (saved: Bool, savedUrl: URL?, fileSize: String?) in
+        satoCamera.save(renderItems: renderItems) { (saved: Bool, savedUrl: SavedURLs?, fileSize: String?) in
 
             if saved {
                 if let fileSize = fileSize {
