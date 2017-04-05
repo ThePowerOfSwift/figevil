@@ -84,21 +84,21 @@ class SatoCamera: NSObject {
                 return
             }
             
-            if let outputImageView = cameraOutput.outputImageView {
-                for subview in outputImageView.subviews {
-                    subview.removeFromSuperview()
-                }
-            } else {
-                print("cameraOutput's outputImageView is nil in \(#function)")
-            }
-            
-            if let sampleBufferView = cameraOutput.sampleBufferView {
-                for subview in sampleBufferView.subviews {
-                    subview.removeFromSuperview()
-                }
-            } else {
-                print("cameraOutput's sampleBufferView is nil in \(#function)")
-            }
+//            if let outputImageView = cameraOutput.outputImageView {
+//                for subview in outputImageView.subviews {
+//                    subview.removeFromSuperview()
+//                }
+//            } else {
+//                print("cameraOutput's outputImageView is nil in \(#function)")
+//            }
+//            
+//            if let sampleBufferView = cameraOutput.sampleBufferView {
+//                for subview in sampleBufferView.subviews {
+//                    subview.removeFromSuperview()
+//                }
+//            } else {
+//                print("cameraOutput's sampleBufferView is nil in \(#function)")
+//            }
             session.stopRunning()
             self.cameraOutput = nil
         }
@@ -109,6 +109,7 @@ class SatoCamera: NSObject {
                 print("video preview or camera output is nil")
                 return
             }
+            videoGLKPreview.removeFromSuperview()
             
             guard let sampleBufferOutput = cameraOutput.sampleBufferView else {
                 print("sample buffer view is nil")
@@ -116,6 +117,9 @@ class SatoCamera: NSObject {
             }
             
             sampleBufferOutput.addSubview(videoGLKPreview)
+            session.startRunning()
+            print("cam is running \(session.isRunning)")
+            print("glk super \(videoGLKPreview.superview)")
         }
     }
     
