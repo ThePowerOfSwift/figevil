@@ -101,8 +101,8 @@ class Gif: NSObject {
         }
         
         renderedGifImageView.saveGifToDisk(frameDelay: preset.frameDelay, completion: { (url: URL?, error: Error?) in
-            if error != nil {
-                print("\(error?.localizedDescription)")
+            if let error = error {
+                print(error.localizedDescription)
             } else if let url = url {
                 
                 if let gifData = NSData(contentsOf: url) {
