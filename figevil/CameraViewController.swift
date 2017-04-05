@@ -266,7 +266,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                     self.present(alertController, animated: true, completion: nil)
                 }
             } else {
-                print("failed to save gif to camera roll")
+                print("Error: Failed to save gif to camera roll")
             }
         })
         cancel()
@@ -280,22 +280,28 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         let textImageEffectView = effects[2] as? TextImageEffectView
         textImageEffectView?.textView.render()
         let textImage = textImageEffectView?.textView.imageView.image
-        satoCamera.share(drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage) { (saved: Bool, savedUrl: URL?, filesize: String?) in
+        
+        satoCamera.share(drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage) { (saved: Bool, savedUrl: URL?) in
             if saved {
-                let image = UIImage(named: "BbgL7x3.gif")
+                guard let savedUrl = savedUrl else {
+                    print("Error: Cannot get saved url of rendered camera object")
+                    return
+                }
                 
-                let activityItems: [Any] = [image as Any]
-                let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-                self.present(activityViewController, animated: true, completion: nil)
+                DispatchQueue.main.async {
+                    do {
+                        let gifData = try Data(contentsOf: savedUrl)
+                        let activityItems: [Any] = [gifData as Any]
+                        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+                        self.present(activityViewController, animated: true, completion: nil)
+                    } catch {
+                        print("Error: cannot get data of GIF \(savedUrl.path)")
+                    }
+                }
             } else {
-                print("failed to save gif before sharing in \(#function)")
+                print("Error: Failed to save gif before sharing in \(#function)")
             }
         }
-        let image = UIImage(named: "BbgL7x3.gif")
-        
-        let activityItems: [Any] = [image as Any]
-        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-        self.present(activityViewController, animated: true, completion: nil)
     }
     
     func toggleSelfie() {

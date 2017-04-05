@@ -17,30 +17,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-
-        // TEST: copy starter files
-        
-        if let urls = Bundle.main.urls(forResourcesWithExtension: nil, subdirectory: "Stickers") {
-            print("contents: \(urls)")
-            
-            for url in urls {
-                let filename = url.lastPathComponent
-                guard let destination = UserGenerated.stickerDirectoryURL?.appendingPathComponent(filename) else {
-                    print("Error: cannot get write-to URL for sticker \(filename)")
-                    break
-                }
-                
-                do {
-                    try FileManager.default.copyItem(at: url, to: destination)
-                } catch {
-                    print("Error: failed copy item \(url.path)")
-                }
-            }
-        } else {
-            print("whoddunnit")
-        }
-        
-        
+        copyInBundleResources()
         
         // FIR Database setup
 //        FIRApp.configure()
@@ -76,6 +53,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
+    func copyInBundleResources() {
+        if let urls = Bundle.main.urls(forResourcesWithExtension: nil, subdirectory: "Stickers") {            
+            for url in urls {
+                let filename = url.lastPathComponent
+                guard let destination = UserGenerated.stickerDirectoryURL?.appendingPathComponent(filename) else {
+                    print("Error: cannot get write-to URL for sticker \(filename)")
+                    break
+                }
+                
+                if !FileManager.default.fileExists(atPath: destination.path) {
+                    do {
+                        try FileManager.default.copyItem(at: url, to: destination)
+                    } catch {
+                        print("Error: failed copy item \(url.path)")
+                    }
+                }
+            }
+        } else {
+            print("whoddunnit")
+        }
+
+    }
 
 }
 

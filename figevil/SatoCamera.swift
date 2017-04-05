@@ -644,7 +644,7 @@ class SatoCamera: NSObject {
         }
     }
     
-    func share(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?, _ fileSize: String?) -> ())?) {
+    func share(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, completion: ((_ saved: Bool, _ savedUrl: URL?) -> ())?) {
         renderedURLs = render(imageUrls: resizedURLs, drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage)
 
         let pixelSizeForMessage = getMaxPixel(scale: 2.1)
@@ -662,11 +662,15 @@ class SatoCamera: NSObject {
         let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
         let url = URL(fileURLWithPath: path)
         
-        if messageURLs.createGif(frameDelay: 0.5, destinationURL: url) {
+        let success = messageURLs.createGif(frameDelay: 0.5, destinationURL: url)
+        
+        if success {
             print("gif is saved to \(url). Filesize is \(String(describing: url.filesize!))")
         } else {
             print("gif file is not saved in \(#function)")
         }
+        
+        completion?(success, url)
     }
     
     // MARK: - Gif Controls

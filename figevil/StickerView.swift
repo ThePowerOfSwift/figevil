@@ -66,7 +66,8 @@ class StickerView: UIView, CameraViewBubbleMenu {
             guard let image = UIImage(contentsOfFile: url.path) else {
                 break
             }
-            menuContent.append(BubbleMenuCollectionViewCellContent(image: image, label: "test"))
+            let filename = url.lastPathComponent.components(separatedBy: ".").first
+            menuContent.append(BubbleMenuCollectionViewCellContent(image: image, label: filename!))
         }
     }
     
