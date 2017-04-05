@@ -99,7 +99,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     var effects: [AnyObject] = [FilterImageEffect(),
                                 DrawImageEffectView(),
                                 TextImageEffectView(),
-                                StickerView(),]
+                                StickerEffectView(),]
     
     // MARK: Camera Controls & Tools
     // Tools
@@ -112,8 +112,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     var effectToolBubbleCVC: BubbleMenuCollectionViewController!
     /** Collection view for effect option selection */
     var effectOptionBubbleCVC: BubbleMenuCollectionViewController!
-    
-    var pngOverlayImage: UIImage?
     
     // MARK: Lifecycle
     override func viewDidLoad() {
@@ -257,7 +255,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         textImageEffectView?.textView.render()
         let textImage = textImageEffectView?.textView.imageView.image
         
-        satoCamera.save(drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage, completion: { (saved: Bool, savedUrl: URL?, fileSize: String?) in
+        let stickerEffectView = effects[3] as? StickerEffectView
+        let stickerImage = stickerEffectView?.imageView.image
+        
+        satoCamera.save(drawImage: drawImage, textImage: textImage, pngOverlayImage: stickerImage, completion: { (saved: Bool, savedUrl: URL?, fileSize: String?) in
             if saved {
                 if let fileSize = fileSize {
                     let alertController = UIAlertController(title: "Original gif is saved", message: fileSize, preferredStyle: .alert)
@@ -281,7 +282,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         textImageEffectView?.textView.render()
         let textImage = textImageEffectView?.textView.imageView.image
         
-        satoCamera.share(drawImage: drawImage, textImage: textImage, pngOverlayImage: pngOverlayImage) { (saved: Bool, savedUrl: URL?) in
+        let stickerEffectView = effects[3] as? StickerEffectView
+        let stickerImage = stickerEffectView?.imageView.image
+        
+        satoCamera.share(drawImage: drawImage, textImage: textImage, pngOverlayImage: stickerImage) { (saved: Bool, savedUrl: URL?) in
             if saved {
                 guard let savedUrl = savedUrl else {
                     print("Error: Cannot get saved url of rendered camera object")

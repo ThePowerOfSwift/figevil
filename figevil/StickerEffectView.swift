@@ -8,15 +8,14 @@
 
 import UIKit
 
-private let defaultName = "None"
-private let defaultImage = UIImage()
-private let defaultBubbleContent = BubbleMenuCollectionViewCellContent(image: defaultImage, label: defaultName)
 
-class StickerView: UIView, CameraViewBubbleMenu {
+class StickerEffectView: UIView, CameraViewBubbleMenu {
 
     /** Model */
     var stickerURLs: [URL] = []
-    var stickerImageView = UIImageView()
+    let imageView = UIImageView()
+    
+    private static let defaultBubbleContent = BubbleMenuCollectionViewCellContent(image: UIImage(), label: "None")
     
     // MARK: CameraViewBubbleMenu
     var menuContent: [BubbleMenuCollectionViewCellContent] = []
@@ -40,9 +39,9 @@ class StickerView: UIView, CameraViewBubbleMenu {
     }
     
     func setupForegroundView() {
-        stickerImageView.frame = bounds
-        stickerImageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        addSubview(stickerImageView)
+        imageView.frame = bounds
+        imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        addSubview(imageView)
     }
     
     func setupBubbleMenuContent() {
@@ -50,7 +49,10 @@ class StickerView: UIView, CameraViewBubbleMenu {
             print("Error: Directory for user generated gifs cannot be found")
             return
         }
-        
+
+        // Reset model
+        menuContent = [StickerEffectView.defaultBubbleContent]
+
         // Get gif contents and load to datasource
         do {
             // Get gif files in application container that end
@@ -60,7 +62,6 @@ class StickerView: UIView, CameraViewBubbleMenu {
             return
         }
 
-        menuContent = [defaultBubbleContent]
         // TODO: need thumbnails?
         for url in stickerURLs {
             guard let image = UIImage(contentsOfFile: url.path) else {
@@ -74,11 +75,11 @@ class StickerView: UIView, CameraViewBubbleMenu {
     // MARK: CameraViewBubbleMenu
     
     func menu(_ sender: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
-        stickerImageView.image = menuContent[indexPath.row].image
+        imageView.image = menuContent[indexPath.row].image
     }
     
     func reset() {
-        stickerImageView.image = nil
+        imageView.image = nil
     }
 
 }
