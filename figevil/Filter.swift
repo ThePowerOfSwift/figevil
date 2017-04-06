@@ -10,9 +10,10 @@ class Filter: NSObject {
     var name: String
     var filter: CIFilter?
     var imageUrlString: String?
-    var iconImage: UIImage
+    var iconImage = UIImage()
     
     var list = [Filter]()
+    
     static let filterBubbleIconImage = UIImage(named: BubbleIcon.filter)
     var context = CIContext()
 
@@ -22,26 +23,15 @@ class Filter: NSObject {
         self.name = "shared"
         self.filter = nil
         self.imageUrlString = nil
-        self.iconImage = UIImage()
         super.init()
         configureList()
     }
-
-    init(name: String, filter: CIFilter?, imageUrlString: String) {
-        self.name = name
-        self.filter = filter
-        self.imageUrlString = imageUrlString
-        if let image = UIImage(named: imageUrlString) {
-            self.iconImage = image
-        } else {
-            self.iconImage = UIImage()
-        }
-    }
     
-    init(name: String, filter: CIFilter?, iconImage: UIImage) {
+    init(name: String, filter: CIFilter?) {
         self.name = name
         self.filter = filter
-        self.iconImage = iconImage
+        super.init()
+        self.iconImage = getIconImage(filter: filter)
     }
 
     func generateFilteredCIImage(sourceImage: CIImage) -> CIImage? {
@@ -72,20 +62,31 @@ class Filter: NSObject {
     }
     
     func configureList() {
-        list.append(Filter(name: "Plain", filter: nil, iconImage: getIconImage(filter: nil)))
-        list.append(Filter(name: "Sepia", filter: CIFilter(name: "CISepiaTone"), iconImage: getIconImage(filter: CIFilter(name: "CISepiaTone"))))
-        list.append(Filter(name: "False", filter: CIFilter(name: "CIFalseColor"), iconImage: getIconImage(filter: CIFilter(name: "CIFalseColor"))))
-        list.append(Filter(name: "EffectChrome", filter: photoEffectChrome, iconImage: getIconImage(filter: photoEffectChrome)))
-        list.append(Filter(name: "EffectFade", filter: photoEffectFade, iconImage: getIconImage(filter: photoEffectFade)))
-        list.append(Filter(name: "EffectInstant", filter: photoEffectInstant, iconImage: getIconImage(filter: photoEffectInstant)))
-        list.append(Filter(name: "EffectMono", filter: photoEffectMono, iconImage: getIconImage(filter: photoEffectMono)))
-        list.append(Filter(name: "EffectNoir", filter: photoEffectNoir, iconImage: getIconImage(filter: photoEffectNoir)))
-        list.append(Filter(name: "EffectProcess", filter: photoEffectProcess, iconImage: getIconImage(filter: photoEffectProcess)))
-        list.append(Filter(name: "EffectTonal", filter: photoEffectTonal, iconImage: getIconImage(filter: photoEffectTonal)))
-        list.append(Filter(name: "EffectTransfer", filter: photoEffectTransfer, iconImage: getIconImage(filter: photoEffectTransfer)))
-        list.append(Filter(name: "Clamp", filter: colorClamp, iconImage: getIconImage(filter: colorClamp)))
+        list.append(plain)
+        list.append(sepiaTone)
+        list.append(falseColor)
+        list.append(photoEffectChrome)
+        list.append(photoEffectFade)
+        list.append(photoEffectInstant)
+        list.append(photoEffectMono)
+        list.append(photoEffectNoir)
+        list.append(photoEffectProcess)
+        list.append(photoEffectTonal)
+        list.append(photoEffectTransfer)
+        list.append(colorClamp)
+        list.append(unsharpMask)
+        list.append(comicEffect)
+        list.append(crystallize)
+        list.append(edges)
+        list.append(edgeWork)
+        list.append(highlightShadowAdjus)
+        list.append(lineOverlay)
+        list.append(pixellate)
+        list.append(pointillize)
+        list.append(kaleidoscope)
+        list.append(parallelogramTile)
     }
-
+    
     func getIconImage(filter: CIFilter?) -> UIImage {
         if let sourceImage = Filter.filterBubbleIconImage {
             if let ciImage = CIImage(image: sourceImage) {
@@ -113,115 +114,191 @@ class Filter: NSObject {
         return UIImage()
     }
     
+    var plain: Filter {
+        return Filter(name: "Plain", filter: nil)
+    }
+    
     // MARK: Photo Effect
     
-    var colorClamp: CIFilter? {
+    var sepiaTone: Filter {
+        let filter = CIFilter(name: "CISepiaTone")
+        return Filter(name: "Sepia", filter: filter)
+    }
+    
+    var falseColor: Filter {
+        let filter = CIFilter(name: "CIFalseColor")
+        return Filter(name: "False", filter: filter)
+    }
+    
+    var colorClamp: Filter {
         let filter = CIFilter(name: "CIColorClamp")
         let n: CGFloat = 0.05
         let minComp = CIVector(x: n, y: n, z: n, w: 1)
         let maxComp = CIVector(x: 1, y: 1, z: 1, w: 1)
         filter?.setValue(minComp, forKeyPath: "inputMinComponents")
         filter?.setValue(maxComp, forKeyPath: "inputMaxComponents")
-        return filter
+        return Filter(name: "colorClamp", filter: filter)
     }
     
-    var photoEffectChrome: CIFilter? {
+    var photoEffectChrome: Filter {
         let filter = CIFilter(name: "CIPhotoEffectChrome")
-        
-        return filter
+        return Filter(name: "photoEffectChrome", filter: filter)
     }
     
-    var photoEffectFade: CIFilter? {
+    var photoEffectFade: Filter {
         let filter = CIFilter(name: "CIPhotoEffectFade")
-        return filter
+        return Filter(name: "photoEffectFade", filter: filter)
     }
     
-    var photoEffectInstant: CIFilter? {
+    var photoEffectInstant: Filter {
         let filter = CIFilter(name: "CIPhotoEffectInstant")
-        return filter
+        return Filter(name: "photoEffectInstant", filter: filter)
     }
     
-    var photoEffectMono: CIFilter? {
+    var photoEffectMono: Filter {
         let filter = CIFilter(name: "CIPhotoEffectMono")
-        return filter
+        return Filter(name: "photoEffectMono", filter: filter)
     }
     
-    var photoEffectNoir: CIFilter? {
+    var photoEffectNoir: Filter {
         let filter = CIFilter(name: "CIPhotoEffectNoir")
-        return filter
+        return Filter(name: "photoEffectNoir", filter: filter)
     }
     
-    var photoEffectProcess: CIFilter? {
+    var photoEffectProcess: Filter {
         let filter = CIFilter(name: "CIPhotoEffectProcess")
-        return filter
+        return Filter(name: "photoEffectProcess", filter: filter)
     }
     
-    var photoEffectTonal: CIFilter? {
+    var photoEffectTonal: Filter {
         let filter = CIFilter(name: "CIPhotoEffectTonal")
-        return filter
+        return Filter(name: "photoEffectTonal", filter: filter)
     }
     
-    var photoEffectTransfer: CIFilter? {
+    var photoEffectTransfer: Filter {
         let filter = CIFilter(name: "CIPhotoEffectTransfer")
-        return filter
+        return Filter(name: "photoEffectTransfer", filter: filter)
     }
     
-    class var vignetteEffect: CIFilter? {
+    var vignetteEffect: Filter {
         let filter = CIFilter(name: "CIVignetteEffect")
-        return filter
+        return Filter(name: "vegnetteEffect", filter: filter)
     }
 
     // MARK: CICategoryColorEffect
     
-    class var colorControls: CIFilter? {
+    var colorControls: Filter {
         let filter = CIFilter(name: "CIColorControls")
-        
-        return filter
+        return Filter(name: "colorControls", filter: filter)
     }
     
-    class var colorMatrix: CIFilter? {
+    var colorMatrix: Filter {
         let filter = CIFilter(name: "CIColorMatrix")
-        return filter
+        return Filter(name: "colorMatrix", filter: filter)
     }
     
-    class var colorPolynomial: CIFilter? {
+    var colorPolynomial: Filter {
         let filter = CIFilter(name: "CIColorPolynomial")
-        return filter
+        return Filter(name: "colorPolynomial", filter: filter)
     }
     
-    class var colorCrossPolynomial: CIFilter? {
+    var colorCrossPolynomial: Filter {
         let filter = CIFilter(name: "CIColorCrossPolynomial")
-        return filter
+        return Filter(name: "colorCrossPolynomial", filter: filter)
     }
     
-    class var colorCube: CIFilter? {
+    var colorCube: Filter {
         let filter = CIFilter(name: "CIColorCube")
-
-        return filter
+        return Filter(name: "colorCube", filter: filter)
     }
 
-    class var colorCubeWithColorSpace: CIFilter? {
+    var colorCubeWithColorSpace: Filter {
         let filter = CIFilter(name: "CIColorCubeWithColorSpace")
-        return filter
+        return Filter(name: "colorCubeWithColorSpace", filter: filter)
     }
     
-    class var colorInvert: CIFilter? {
+    var colorInvert: Filter {
         let filter = CIFilter(name: "CIColorInvert")
-        return filter
+        return Filter(name: "colorInvert", filter: filter)
     }
     
-    class var colorMap: CIFilter? {
+    var colorMap: Filter {
         let filter = CIFilter(name: "CIColorMap")
-        return filter
+        return Filter(name: "colorMap", filter: filter)
     }
     
-    class var colorMonochrome: CIFilter? {
+    var colorMonochrome: Filter {
         let filter = CIFilter(name: "CIColorMonochrome")
-        return filter
+        return Filter(name: "colorMonochrome", filter: filter)
     }
     
-    class var colorPosterize: CIFilter? {
+    var colorPosterize: Filter {
         let filter = CIFilter(name: "CIColorPosterize")
-        return filter
+        return Filter(name: "colorPosterize", filter: filter)
     }
+    
+    // MARK: Sharpen
+    var unsharpMask: Filter {
+        let filter = CIFilter(name: "CIUnsharpMask")
+        return Filter(name: "unsharpMask", filter: filter)
+    }
+    
+    // MARK: CICategoryStylize
+    var comicEffect: Filter {
+        let filter = CIFilter(name: "CIComicEffect")
+        return Filter(name: "comicEffect", filter: filter)
+    }
+    
+    var crystallize: Filter {
+        let filter = CIFilter(name: "CICrystallize")
+        return Filter(name: "crystallize", filter: filter)
+    }
+    
+    var edges: Filter {
+        let filter = CIFilter(name: "CIEdges")
+        return Filter(name: "edges", filter: filter)
+    }
+    
+    var edgeWork: Filter {
+        let filter = CIFilter(name: "CIEdgeWork")
+        return Filter(name: "edgeWork", filter: filter)
+    }
+    
+    var gloom: Filter {
+        let filter = CIFilter(name: "CIGloom")
+        return Filter(name: "gloom", filter: filter)
+    }
+    
+    var highlightShadowAdjus: Filter {
+        let filter = CIFilter(name: "CIHighlightShadowAdjus")
+        return Filter(name: "highlightShadowAdjus", filter: filter)
+    }
+    
+    var lineOverlay: Filter {
+        let filter = CIFilter(name: "CILineOverlay")
+        return Filter(name: "lineOverlay", filter: filter)
+    }
+    
+    var pixellate: Filter {
+        let filter = CIFilter(name: "CIPixellate")
+        return Filter(name: "pixellate", filter: filter)
+    }
+    
+    var pointillize: Filter {
+        let filter = CIFilter(name: "CIPointillize")
+        return Filter(name: "pointillize", filter: filter)
+    }
+    
+    // MARK: CICategoryTileEffect
+    
+    var kaleidoscope: Filter {
+        let filter = CIFilter(name: "CIKaleidoscope")
+        return Filter(name: "kaleidoscope", filter: filter)
+    }
+    
+    var parallelogramTile: Filter {
+        let filter = CIFilter(name: "CIParallelogramTile")
+        return Filter(name: "parallelogramTile", filter: filter)
+    }
+
 }
