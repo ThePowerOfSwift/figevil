@@ -8,23 +8,19 @@
 
 import UIKit
 
-class FirstTimeExperienceViewController: UIViewController, SatoCameraOutput {
+class FirstTimeExperienceViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
 
-    var satoCamera: SatoCamera = SatoCamera.shared
-    // MARK: SatoCameraOutput
-    // Must always be behind all other views
-    var sampleBufferView: UIView? = UIView()
-    // Must always be on top of sampleBuffer
-    var outputImageView: UIImageView? = UIImageView()
+    @IBOutlet weak var skipButton: UIButton!
+    @IBOutlet weak var nextButton: UIButton!
 
-    
-    @IBAction func tappedContinue(_ sender: Any) {
-        let first = Storyboard.rootViewController
-        
-        present(first, animated: true) { 
-            
-        }
-    }
+    // Page View Controller
+    var vcs: [UIViewController] = []
+    @IBOutlet weak var pageViewContainer: UIView!
+    let pageVC = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal,
+                                      options: [UIPageViewControllerOptionSpineLocationKey: UIPageViewControllerSpineLocation.max,
+                                                UIPageViewControllerOptionInterPageSpacingKey: 0 as NSNumber])
+
+    // MARK: Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,21 +28,22 @@ class FirstTimeExperienceViewController: UIViewController, SatoCameraOutput {
         AppDelegate.isFirstTimeLaunch = false
         // Do any additional setup after loading the view.
         
+        // Setup datasource
+        pageVC.dataSource = self
+        pageVC.delegate = self
         
-        // SatoCamera setup
-        if let sampleBufferView = sampleBufferView {
-            sampleBufferView.frame = view.bounds
-            sampleBufferView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            view.insertSubview(sampleBufferView, at: 0)
-        }
-        
-        if let outputImageView = outputImageView {
-            outputImageView.frame = view.bounds
-            outputImageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            view.insertSubview(outputImageView, at: 1)
-        }
-        
-        satoCamera.cameraOutput = self
+        let storyboard = UIStoryboard(name: "FirstTimeExperience", bundle: nil)
+        vcs.append(storyboard.instantiateViewController(withIdentifier: "FTEWelcomeViewController"))
+        vcs.append(storyboard.instantiateViewController(withIdentifier: "FTEGetStartedViewController"))
+        vcs.append(storyboard.instantiateViewController(withIdentifier: "FTECameraViewController"))
+
+        // Setup page vc
+        pageVC.setViewControllers([vcs.first!], direction: .forward, animated: true) { (success) in }
+        pageVC.willMove(toParentViewController: self)
+        pageVC.view.frame = pageViewContainer.bounds
+        pageVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        pageViewContainer.addSubview(pageVC.view)
+        addChildViewController(pageVC)
     }
 
     override func didReceiveMemoryWarning() {
@@ -54,25 +51,67 @@ class FirstTimeExperienceViewController: UIViewController, SatoCameraOutput {
         // Dispose of any resources that can be recreated.
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        satoCamera.start()
+    // MARK: Setup
+    
+
+    // MARK: UIPageViewControllerDataSource
+    
+    func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+        
+        if let idx = index(of: viewController) {
+            let requested = idx + 1
+            if (requested >= 0 && requested < vcs.count) {
+                return vcs[requested]
+            }
+        }
+        return nil
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        satoCamera.stop()
+    func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+        if let idx = index(of: viewController) {
+            let requested = idx - 1
+            if (requested >= 0 && requested < vcs.count) {
+                return vcs[requested]
+            }
+        }
+        return nil
     }
-
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    
+    func index(of viewController: UIViewController) -> Int? {
+        guard let idx = vcs.index(of: viewController) else {
+            return nil
+        }
+        return idx
     }
-    */
+    
+    // MARK: UIPageViewControllerDelegate
+    
+    func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
+        updateButtons(for: pendingViewControllers.first!)
+    }
+    
+//    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+//    }
+    
+    func updateButtons(for viewController: UIViewController) {
+        // Skip / End button
+        skipButton.titleLabel?.text = viewController == vcs.last ? "End" : "Skip"
+        nextButton.isHidden = viewController == vcs.last
+    }
+    
+    // MARK: Actions
+    
+    @IBAction func tappedSkip(_ sender: Any) {
+        present(Storyboard.rootViewController, animated: true) { }
+    }
+    
+    @IBAction func tappedNext(_ sender: Any) {
+        if let next = pageViewController(pageVC, viewControllerAfter: pageVC.viewControllers!.first!) {
+            updateButtons(for: next)
+            pageVC.setViewControllers([next], direction: .forward, animated: true, completion: { (success) in
+            })
+        }
+        
+    }
 
 }

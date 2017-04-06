@@ -6,6 +6,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12086"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -21,21 +22,212 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="f1O-V5-txc">
-                                <rect key="frame" x="156" y="617" width="62" height="30"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Continue"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="q7d-qk-0Wy">
+                                <rect key="frame" x="0.0" y="20" width="375" height="647"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="f1O-V5-txc">
+                                <rect key="frame" x="325" y="617" width="30" height="30"/>
+                                <state key="normal" title="Skip"/>
                                 <connections>
-                                    <action selector="tappedContinue:" destination="8bB-ZR-eQI" eventType="touchUpInside" id="Znb-0H-9dC"/>
+                                    <action selector="tappedSkip:" destination="8bB-ZR-eQI" eventType="touchUpInside" id="IkO-oh-ciQ"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Sgf-LF-VCk">
+                                <rect key="frame" x="161" y="617" width="53" height="30"/>
+                                <state key="normal" title="Next → "/>
+                                <connections>
+                                    <action selector="tappedNext:" destination="8bB-ZR-eQI" eventType="touchUpInside" id="ASY-4v-hZu"/>
                                 </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="Bhq-wn-fWL" firstAttribute="top" secondItem="Sgf-LF-VCk" secondAttribute="bottom" constant="20" id="6Gc-ZT-Ch7"/>
+                            <constraint firstItem="Bhq-wn-fWL" firstAttribute="top" secondItem="f1O-V5-txc" secondAttribute="bottom" constant="20" id="Cm7-uC-g13"/>
+                            <constraint firstItem="q7d-qk-0Wy" firstAttribute="leading" secondItem="D5H-8F-xJB" secondAttribute="leading" id="D7x-qk-dm5"/>
+                            <constraint firstAttribute="trailing" secondItem="f1O-V5-txc" secondAttribute="trailing" constant="20" id="DMG-xu-rPS"/>
+                            <constraint firstItem="Sgf-LF-VCk" firstAttribute="centerX" secondItem="D5H-8F-xJB" secondAttribute="centerX" id="R9i-4q-Hgs"/>
+                            <constraint firstItem="Bhq-wn-fWL" firstAttribute="top" secondItem="q7d-qk-0Wy" secondAttribute="bottom" id="vDw-wz-ZTB"/>
+                            <constraint firstItem="q7d-qk-0Wy" firstAttribute="top" secondItem="IUr-Uz-XMX" secondAttribute="bottom" id="vya-KF-GzP"/>
+                            <constraint firstAttribute="trailing" secondItem="q7d-qk-0Wy" secondAttribute="trailing" id="x9I-Cq-5c4"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="nextButton" destination="Sgf-LF-VCk" id="aVG-Uy-eVF"/>
+                        <outlet property="pageViewContainer" destination="q7d-qk-0Wy" id="CZE-Fn-6gw"/>
+                        <outlet property="skipButton" destination="f1O-V5-txc" id="KPw-CK-I1e"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="mNo-5o-UWr" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-872.79999999999995" y="143.47826086956522"/>
         </scene>
+        <!--Get Started View Controller-->
+        <scene sceneID="kOx-L1-UPn">
+            <objects>
+                <viewController storyboardIdentifier="FTEGetStartedViewController" id="dWn-jL-TGd" customClass="FTEGetStartedViewController" customModule="figevil" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="aF6-Qs-r9Q"/>
+                        <viewControllerLayoutGuide type="bottom" id="Kyu-db-UI0"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="sCj-UN-9tv">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Let's get started" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1QN-CL-GMU">
+                                <rect key="frame" x="16" y="20" width="343" height="29"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="29" id="WXQ-sP-uk1"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="24"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Time to make your first me-GIF!  When you're ready, swipe right!" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="orJ-Q6-XvC">
+                                <rect key="frame" x="16" y="49" width="343" height="151"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="151" id="eCi-h5-0e8"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="151" id="vhP-Sb-mRo"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="20"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="bottom" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="selfie.gif" translatesAutoresizingMaskIntoConstraints="NO" id="iiU-ym-pNb">
+                                <rect key="frame" x="112" y="254" width="150" height="393"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="393" id="5Lu-gO-BQN"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" red="0.10428158193826675" green="0.65683513879776001" blue="0.61343508958816528" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="orJ-Q6-XvC" firstAttribute="top" secondItem="1QN-CL-GMU" secondAttribute="bottom" id="4bO-Zn-0Yw"/>
+                            <constraint firstItem="orJ-Q6-XvC" firstAttribute="trailing" secondItem="sCj-UN-9tv" secondAttribute="trailingMargin" id="A9I-fc-lQC"/>
+                            <constraint firstItem="orJ-Q6-XvC" firstAttribute="leading" secondItem="sCj-UN-9tv" secondAttribute="leadingMargin" id="D1L-tE-Cc6"/>
+                            <constraint firstItem="1QN-CL-GMU" firstAttribute="trailing" secondItem="sCj-UN-9tv" secondAttribute="trailingMargin" id="OXM-gZ-DLR"/>
+                            <constraint firstItem="1QN-CL-GMU" firstAttribute="top" secondItem="aF6-Qs-r9Q" secondAttribute="bottom" id="bZq-3i-5kY"/>
+                            <constraint firstAttribute="trailing" secondItem="iiU-ym-pNb" secondAttribute="trailing" constant="113" id="n8I-1T-ek3"/>
+                            <constraint firstItem="Kyu-db-UI0" firstAttribute="top" secondItem="iiU-ym-pNb" secondAttribute="bottom" constant="20" id="rXx-DY-0OV"/>
+                            <constraint firstItem="iiU-ym-pNb" firstAttribute="leading" secondItem="sCj-UN-9tv" secondAttribute="leading" constant="112" id="x1V-CG-AsF"/>
+                            <constraint firstItem="1QN-CL-GMU" firstAttribute="leading" secondItem="sCj-UN-9tv" secondAttribute="leadingMargin" id="yXv-fk-o1A"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="selfieImageView" destination="iiU-ym-pNb" id="MON-r4-L8K"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Fwe-U9-DaV" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1565.5999999999999" y="152.47376311844079"/>
+        </scene>
+        <!--Camera View Controller-->
+        <scene sceneID="rBX-3D-DX7">
+            <objects>
+                <viewController storyboardIdentifier="FTECameraViewController" id="bsm-wn-Vuw" customClass="FTECameraViewController" customModule="figevil" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="DVH-XU-Ul7"/>
+                        <viewControllerLayoutGuide type="bottom" id="Vkc-dk-U93"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="SJg-Jx-TVn">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="XVj-dy-M0Y" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2273" y="152"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="hyc-7l-OZG">
+            <objects>
+                <viewController storyboardIdentifier="FTEWelcomeViewController" id="Kpz-Q5-HBE" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="pW8-Ob-wDR"/>
+                        <viewControllerLayoutGuide type="bottom" id="lQF-pt-BgS"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="5nl-wx-YRw">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Make me-GIFs" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="39q-2g-KxX">
+                                <rect key="frame" x="16" y="20" width="343" height="29"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="29" id="Qtw-w3-0VI"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="24"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="me me lets you make personalized GIFs to share with your friends and family. Before we begin, enable our keyboard:" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vAF-0d-hll">
+                                <rect key="frame" x="16" y="49" width="343" height="151"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="151" id="ahS-LO-sQB"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="20"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="settings icon.png" translatesAutoresizingMaskIntoConstraints="NO" id="7Oj-uW-Ip0">
+                                <rect key="frame" x="16" y="208" width="50" height="62"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="general.png" translatesAutoresizingMaskIntoConstraints="NO" id="ZYA-Gh-5Bp">
+                                <rect key="frame" x="16" y="278" width="330" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="keyboard.png" translatesAutoresizingMaskIntoConstraints="NO" id="b4C-H9-fhr">
+                                <rect key="frame" x="16" y="329" width="330" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="keyboards.png" translatesAutoresizingMaskIntoConstraints="NO" id="bDi-sJ-I6a">
+                                <rect key="frame" x="16" y="380" width="330" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="add new keyboard.png" translatesAutoresizingMaskIntoConstraints="NO" id="FTR-jU-Hnp">
+                                <rect key="frame" x="16" y="431" width="330" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="figevil keyboard.png" translatesAutoresizingMaskIntoConstraints="NO" id="NtJ-ry-eNT">
+                                <rect key="frame" x="16" y="482" width="330" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="figevil enable.png" translatesAutoresizingMaskIntoConstraints="NO" id="oMY-oq-Se9">
+                                <rect key="frame" x="16" y="533" width="330" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="full access.png" translatesAutoresizingMaskIntoConstraints="NO" id="gOi-mL-oBc">
+                                <rect key="frame" x="16" y="584" width="330" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" red="0.0" green="1" blue="0.50196081400000003" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstItem="39q-2g-KxX" firstAttribute="leading" secondItem="5nl-wx-YRw" secondAttribute="leadingMargin" id="LQw-eX-lSy"/>
+                            <constraint firstItem="vAF-0d-hll" firstAttribute="top" secondItem="39q-2g-KxX" secondAttribute="bottom" id="Myt-ax-ZqQ"/>
+                            <constraint firstItem="vAF-0d-hll" firstAttribute="leading" secondItem="5nl-wx-YRw" secondAttribute="leadingMargin" id="PNV-sP-3f3"/>
+                            <constraint firstItem="39q-2g-KxX" firstAttribute="trailing" secondItem="5nl-wx-YRw" secondAttribute="trailingMargin" id="XtJ-yi-PgE"/>
+                            <constraint firstItem="39q-2g-KxX" firstAttribute="top" secondItem="pW8-Ob-wDR" secondAttribute="bottom" id="dew-s7-BN1"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="vAF-0d-hll" secondAttribute="trailing" id="lMQ-TW-aGv"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="0ZL-U1-vry" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="821.60000000000002" y="154.27286356821591"/>
+        </scene>
     </scenes>
+    <resources>
+        <image name="add new keyboard.png" width="870" height="126"/>
+        <image name="figevil enable.png" width="880" height="122"/>
+        <image name="figevil keyboard.png" width="878" height="116"/>
+        <image name="full access.png" width="880" height="108"/>
+        <image name="general.png" width="880" height="114"/>
+        <image name="keyboard.png" width="870" height="132"/>
+        <image name="keyboards.png" width="874" height="118"/>
+        <image name="selfie.gif" width="1400" height="667"/>
+        <image name="settings icon.png" width="146" height="192"/>
+    </resources>
 </document>
