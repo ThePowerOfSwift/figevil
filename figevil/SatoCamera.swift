@@ -28,11 +28,13 @@ struct SavedURLs {
     var original: URL
 }
 
-protocol SatoCameraOutput {
+@objc protocol SatoCameraOutput {
     /** Show the filtered output image view. */
     var outputImageView: UIImageView? { get set }
     /** Show the live preview. GLKView is added to this view. */
-    var sampleBufferView: UIView? { get }    
+    var sampleBufferView: UIView? { get }
+    
+    @objc optional func didLiveGifStop()
 }
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
@@ -686,6 +688,7 @@ class SatoCamera: NSObject {
     /** Stops image post-storing. Calls showGif to show gif.*/
     fileprivate func stopLiveGif() {
         isSnappedGif = false
+        cameraOutput?.didLiveGifStop?()
         deviceOrientation = UIDevice.current.orientation
         print(deviceOrientation.rawValue)
         stop()
