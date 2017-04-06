@@ -26,11 +26,23 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         let longpress = UILongPressGestureRecognizer(target: self, action: #selector(record(_:)))
         snapButton.addGestureRecognizer(longpress)
+        
+        if let image = UIImage(named: "circle.png") {
+            let templateImage = image.withRenderingMode(.alwaysTemplate)
+            snapButton.setImage(templateImage, for: .normal)
+            snapButton.tintColor = UIColor.white
+        }
+        
     }
     
     /** Snap live gif. */
     func snapLiveGif(_ sender: UIControlEvents) {
         satoCamera.snapLiveGif()
+        snapButton.tintColor = UIColor.red
+    }
+    
+    func didLiveGifStop() {
+        snapButton.tintColor = UIColor.white
     }
     
     func record(_ sender: UILongPressGestureRecognizer) {

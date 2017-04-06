@@ -23,6 +23,10 @@ enum ApplicationGroup {
     static let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: ApplicationGroup.identifier)
 }
 
+enum BubbleIcon {
+    static let filter = "ice_cream_cone.png"
+}
+
 enum UserGenerated {
     static let thumbnailTag = "@thumbnail"
     static let messageTag = "@message"
