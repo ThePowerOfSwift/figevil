@@ -62,7 +62,7 @@ class SatoCamera: NSObject {
     
     // MARK: State
     fileprivate var cameraFace: CameraFace = .Back
-    fileprivate var currentFilter: Filter = Filter.list()[0]
+    fileprivate var currentFilter: Filter = Filter.shared.list[0]
     fileprivate var light = Light()
 
     // MARK: Results
@@ -223,7 +223,7 @@ class SatoCamera: NSObject {
         videoGLKPreviewViewBounds?.size.height = CGFloat(videoGLKPreview.drawableHeight) // 749 pixels
         
         ciContext = CIContext(eaglContext: eaglContext)
-        setupOpenGL()
+        configureOpenGL()
         
         configureSession()
     }
@@ -239,7 +239,7 @@ class SatoCamera: NSObject {
         }
     }
 
-    func setupOpenGL() {
+    func configureOpenGL() {
         // OpenGL official documentation: https://www.khronos.org/registry/OpenGL-Refpages/es2.0/
         // clear eagl view to grey
         glClearColor(0.5, 0.5, 0.5, 1.0) // specify clear values for the color buffers
@@ -808,28 +808,28 @@ extension URL {
     
     /** Make UIImage from URL*/
     func makeUIImage(filter: CIFilter?, context: CIContext) -> UIImage? {
-        guard let cgImage = self.cgImage else {
+        guard let sourceCIImage = self.cgImage?.ciImage else {
             print("cgImage is nil in \(#function)")
             return nil
         }
         
-        var ciImage = CIImage()
+        var filteredCIImage = CIImage()
         if let filter = filter {
             
-            filter.setValue(cgImage.ciImage, forKeyPath: kCIInputImageKey)
+            filter.setValue(sourceCIImage, forKeyPath: kCIInputImageKey)
             if let image = filter.outputImage {
-                ciImage = image
+                filteredCIImage = image
             } else {
                 print("Error: failed to make filtered image in \(#function)")
-                ciImage = cgImage.ciImage
+                filteredCIImage = sourceCIImage
             }
             
         } else {
-            ciImage = cgImage.ciImage
+            filteredCIImage = sourceCIImage
         }
         
         // use cgImage.ciImage.extent because the new ciImage does not have extent
-        let filteredCGImage = context.createCGImage(ciImage, from: cgImage.ciImage.extent)
+        let filteredCGImage = context.createCGImage(filteredCIImage, from: sourceCIImage.extent)
         
         let uiImage = UIImage(cgImage: filteredCGImage!)
         return uiImage
@@ -1180,6 +1180,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
 //        DispatchQueue.main.async {
 //            self.videoGLKPreview.display()
 //        }
+        
         videoGLKPreview.display()
     }
 }

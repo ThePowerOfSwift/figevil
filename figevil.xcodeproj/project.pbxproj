@@ -64,6 +64,8 @@
 		E377C1431E89DF5200573E12 /* StraightCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E377C1421E89DF5200573E12 /* StraightCollectionViewLayout.swift */; };
 		E377C1451E89E9C200573E12 /* UIImageView+Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E377C1441E89E9C200573E12 /* UIImageView+Gif.swift */; };
 		E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B491491E68E16B007C8F29 /* Gif.swift */; };
+		E3BF4D251E95BAD0005346E0 /* icecream.png in Resources */ = {isa = PBXBuildFile; fileRef = E3BF4D241E95BAD0005346E0 /* icecream.png */; };
+		E3BF4D291E95CD86005346E0 /* ice_cream_cone.png in Resources */ = {isa = PBXBuildFile; fileRef = E3BF4D281E95CD86005346E0 /* ice_cream_cone.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -153,6 +155,8 @@
 		E377C1421E89DF5200573E12 /* StraightCollectionViewLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StraightCollectionViewLayout.swift; sourceTree = "<group>"; };
 		E377C1441E89E9C200573E12 /* UIImageView+Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImageView+Gif.swift"; sourceTree = "<group>"; };
 		E3B491491E68E16B007C8F29 /* Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Gif.swift; sourceTree = "<group>"; };
+		E3BF4D241E95BAD0005346E0 /* icecream.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icecream.png; sourceTree = "<group>"; };
+		E3BF4D281E95CD86005346E0 /* ice_cream_cone.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ice_cream_cone.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -301,6 +305,8 @@
 				7857A02B1E6504EC00660B68 /* chinatown.jpg */,
 				7857A02C1E6504EC00660B68 /* golden_gate_bridge.jpg */,
 				7857A02D1E6504EC00660B68 /* montgomery.jpg */,
+				E3BF4D281E95CD86005346E0 /* ice_cream_cone.png */,
+				E3BF4D241E95BAD0005346E0 /* icecream.png */,
 			);
 			name = TBD;
 			sourceTree = "<group>";
@@ -462,6 +468,7 @@
 				78B5DD1C1E675EC500192135 /* checkmark.png in Resources */,
 				7857A02F1E6504EC00660B68 /* golden_gate_bridge.jpg in Resources */,
 				78B5DD191E675EC500192135 /* paintbrush.png in Resources */,
+				E3BF4D251E95BAD0005346E0 /* icecream.png in Resources */,
 				782399E21E8489C200207B56 /* FirstTimeExperience.storyboard in Resources */,
 				782BB2621E7C7F5000EFD135 /* BbgL7x3.gif in Resources */,
 				78B5DD181E675EC500192135 /* camera.png in Resources */,
@@ -472,6 +479,7 @@
 				78B5DD1A1E675EC500192135 /* text.png in Resources */,
 				78B5DD1E1E675EC500192135 /* flash.png in Resources */,
 				7857A02E1E6504EC00660B68 /* chinatown.jpg in Resources */,
+				E3BF4D291E95CD86005346E0 /* ice_cream_cone.png in Resources */,
 				78B5DD1D1E675EC500192135 /* back.png in Resources */,
 				78B5DD1B1E675EC500192135 /* filter.png in Resources */,
 				7854BA001E64FD7D00591255 /* Camera.storyboard in Resources */,

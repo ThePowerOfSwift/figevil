@@ -21,8 +21,8 @@ class FilterImageEffect: NSObject, CameraViewBubbleMenu {
     }
     
     func setupBubbleMenuContent() {
-        for filter in Filter.list() {
-            let bubble = BubbleMenuCollectionViewCellContent(image: UIImage(named:filter.imageUrlString)!, label: filter.name)
+        for filter in Filter.shared.list {
+            let bubble = BubbleMenuCollectionViewCellContent(image: filter.iconImage, label: filter.name)
             menuContent.append(bubble)
         }
     }
@@ -30,7 +30,7 @@ class FilterImageEffect: NSObject, CameraViewBubbleMenu {
     // MARK: CameraViewBubbleMenu
     
     func menu(_ sender: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
-        let filter = Filter.list()[indexPath.row]
+        let filter = Filter.shared.list[indexPath.row]
         delegate?.didSelectFilter(self, filter: filter)
     }
     
