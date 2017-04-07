@@ -790,8 +790,10 @@ class SatoCamera: NSObject {
         }
         
         let aSerialQueue = DispatchQueue(label: "sample")
+        
+        while true {
             for resizedCIImage in resizedCIImages {
-                sessionQueue.sync {
+                sessionQueue.async { [unowned self] in
 
                     var filteredCIImage = CIImage()
                     if let filter = self.currentFilter.filter {
@@ -817,7 +819,7 @@ class SatoCamera: NSObject {
                     //}
                 }
             }
-        
+        }
 
 //        while true {
             
