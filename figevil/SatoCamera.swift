@@ -28,6 +28,32 @@ struct SavedURLs {
     var original: URL
 }
 
+/** Gif preset. */
+struct LiveGifPreset {
+    /** has to be 0 < gifFPS <= 15 and 30 */
+    var gifFPS: Int
+    var liveGifDuration: TimeInterval
+    
+    var frameCaptureFrequency: Int {
+        return Int(sampleBufferFPS) / gifFPS
+    }
+    var sampleBufferFPS: Int32 = 30
+    var liveGifFrameTotalCount: Int {
+        return Int(liveGifDuration * Double(gifFPS))
+    }
+    
+    /** The amount of time each frame stays. */
+    var frameDelay: Double {
+        return Double(liveGifDuration) / Double(liveGifFrameTotalCount)
+    }
+    
+    init(gifFPS: Int, liveGifDuration: TimeInterval) {
+        self.gifFPS = gifFPS
+        self.liveGifDuration = liveGifDuration
+    }
+}
+
+
 @objc protocol SatoCameraOutput {
     /** Show the filtered output image view. */
     var outputImageView: UIImageView? { get set }
@@ -104,26 +130,6 @@ class SatoCamera: NSObject {
         }
     }
     
-    func releaseCameraOutput() {
-        if let cameraOutput = cameraOutput {
-            if let outputImageView = cameraOutput.outputImageView {
-                for subview in outputImageView.subviews {
-                    subview.removeFromSuperview()
-                }
-            } else {
-                print("cameraOutput's outputImageView is nil in \(#function)")
-            }
-            
-            if let sampleBufferView = cameraOutput.sampleBufferView {
-                for subview in sampleBufferView.subviews {
-                    subview.removeFromSuperview()
-                }
-            } else {
-                print("cameraOutput's sampleBufferView is nil in \(#function)")
-            }
-        }
-    }
-    
     // Gif setting
     var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
 
@@ -179,25 +185,24 @@ class SatoCamera: NSObject {
         return URL(fileURLWithPath: path)
     }
     
-    var maxPixelScale = 3.0
-    
     func getMaxPixel(scale: Double) -> Int {
         let longerSide = Double(max(frame.height, frame.width))
         return Int(longerSide / scale)
     }
     
-    // TODO: make this class property
-    // TODO: make resizing array of URL method
     // scale 3 is around 500KB
     // scale 2 is around 800KB ~ 1000KB
     // scale 2.1 is 900KB with text and drawing
-    // scale 1 is around 3000KB
-    
+    // scale 1 is around 3000K
     //let pixelSizeForMessage = getMaxPixel(scale: 2.1) // 350 on iPhone 7 plus, 317 on iPhone 6
     //let pixelSizeForThumbnail = getMaxPixel(scale: 3) // 245 on iPhone 7 plus, 222 on iphone 6
     
     var messagePixelSize = 350
     var thumbnailPixelSize = 245
+    
+    var shouldSaveFrame: Bool {
+        return self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0
+    }
     
     // MARK: - Setups
     init(frame: CGRect) {
@@ -640,13 +645,11 @@ class SatoCamera: NSObject {
     func share(renderItems: [UIImage], completion: ((_ saved: Bool, _ savedUrl: URL?) -> ())?) {
 
         renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
-
-        let pixelSizeForMessage = getMaxPixel(scale: 2.1)
         
         var messageURLs = [URL]()
         for url in renderedURLs {
             
-            if let messageURL = url.resize(maxSize: pixelSizeForMessage, destinationURL: resizedUrlPath) {
+            if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
                 messageURLs.append(messageURL)
             } else {
                 print("resizing to message failed in \(#function)")
@@ -676,7 +679,6 @@ class SatoCamera: NSObject {
     internal func stopRecordingGif() {
         stop()
         isRecording = false
-
         showGif()
     }
     
@@ -690,9 +692,9 @@ class SatoCamera: NSObject {
         isSnappedGif = false
         cameraOutput?.didLiveGifStop?()
         deviceOrientation = UIDevice.current.orientation
-        print(deviceOrientation.rawValue)
         stop()
-        showGif()
+        //showGif()
+        showGifWithGLKView()
     }
     
     /** Creates an image view with images for animation. Show the image view on output image view. */
@@ -726,12 +728,98 @@ class SatoCamera: NSObject {
             print("gifImageView is nil")
         }
     }
+    
+    func showGifWithGLKView() {
+        // make resized images from originals here
+        var resizedTempURLs = [URL]()
+        let resizedMaxPixel = getMaxPixel(scale: 1)
+        for url in originalURLs {
+            if let resizedUrl = url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
+                resizedTempURLs.append(resizedUrl)
+            } else {
+                print("failed to get resized URL")
+            }
+        }
+        
+        resizedURLs = resizedTempURLs
+        
+        if let cameraOutput = cameraOutput {
+            if let outputImageView = cameraOutput.outputImageView {
+                //outputImageView.isHidden = false
+                for subview in outputImageView.subviews {
+                    subview.removeFromSuperview()
+                }
+            }
+            //cameraOutput.sampleBufferView?.isHidden = true
+        }
+        
+        
+        guard let gifEaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
+            print("Error: failed to create EAGLContext in \(#function)")
+            return
+        }
+        let gifGLKView = GLKView(frame: frame, context: gifEaglContext)
+        cameraOutput?.outputImageView?.addSubview(gifGLKView)
+        cameraOutput?.outputImageView?.sendSubview(toBack: gifGLKView)
+        gifGLKView.bindDrawable()
+        var gifGLKViewPreviewViewBounds = CGRect.zero
+        gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
+        gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
+        
+        let gifCIContext = CIContext(eaglContext: gifEaglContext)
+        configureOpenGL()
+        gifGLKView.enableSetNeedsDisplay = false
+
+        
+        
+        //gifGLKView.bindDrawable()
+        
+        if gifEaglContext != EAGLContext.current() {
+            EAGLContext.setCurrent(gifEaglContext)
+        }
+        
+        var resizedCIImages = [CIImage]()
+        for url in resizedTempURLs {
+            guard let sourceCIImage = url.cgImage?.ciImage else {
+                print("cgImage is nil in \(#function)")
+                return
+            }
+            resizedCIImages.append(sourceCIImage)
+        }
+        
+        while true {
+            for resizedCIImage in resizedCIImages {
+                
+                var filteredCIImage = CIImage()
+                if let filter = currentFilter.filter {
+                    filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
+                    if let outputImage = filter.outputImage {
+                        filteredCIImage = outputImage
+                    } else {
+                        print("Error: failed to make filtered image in \(#function)")
+                        filteredCIImage = resizedCIImage
+                    }
+                } else {
+                    filteredCIImage = resizedCIImage
+                }
+                ciContext?.draw(filteredCIImage, in: gifGLKViewPreviewViewBounds, from: resizedCIImage.extent)
+//                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(4), execute: {
+//                    self.videoGLKPreview.display()
+//                })
+
+                
+                //sleep(1)
+                self.videoGLKPreview.display()
+            }
+        }
+        
+    }
 
     /** Make a gif image view from urls. */
     func makeGif(urls: [URL], filter: CIFilter?) -> UIImageView? {
         
         filteredUIImages.removeAll()
-        let ciContext = CIContext()
+        let ciContext = CIContext() // Reuse this context.
         for url in urls {
             
             if let image = url.makeUIImage(filter: filter, context: ciContext) {
@@ -748,8 +836,6 @@ class SatoCamera: NSObject {
         
         return imageView
     }
-    
-    var frameSavedCount = 0
 }
 
 // MARK: - Other Extensions
@@ -961,7 +1047,7 @@ extension CGImage {
 
 extension CMSampleBuffer {
     /** Save image from CVPixelBuffer to disk without loading into memory */
-    func saveFrameToDisk(outputURL: URL? = nil, count: inout Int) -> URL? {
+    func saveFrameToDisk(outputURL: URL? = nil) -> URL? {
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(self) else {
             print("Error: Image buffer is nil")
             return nil
@@ -1004,8 +1090,7 @@ extension CMSampleBuffer {
                                     return nil
         }
         
-        //let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
-        let path = NSTemporaryDirectory().appending(String(count))
+        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
         let url = outputURL ?? URL(fileURLWithPath: path)
         guard let imageDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeJPEG, 1, nil) else {
             print("Error: cannot create image destination")
@@ -1023,24 +1108,17 @@ extension CMSampleBuffer {
             print("Error: failed to finalize image destination")
             return nil
         }
-        count += 1
         return url
     }
 }
 
 extension Sequence where Iterator.Element == URL {
-//    func createGif(loopCount: Int = 0, frameDelay: Double, destinationURL: URL) -> Iterator.Element? {
-
     func createGif(loopCount: Int = 0, frameDelay: Double, destinationURL: URL) -> Bool {
         let imageURLs = self as! [URL]
         // Data check
         if imageURLs.count <= 0 {
             return false
         }
-        
-        // Generate default output url
-        
-//        let url = userGeneratedGifURL!.appendingPathComponent(String(Date().timeIntervalSinceReferenceDate).appending(".gif"), isDirectory: false)
         
         // Create write-to destination
         guard let gifDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, kUTTypeGIF, imageURLs.count, nil) else {
@@ -1128,9 +1206,9 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         frameSavingSerialQueue.async { [unowned self] in
             
             self.didOutputSampleBufferMethodCallCount += 1
-            if self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0 {
+            if self.shouldSaveFrame {
                 
-                if let url = sampleBuffer.saveFrameToDisk(outputURL: self.originalUrlPath, count: &self.frameSavedCount) {
+                if let url = sampleBuffer.saveFrameToDisk(outputURL: self.originalUrlPath) {
                     self.originalURLs.append(url)
                     
                     if !self.isSnappedGif {
