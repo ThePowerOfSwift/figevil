@@ -729,6 +729,8 @@ class SatoCamera: NSObject {
         }
     }
     
+    //try changing animatedImages in realtime
+    
     func showGifWithGLKView() {
         // make resized images from originals here
         var resizedTempURLs = [URL]()
@@ -745,12 +747,12 @@ class SatoCamera: NSObject {
         
         if let cameraOutput = cameraOutput {
             if let outputImageView = cameraOutput.outputImageView {
-                //outputImageView.isHidden = false
+                outputImageView.isHidden = false
                 for subview in outputImageView.subviews {
                     subview.removeFromSuperview()
                 }
             }
-            //cameraOutput.sampleBufferView?.isHidden = true
+            cameraOutput.sampleBufferView?.isHidden = true
         }
         
         
@@ -787,31 +789,91 @@ class SatoCamera: NSObject {
             resizedCIImages.append(sourceCIImage)
         }
         
-        while true {
+        let aSerialQueue = DispatchQueue(label: "sample")
             for resizedCIImage in resizedCIImages {
-                
-                var filteredCIImage = CIImage()
-                if let filter = currentFilter.filter {
-                    filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
-                    if let outputImage = filter.outputImage {
-                        filteredCIImage = outputImage
+                sessionQueue.sync {
+
+                    var filteredCIImage = CIImage()
+                    if let filter = self.currentFilter.filter {
+                        filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
+                        if let outputImage = filter.outputImage {
+                            filteredCIImage = outputImage
+                        } else {
+                            print("Error: failed to make filtered image in \(#function)")
+                            filteredCIImage = resizedCIImage
+                        }
                     } else {
-                        print("Error: failed to make filtered image in \(#function)")
                         filteredCIImage = resizedCIImage
                     }
-                } else {
-                    filteredCIImage = resizedCIImage
+                    self.ciContext?.draw(filteredCIImage, in: gifGLKViewPreviewViewBounds, from: resizedCIImage.extent)
+                    //                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(4), execute: {
+                    //                    self.videoGLKPreview.display()
+                    //                })
+                    
+                    
+                    //sleep(1)
+                    //DispatchQueue.main.sync {
+                        self.videoGLKPreview.display()
+                    //}
                 }
-                ciContext?.draw(filteredCIImage, in: gifGLKViewPreviewViewBounds, from: resizedCIImage.extent)
-//                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(4), execute: {
-//                    self.videoGLKPreview.display()
-//                })
-
-                
-                //sleep(1)
-                self.videoGLKPreview.display()
             }
-        }
+        
+
+//        while true {
+            
+            
+//            for resizedCIImage in resizedCIImages {
+//                
+//                var filteredCIImage = CIImage()
+//                if let filter = currentFilter.filter {
+//                    filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
+//                    if let outputImage = filter.outputImage {
+//                        filteredCIImage = outputImage
+//                    } else {
+//                        print("Error: failed to make filtered image in \(#function)")
+//                        filteredCIImage = resizedCIImage
+//                    }
+//                } else {
+//                    filteredCIImage = resizedCIImage
+//                }
+//                ciContext?.draw(filteredCIImage, in: gifGLKViewPreviewViewBounds, from: resizedCIImage.extent)
+////                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(4), execute: {
+////                    self.videoGLKPreview.display()
+////                })
+//
+//                
+//                //sleep(1)
+//                self.videoGLKPreview.display()
+//                
+//            }
+            
+//            frameSavingSerialQueue.async {
+//                for resizedCIImage in resizedCIImages {
+//                    
+//                    var filteredCIImage = CIImage()
+//                    if let filter = self.currentFilter.filter {
+//                        filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
+//                        if let outputImage = filter.outputImage {
+//                            filteredCIImage = outputImage
+//                        } else {
+//                            print("Error: failed to make filtered image in \(#function)")
+//                            filteredCIImage = resizedCIImage
+//                        }
+//                    } else {
+//                        filteredCIImage = resizedCIImage
+//                    }
+//                    self.ciContext?.draw(filteredCIImage, in: gifGLKViewPreviewViewBounds, from: resizedCIImage.extent)
+//                    //                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(4), execute: {
+//                    //                    self.videoGLKPreview.display()
+//                    //                })
+//                    
+//                    
+//                    //sleep(1)
+//                    self.videoGLKPreview.display()
+//                    
+//                }
+//            }
+//        }
         
     }
 
@@ -1192,7 +1254,7 @@ extension SatoCamera: FilterImageEffectDelegate {
         
         // if camera is not running
         if !session.isRunning {
-            showGif()
+            //showGif()
         }
     }
 }
@@ -1249,7 +1311,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         
-        videoGLKPreview?.bindDrawable()
+        //videoGLKPreview?.bindDrawable()
         
         // Prepare CIContext with EAGLContext
         if eaglContext != EAGLContext.current() {
