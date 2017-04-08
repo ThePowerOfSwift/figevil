@@ -761,8 +761,8 @@ class SatoCamera: NSObject {
             return
         }
         let gifGLKView = GLKView(frame: frame, context: gifEaglContext)
-        cameraOutput?.outputImageView?.addSubview(gifGLKView)
-        cameraOutput?.outputImageView?.sendSubview(toBack: gifGLKView)
+        //cameraOutput?.outputImageView?.addSubview(gifGLKView)
+        //cameraOutput?.outputImageView?.sendSubview(toBack: gifGLKView)
         gifGLKView.bindDrawable()
         var gifGLKViewPreviewViewBounds = CGRect.zero
         gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
@@ -776,9 +776,9 @@ class SatoCamera: NSObject {
         
         //gifGLKView.bindDrawable()
         
-        if gifEaglContext != EAGLContext.current() {
-            EAGLContext.setCurrent(gifEaglContext)
-        }
+//        if gifEaglContext != EAGLContext.current() {
+//            EAGLContext.setCurrent(gifEaglContext)
+//        }
         
         var resizedCIImages = [CIImage]()
         for url in resizedTempURLs {
@@ -791,32 +791,53 @@ class SatoCamera: NSObject {
         
         let aSerialQueue = DispatchQueue(label: "sample")
         
+        var dummyCIImages = [CIImage]()
+        for resizedCIImage in resizedCIImages {
+            var filteredCIImage = CIImage()
+            if let filter = self.currentFilter.filter {
+                filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
+                if let outputImage = filter.outputImage {
+                    filteredCIImage = outputImage
+                } else {
+                    print("Error: failed to make filtered image in \(#function)")
+                    filteredCIImage = resizedCIImage
+                }
+            } else {
+                filteredCIImage = resizedCIImage
+            }
+            dummyCIImages.append(filteredCIImage)
+        }
+        
         while true {
-            for resizedCIImage in resizedCIImages {
+            //for resizedCIImage in resizedCIImages {
+            for image in dummyCIImages {
                 sessionQueue.async { [unowned self] in
 
-                    var filteredCIImage = CIImage()
-                    if let filter = self.currentFilter.filter {
-                        filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
-                        if let outputImage = filter.outputImage {
-                            filteredCIImage = outputImage
-                        } else {
-                            print("Error: failed to make filtered image in \(#function)")
-                            filteredCIImage = resizedCIImage
-                        }
-                    } else {
-                        filteredCIImage = resizedCIImage
-                    }
-                    self.ciContext?.draw(filteredCIImage, in: gifGLKViewPreviewViewBounds, from: resizedCIImage.extent)
+//                    var filteredCIImage = CIImage()
+//                    if let filter = self.currentFilter.filter {
+//                        filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
+//                        if let outputImage = filter.outputImage {
+//                            filteredCIImage = outputImage
+//                        } else {
+//                            print("Error: failed to make filtered image in \(#function)")
+//                            filteredCIImage = resizedCIImage
+//                        }
+//                    } else {
+//                        filteredCIImage = resizedCIImage
+//                    }
+                    //self.ciContext?.draw(filteredCIImage, in: gifGLKViewPreviewViewBounds, from: resizedCIImage.extent)
                     //                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(4), execute: {
                     //                    self.videoGLKPreview.display()
                     //                })
                     
                     
+                    self.ciContext?.draw(image, in: gifGLKViewPreviewViewBounds, from: image.extent)
+                    
                     //sleep(1)
-                    //DispatchQueue.main.sync {
-                        self.videoGLKPreview.display()
-                    //}
+                    
+                    self.videoGLKPreview.display()
+                    //gifGLKView.display()
+                    
                 }
             }
         }
