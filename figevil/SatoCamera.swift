@@ -125,7 +125,7 @@ class SatoCamera: NSObject {
     }
     
     // Gif setting
-    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 3)
+    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 2)
 
     private enum SessionSetupResult {
         case success
@@ -710,7 +710,7 @@ class SatoCamera: NSObject {
         
         resizedURLs = resizedTempURLs
         
-        if let gifImageView = makeGif(urls: resizedTempURLs, filter: currentFilter.filter) {
+        if let gifImageView = makeGif(urls: resizedTempURLs, filter: currentFilter.filter, animationDuration: currentLiveGifPreset.liveGifDuration) {
             if let cameraOutput = cameraOutput {
                 if let outputImageView = cameraOutput.outputImageView {
                     outputImageView.isHidden = false
@@ -728,7 +728,7 @@ class SatoCamera: NSObject {
     }
 
     /** Make a gif image view from urls. */
-    func makeGif(urls: [URL], filter: CIFilter?) -> UIImageView? {
+    func makeGif(urls: [URL], filter: CIFilter?, animationDuration: TimeInterval) -> UIImageView? {
         
         filteredUIImages.removeAll()
         let ciContext = CIContext()
@@ -744,7 +744,7 @@ class SatoCamera: NSObject {
         let imageView = UIImageView(frame: frame)
         imageView.animationImages = filteredUIImages
         imageView.animationRepeatCount = 0
-        imageView.animationDuration = 3
+        imageView.animationDuration = animationDuration
         
         return imageView
     }
