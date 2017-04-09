@@ -814,137 +814,63 @@ class SatoCamera: NSObject {
             dummyCIImages.append(filteredCIImage)
         }
         
-        var count = 0
-        //while count < 2 {
         
-        DispatchQueue.main.async {
+        var count = 0
+        
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async {
             
             let oneThird = dummyCIImages.count / 3
             //for resizedCIImage in resizedCIImages {
-            for image in dummyCIImages {
-                //DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1, execute: {[unowned self] in
-                
-                //sessionQueue.async { [unowned self] in
-
-//                    var filteredCIImage = CIImage()
-//                    if let filter = self.currentFilter.filter {
-//                        filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
-//                        if let outputImage = filter.outputImage {
-//                            filteredCIImage = outputImage
-//                        } else {
-//                            print("Error: failed to make filtered image in \(#function)")
-//                            filteredCIImage = resizedCIImage
+            while true {
+                for image in dummyCIImages {
+                    if let filter = self.currentFilter.filter {
+                        filter.setValue(image, forKey: kCIInputImageKey)
+                        if let outputImage = filter.outputImage {
+                            self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                        }
+                    } else {
+                        self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                    }
+                    self.videoGLKPreview.display()
+                    let sleepDuration = self.currentLiveGifPreset.frameDelay * 1000000
+                    usleep(useconds_t(sleepDuration)) // 1000000 = 1 second
+                    
+//                    if count > oneThird && count <= oneThird * 2 {
+//                        //if let filter = currentFilter.filter {
+//                        if let filter = CIFilter(name: "CIFalseColor") {
+//                            filter.setValue(image, forKey: kCIInputImageKey)
+//                            if let outputImage = filter.outputImage {
+//                                self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+//                            }
+//                        }
+//                    //} else if count % 3 == 0 {
+//                    } else if count > oneThird * 2 {
+//                        if let filter = CIFilter(name: "CIComicEffect") {
+//                            filter.setValue(image, forKey: kCIInputImageKey)
+//                            if let outputImage = filter.outputImage {
+//                                self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+//                            }
 //                        }
 //                    } else {
-//                        filteredCIImage = resizedCIImage
+//                        self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+//
 //                    }
-                    //self.ciContext?.draw(filteredCIImage, in: gifGLKViewPreviewViewBounds, from: resizedCIImage.extent)
-                    //                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(4), execute: {
-                    //                    self.videoGLKPreview.display()
-                    //                })
-                    
-//                gifImage = image
-//                Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false, block: { (timer: Timer) in
-//                    self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+//                    
+//
+//                    //sleep(20)
+//                    //usleep(100000) // 1000000 = 1 second
+//                        
 //                    self.videoGLKPreview.display()
-//                })
-            
-                //if count % 2 == 0 {
-                if count > oneThird && count <= oneThird * 2 {
-                    //if let filter = currentFilter.filter {
-                    if let filter = CIFilter(name: "CIFalseColor") {
-                        filter.setValue(image, forKey: kCIInputImageKey)
-                        if let outputImage = filter.outputImage {
-                            self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-                        }
-                    }
-                //} else if count % 3 == 0 {
-                } else if count > oneThird * 2 {
-                    if let filter = CIFilter(name: "CIComicEffect") {
-                        filter.setValue(image, forKey: kCIInputImageKey)
-                        if let outputImage = filter.outputImage {
-                            self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-                        }
-                    }
-                } else {
-                    self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-
+//                        //gifGLKView.display()
+//                        
+//                    //}
+//                    count += 1
+//                    if count == dummyCIImages.count {
+//                        count = 0
+//                    }
                 }
-                
-
-                //sleep(20)
-                //usleep(100000) // 1000000 = 1 second
-                    
-                self.videoGLKPreview.display()
-                    //gifGLKView.display()
-                    
-                //}
-                count += 1
-                if count == dummyCIImages.count {
-                    count = 0
-                }
-
             }
         }
-        //}
-            
-
-//        while true {
-            
-            
-//            for resizedCIImage in resizedCIImages {
-//                
-//                var filteredCIImage = CIImage()
-//                if let filter = currentFilter.filter {
-//                    filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
-//                    if let outputImage = filter.outputImage {
-//                        filteredCIImage = outputImage
-//                    } else {
-//                        print("Error: failed to make filtered image in \(#function)")
-//                        filteredCIImage = resizedCIImage
-//                    }
-//                } else {
-//                    filteredCIImage = resizedCIImage
-//                }
-//                ciContext?.draw(filteredCIImage, in: gifGLKViewPreviewViewBounds, from: resizedCIImage.extent)
-////                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(4), execute: {
-////                    self.videoGLKPreview.display()
-////                })
-//
-//                
-//                //sleep(1)
-//                self.videoGLKPreview.display()
-//                
-//            }
-            
-//            frameSavingSerialQueue.async {
-//                for resizedCIImage in resizedCIImages {
-//                    
-//                    var filteredCIImage = CIImage()
-//                    if let filter = self.currentFilter.filter {
-//                        filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
-//                        if let outputImage = filter.outputImage {
-//                            filteredCIImage = outputImage
-//                        } else {
-//                            print("Error: failed to make filtered image in \(#function)")
-//                            filteredCIImage = resizedCIImage
-//                        }
-//                    } else {
-//                        filteredCIImage = resizedCIImage
-//                    }
-//                    self.ciContext?.draw(filteredCIImage, in: gifGLKViewPreviewViewBounds, from: resizedCIImage.extent)
-//                    //                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(4), execute: {
-//                    //                    self.videoGLKPreview.display()
-//                    //                })
-//                    
-//                    
-//                    //sleep(1)
-//                    self.videoGLKPreview.display()
-//                    
-//                }
-//            }
-//        }
-        
     }
     
     var gifImage = CIImage()
