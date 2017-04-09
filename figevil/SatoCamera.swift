@@ -745,16 +745,22 @@ class SatoCamera: NSObject {
         
         resizedURLs = resizedTempURLs
         
-        if let cameraOutput = cameraOutput {
-            if let outputImageView = cameraOutput.outputImageView {
-                outputImageView.isHidden = false
-                for subview in outputImageView.subviews {
-                    subview.removeFromSuperview()
-                }
-            }
-            cameraOutput.sampleBufferView?.isHidden = true
-        }
+//        if let cameraOutput = cameraOutput {
+//            if let outputImageView = cameraOutput.outputImageView {
+//                outputImageView.isHidden = false
+//                for subview in outputImageView.subviews {
+//                    subview.removeFromSuperview()
+//                }
+//            }
+//            cameraOutput.sampleBufferView?.isHidden = true
+//        }
         
+        cameraOutput?.sampleBufferView?.isHidden = false
+        
+//        let testView = CustomView(frame: frame)
+//        testView.backgroundColor = UIColor.red
+//        cameraOutput?.sampleBufferView?.addSubview(testView)
+//        cameraOutput?.sampleBufferView?.bringSubview(toFront: testView)
         
         guard let gifEaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
             print("Error: failed to create EAGLContext in \(#function)")
@@ -809,7 +815,10 @@ class SatoCamera: NSObject {
         }
         
         var count = 0
-        while true {
+        //while count < 2 {
+        
+        DispatchQueue.main.async {
+            
             let oneThird = dummyCIImages.count / 3
             //for resizedCIImage in resizedCIImages {
             for image in dummyCIImages {
@@ -846,7 +855,7 @@ class SatoCamera: NSObject {
                     if let filter = CIFilter(name: "CIFalseColor") {
                         filter.setValue(image, forKey: kCIInputImageKey)
                         if let outputImage = filter.outputImage {
-                            self.ciContext?.draw(outputImage, in: gifGLKViewPreviewViewBounds, from: image.extent)
+                            self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
                         }
                     }
                 //} else if count % 3 == 0 {
@@ -854,21 +863,19 @@ class SatoCamera: NSObject {
                     if let filter = CIFilter(name: "CIComicEffect") {
                         filter.setValue(image, forKey: kCIInputImageKey)
                         if let outputImage = filter.outputImage {
-                            self.ciContext?.draw(outputImage, in: gifGLKViewPreviewViewBounds, from: image.extent)
+                            self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
                         }
                     }
                 } else {
-                    self.ciContext?.draw(image, in: gifGLKViewPreviewViewBounds, from: image.extent)
+                    self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
 
                 }
                 
-                Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { (timer :Timer) in
-                    
-                })
+
                 //sleep(20)
-                usleep(100000) // 1000000 = 1 second
+                //usleep(100000) // 1000000 = 1 second
                     
-                    self.videoGLKPreview.display()
+                self.videoGLKPreview.display()
                     //gifGLKView.display()
                     
                 //}
@@ -879,6 +886,8 @@ class SatoCamera: NSObject {
 
             }
         }
+        //}
+            
 
 //        while true {
             
@@ -966,6 +975,12 @@ class SatoCamera: NSObject {
         imageView.animationDuration = 3
         
         return imageView
+    }
+}
+
+class CustomView: UIView {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        print("touched")
     }
 }
 
