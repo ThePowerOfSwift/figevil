@@ -764,7 +764,7 @@ class SatoCamera: NSObject {
         //cameraOutput?.outputImageView?.addSubview(gifGLKView)
         //cameraOutput?.outputImageView?.sendSubview(toBack: gifGLKView)
         gifGLKView.bindDrawable()
-        var gifGLKViewPreviewViewBounds = CGRect.zero
+        gifGLKViewPreviewViewBounds = CGRect.zero
         gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
         gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
         
@@ -808,10 +808,14 @@ class SatoCamera: NSObject {
             dummyCIImages.append(filteredCIImage)
         }
         
+        var count = 0
         while true {
             //for resizedCIImage in resizedCIImages {
             for image in dummyCIImages {
-                sessionQueue.async { [unowned self] in
+                count += 1
+                //DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1, execute: {[unowned self] in
+                
+                //sessionQueue.async { [unowned self] in
 
 //                    var filteredCIImage = CIImage()
 //                    if let filter = self.currentFilter.filter {
@@ -830,15 +834,41 @@ class SatoCamera: NSObject {
                     //                    self.videoGLKPreview.display()
                     //                })
                     
-                    
+//                gifImage = image
+//                Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false, block: { (timer: Timer) in
+//                    self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+//                    self.videoGLKPreview.display()
+//                })
+                if count % 2 == 0 {
+                    //if let filter = currentFilter.filter {
+                    if let filter = CIFilter(name: "CIFalseColor") {
+                        filter.setValue(image, forKey: kCIInputImageKey)
+                        if let outputImage = filter.outputImage {
+                            self.ciContext?.draw(outputImage, in: gifGLKViewPreviewViewBounds, from: image.extent)
+                        }
+                    }
+                } else if count % 3 == 0 {
+                    if let filter = CIFilter(name: "CIComicEffect") {
+                        filter.setValue(image, forKey: kCIInputImageKey)
+                        if let outputImage = filter.outputImage {
+                            self.ciContext?.draw(outputImage, in: gifGLKViewPreviewViewBounds, from: image.extent)
+                        }
+                    }
+                } else {
                     self.ciContext?.draw(image, in: gifGLKViewPreviewViewBounds, from: image.extent)
+
+                }
+                
+                Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { (timer :Timer) in
                     
-                    //sleep(1)
+                })
+                //sleep(20)
+                usleep(100000) // 1000000 = 1 second
                     
                     self.videoGLKPreview.display()
                     //gifGLKView.display()
                     
-                }
+                //}
             }
         }
 
@@ -898,6 +928,14 @@ class SatoCamera: NSObject {
 //            }
 //        }
         
+    }
+    
+    var gifImage = CIImage()
+    var gifGLKViewPreviewViewBounds = CGRect()
+    func renderInContext() {
+        self.ciContext?.draw(gifImage, in: gifGLKViewPreviewViewBounds, from: gifImage.extent)
+        
+        self.videoGLKPreview.display()
     }
 
     /** Make a gif image view from urls. */
