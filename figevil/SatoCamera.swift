@@ -810,9 +810,9 @@ class SatoCamera: NSObject {
         
         var count = 0
         while true {
+            let oneThird = dummyCIImages.count / 3
             //for resizedCIImage in resizedCIImages {
             for image in dummyCIImages {
-                count += 1
                 //DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1, execute: {[unowned self] in
                 
                 //sessionQueue.async { [unowned self] in
@@ -839,7 +839,9 @@ class SatoCamera: NSObject {
 //                    self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
 //                    self.videoGLKPreview.display()
 //                })
-                if count % 2 == 0 {
+            
+                //if count % 2 == 0 {
+                if count > oneThird && count <= oneThird * 2 {
                     //if let filter = currentFilter.filter {
                     if let filter = CIFilter(name: "CIFalseColor") {
                         filter.setValue(image, forKey: kCIInputImageKey)
@@ -847,7 +849,8 @@ class SatoCamera: NSObject {
                             self.ciContext?.draw(outputImage, in: gifGLKViewPreviewViewBounds, from: image.extent)
                         }
                     }
-                } else if count % 3 == 0 {
+                //} else if count % 3 == 0 {
+                } else if count > oneThird * 2 {
                     if let filter = CIFilter(name: "CIComicEffect") {
                         filter.setValue(image, forKey: kCIInputImageKey)
                         if let outputImage = filter.outputImage {
@@ -869,6 +872,11 @@ class SatoCamera: NSObject {
                     //gifGLKView.display()
                     
                 //}
+                count += 1
+                if count == dummyCIImages.count {
+                    count = 0
+                }
+
             }
         }
 
