@@ -77,14 +77,6 @@ class Filter: NSObject {
         list.append(unsharpMask)
         list.append(comicEffect)
         list.append(crystallize)
-        list.append(edges)
-        list.append(edgeWork)
-        list.append(highlightShadowAdjus)
-        list.append(lineOverlay)
-        list.append(pixellate)
-        list.append(pointillize)
-        list.append(kaleidoscope)
-        list.append(parallelogramTile)
     }
     
     func getIconImage(filter: CIFilter?) -> UIImage {
@@ -291,11 +283,13 @@ class Filter: NSObject {
     
     // MARK: CICategoryTileEffect
     
+    /** Need to adjust to make it work correctly.*/
     var kaleidoscope: Filter {
         let filter = CIFilter(name: "CIKaleidoscope")
         return Filter(name: "kaleidoscope", filter: filter)
     }
     
+    /** Need to adjust to make it work correctly.*/
     var parallelogramTile: Filter {
         let filter = CIFilter(name: "CIParallelogramTile")
         return Filter(name: "parallelogramTile", filter: filter)
