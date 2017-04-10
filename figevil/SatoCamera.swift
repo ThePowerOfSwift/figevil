@@ -81,7 +81,7 @@ class SatoCamera: NSObject {
     fileprivate var eaglContext: EAGLContext?
     /** stores GLKView's drawableWidth (The width, in pixels, of the underlying framebuffer object.) */
     fileprivate var videoGLKPreviewViewBounds: CGRect?
-    fileprivate var session = AVCaptureSession()
+    internal var session = AVCaptureSession()
     //internal var sessionQueue: DispatchQueue = DispatchQueue.main
     internal var sessionQueue = DispatchQueue(label: "sessionQueue", attributes: [], target: nil)
     internal var frameSavingSerialQueue = DispatchQueue(label: "frameSavingSerialQueue")
@@ -721,7 +721,6 @@ class SatoCamera: NSObject {
         cameraOutput?.didLiveGifStop?()
         deviceOrientation = UIDevice.current.orientation
         cameraOutput?.outputImageView?.isHidden = false
-        cameraOutput?.sampleBufferView?.isHidden = true
         stop()
         //showGif()
         showGifWithGLKView()
@@ -1268,11 +1267,6 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         configureOpenGL()
 
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: sourceImage.extent)
-        // Dispatch display() so that display() won't be executed when views are not ready to use in Camera VC
-//        DispatchQueue.main.async {
-//            self.videoGLKPreview.display()
-//        }
-        
         videoGLKPreview.display()
     }
 }
