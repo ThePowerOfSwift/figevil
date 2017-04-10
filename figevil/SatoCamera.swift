@@ -729,7 +729,7 @@ class SatoCamera: NSObject {
         }
     }
     
-    //try changing animatedImages in realtime
+    
     
     func showGifWithGLKView() {
         // make resized images from originals here
@@ -745,47 +745,6 @@ class SatoCamera: NSObject {
         
         resizedURLs = resizedTempURLs
         
-//        if let cameraOutput = cameraOutput {
-//            if let outputImageView = cameraOutput.outputImageView {
-//                outputImageView.isHidden = false
-//                for subview in outputImageView.subviews {
-//                    subview.removeFromSuperview()
-//                }
-//            }
-//            cameraOutput.sampleBufferView?.isHidden = true
-//        }
-        
-        cameraOutput?.sampleBufferView?.isHidden = false
-        
-//        let testView = CustomView(frame: frame)
-//        testView.backgroundColor = UIColor.red
-//        cameraOutput?.sampleBufferView?.addSubview(testView)
-//        cameraOutput?.sampleBufferView?.bringSubview(toFront: testView)
-        
-        guard let gifEaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
-            print("Error: failed to create EAGLContext in \(#function)")
-            return
-        }
-        let gifGLKView = GLKView(frame: frame, context: gifEaglContext)
-        //cameraOutput?.outputImageView?.addSubview(gifGLKView)
-        //cameraOutput?.outputImageView?.sendSubview(toBack: gifGLKView)
-        gifGLKView.bindDrawable()
-        gifGLKViewPreviewViewBounds = CGRect.zero
-        gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
-        gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
-        
-        let gifCIContext = CIContext(eaglContext: gifEaglContext)
-        configureOpenGL()
-        gifGLKView.enableSetNeedsDisplay = false
-
-        
-        
-        //gifGLKView.bindDrawable()
-        
-//        if gifEaglContext != EAGLContext.current() {
-//            EAGLContext.setCurrent(gifEaglContext)
-//        }
-        
         var resizedCIImages = [CIImage]()
         for url in resizedTempURLs {
             guard let sourceCIImage = url.cgImage?.ciImage else {
@@ -795,91 +754,90 @@ class SatoCamera: NSObject {
             resizedCIImages.append(sourceCIImage)
         }
         
-        let aSerialQueue = DispatchQueue(label: "sample")
-        
-        var dummyCIImages = [CIImage]()
-        for resizedCIImage in resizedCIImages {
-            var filteredCIImage = CIImage()
-            if let filter = self.currentFilter.filter {
-                filter.setValue(resizedCIImage, forKeyPath: kCIInputImageKey)
-                if let outputImage = filter.outputImage {
-                    filteredCIImage = outputImage
-                } else {
-                    print("Error: failed to make filtered image in \(#function)")
-                    filteredCIImage = resizedCIImage
-                }
-            } else {
-                filteredCIImage = resizedCIImage
-            }
-            dummyCIImages.append(filteredCIImage)
+        cameraOutput?.sampleBufferView?.isHidden = true
+        cameraOutput?.outputImageView?.isHidden = false
+//        guard let gifEaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
+//            print("Error: failed to create EAGLContext in \(#function)")
+//            return
+//        }
+//        
+//        let gifGLKView = GLKView(frame: frame, context: gifEaglContext)
+//        cameraOutput?.outputImageView?.addSubview(gifGLKView)
+//        gifGLKView.bindDrawable()
+//        gifGLKViewPreviewViewBounds = CGRect.zero
+//        gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
+//        gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
+//        
+//        let gifCIContext = CIContext(eaglContext: gifEaglContext)
+//        
+//        gifGLKView.enableSetNeedsDisplay = false
+//        
+//        gifGLKView.bindDrawable()
+//        
+//        if gifEaglContext != EAGLContext.current() {
+//            EAGLContext.setCurrent(gifEaglContext)
+//        }
+//        
+//        configureOpenGL()
+
+        guard let gifEaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
+            print("Error: failed to create EAGLContext in \(#function)")
+            return
         }
         
-        
-        var count = 0
-        
-        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async {
+
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
+
+            let gifGLKView = GLKView(frame: self.frame, context: gifEaglContext)
+            DispatchQueue.main.sync {
+                self.cameraOutput?.outputImageView?.addSubview(gifGLKView)
+            }
+            gifGLKView.enableSetNeedsDisplay = false
+            gifGLKView.bindDrawable()
+
+            //gifGLKView.bindDrawable()
+            self.gifGLKViewPreviewViewBounds = CGRect.zero
+            self.gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
+            self.gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
             
-            let oneThird = dummyCIImages.count / 3
-            //for resizedCIImage in resizedCIImages {
-            while true {
-                for image in dummyCIImages {
+            let gifCIContext = CIContext(eaglContext: gifEaglContext)
+            
+            if gifEaglContext != EAGLContext.current() {
+                EAGLContext.setCurrent(gifEaglContext)
+            }
+            
+             self.configureOpenGL()
+
+            
+            while !self.session.isRunning {
+                if self.session.isRunning {
+                    break
+                }
+                for image in resizedCIImages {
+                    if self.session.isRunning {
+                        break
+                    }
                     if let filter = self.currentFilter.filter {
                         filter.setValue(image, forKey: kCIInputImageKey)
                         if let outputImage = filter.outputImage {
-                            self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                            //self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                            gifCIContext.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
                         }
                     } else {
-                        self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                        //self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                        gifCIContext.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
                     }
-                    self.videoGLKPreview.display()
+                    
+                    gifGLKView.display()
                     let sleepDuration = self.currentLiveGifPreset.frameDelay * 1000000
                     usleep(useconds_t(sleepDuration)) // 1000000 = 1 second
-                    
-//                    if count > oneThird && count <= oneThird * 2 {
-//                        //if let filter = currentFilter.filter {
-//                        if let filter = CIFilter(name: "CIFalseColor") {
-//                            filter.setValue(image, forKey: kCIInputImageKey)
-//                            if let outputImage = filter.outputImage {
-//                                self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-//                            }
-//                        }
-//                    //} else if count % 3 == 0 {
-//                    } else if count > oneThird * 2 {
-//                        if let filter = CIFilter(name: "CIComicEffect") {
-//                            filter.setValue(image, forKey: kCIInputImageKey)
-//                            if let outputImage = filter.outputImage {
-//                                self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-//                            }
-//                        }
-//                    } else {
-//                        self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-//
-//                    }
-//                    
-//
-//                    //sleep(20)
-//                    //usleep(100000) // 1000000 = 1 second
-//                        
-//                    self.videoGLKPreview.display()
-//                        //gifGLKView.display()
-//                        
-//                    //}
-//                    count += 1
-//                    if count == dummyCIImages.count {
-//                        count = 0
-//                    }
                 }
             }
         }
     }
     
-    var gifImage = CIImage()
     var gifGLKViewPreviewViewBounds = CGRect()
-    func renderInContext() {
-        self.ciContext?.draw(gifImage, in: gifGLKViewPreviewViewBounds, from: gifImage.extent)
-        
-        self.videoGLKPreview.display()
-    }
+
 
     /** Make a gif image view from urls. */
     func makeGif(urls: [URL], filter: CIFilter?) -> UIImageView? {
