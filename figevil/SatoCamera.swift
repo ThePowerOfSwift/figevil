@@ -32,19 +32,19 @@ struct SavedURLs {
 struct LiveGifPreset {
     /** has to be 0 < gifFPS <= 15 and 30 */
     var gifFPS: Int
-    var liveGifDuration: TimeInterval
+    var gifDuration: TimeInterval
     
     var frameCaptureFrequency: Int {
         return Int(sampleBufferFPS) / gifFPS
     }
     var sampleBufferFPS: Int32 = 30
     var liveGifFrameTotalCount: Int {
-        return Int(liveGifDuration * Double(gifFPS))
+        return Int(gifDuration * Double(gifFPS))
     }
     
     /** The amount of time each frame stays. */
     var frameDelay: Double {
-        return Double(liveGifDuration) / Double(liveGifFrameTotalCount)
+        return Double(gifDuration) / Double(liveGifFrameTotalCount)
     }
     
     /** Used in usleep() function to pause outputting filtered CIImage. 1000000 = 1 second in usleep().*/
@@ -52,16 +52,21 @@ struct LiveGifPreset {
         return frameDelay * 1000000
     }
     
-    init(gifFPS: Int, liveGifDuration: TimeInterval) {
+    init(gifFPS: Int, gifDuration: TimeInterval) {
         self.gifFPS = gifFPS
-        self.liveGifDuration = liveGifDuration
+        self.gifDuration = gifDuration
+    }
+    
+    init() {
+        self.gifFPS = 10
+        self.gifDuration = 2
     }
 }
 
 
 @objc protocol SatoCameraOutput {
     /** Show the filtered output image view. */
-    var outputImageView: UIImageView? { get set }
+    var gifOutputView: UIView? { get set }
     /** Show the live preview. GLKView is added to this view. */
     var sampleBufferView: UIView? { get }
     
@@ -138,7 +143,7 @@ class SatoCamera: NSObject {
             sampleBufferOutput.addSubview(liveCameraGLKView)
             
             
-            if let outputImageView = cameraOutput.outputImageView {
+            if let outputImageView = cameraOutput.gifOutputView {
                 outputImageView.addSubview(gifGLKView)
                 print("gifGLKView added")
             }
@@ -146,7 +151,7 @@ class SatoCamera: NSObject {
     }
     
     // Gif setting
-    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset(gifFPS: 10, liveGifDuration: 2)
+    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset()
 
     private enum SessionSetupResult {
         case success
@@ -264,7 +269,7 @@ class SatoCamera: NSObject {
         self.gifEaglContext = gifEaglContext
         
         gifGLKView = GLKView(frame: frame, context: gifEaglContext)
-        self.cameraOutput?.outputImageView?.addSubview(gifGLKView)
+        self.cameraOutput?.gifOutputView?.addSubview(gifGLKView)
         
         gifGLKView.enableSetNeedsDisplay = false
         gifGLKView.frame = frame
@@ -562,7 +567,7 @@ class SatoCamera: NSObject {
         renderedURLs.removeAll()
         filteredUIImages.removeAll()
         cameraOutput?.sampleBufferView?.isHidden = false
-        cameraOutput?.outputImageView?.isHidden = true
+        cameraOutput?.gifOutputView?.isHidden = true
         didOutputSampleBufferMethodCallCount = 0
         start()
     }
@@ -723,7 +728,7 @@ class SatoCamera: NSObject {
         isSnappedGif = false
         cameraOutput?.didLiveGifStop?()
         deviceOrientation = UIDevice.current.orientation
-        cameraOutput?.outputImageView?.isHidden = false
+        cameraOutput?.gifOutputView?.isHidden = false
         stop()
         //showGif()
         showGifWithGLKView()
@@ -744,17 +749,17 @@ class SatoCamera: NSObject {
         
         resizedURLs = resizedTempURLs
         
-        if let gifImageView = makeGif(urls: resizedTempURLs, filter: currentFilter.filter, animationDuration: currentLiveGifPreset.liveGifDuration) {
+        if let gifImageView = makeGif(urls: resizedTempURLs, filter: currentFilter.filter, animationDuration: currentLiveGifPreset.gifDuration) {
             if let cameraOutput = cameraOutput {
-                if let outputImageView = cameraOutput.outputImageView {
+                if let outputImageView = cameraOutput.gifOutputView {
                     outputImageView.isHidden = false
                     for subview in outputImageView.subviews {
                         subview.removeFromSuperview()
                     }
                 }
             }
-            cameraOutput?.outputImageView?.addSubview(gifImageView)
-            cameraOutput?.outputImageView?.sendSubview(toBack: gifImageView)
+            cameraOutput?.gifOutputView?.addSubview(gifImageView)
+            cameraOutput?.gifOutputView?.sendSubview(toBack: gifImageView)
             gifImageView.startAnimating()
         } else {
             print("gifImageView is nil")
@@ -816,7 +821,6 @@ class SatoCamera: NSObject {
                     usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
                 }
             }
-            print("user initiated queue stopped running in \(#function)")
         }
     }
 
@@ -1258,7 +1262,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             EAGLContext.setCurrent(liveCameraEaglContext)
         }
         configureOpenGL()
-
+        
         liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds!, from: sourceImage.extent)
         liveCameraGLKView.display()
     }

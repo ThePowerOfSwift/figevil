@@ -92,8 +92,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // Must always be behind all other views
     var sampleBufferView: UIView? = UIView()
     // Must always be on top of sampleBuffer
-    var outputImageView: UIImageView? = UIImageView()
-    
+    var gifOutputView: UIView? = UIView()
     /** Collected items that should be rendered. */
     var renderItems: [UIImage] {
         var items = [UIImage]()
@@ -189,20 +188,18 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     // MARK: Setups
-    
     func setupSatoCamera() {
         
         if let sampleBufferView = sampleBufferView {
             sampleBufferView.frame = sampleBufferContainerView.bounds
             sampleBufferView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             sampleBufferContainerView.addSubview(sampleBufferView)
-
         }
 
-        if let outputImageView = outputImageView {
-            outputImageView.frame = outputImageContainerView.bounds
-            outputImageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            outputImageContainerView.addSubview(outputImageView)
+        if let gifOutputView = gifOutputView {
+            gifOutputView.frame = outputImageContainerView.bounds
+            gifOutputView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            outputImageContainerView.addSubview(gifOutputView)
         }
 
         satoCamera.cameraOutput = self

@@ -16,7 +16,7 @@ class FTECameraViewController: UIViewController, SatoCameraOutput {
     // Must always be behind all other views
     var sampleBufferView: UIView? = UIView()
     // Must always be on top of sampleBuffer
-    var outputImageView: UIImageView? = UIImageView()
+    var gifOutputView: UIView? = UIView()
 
     // MARK: Lifecycle
     
@@ -49,10 +49,10 @@ class FTECameraViewController: UIViewController, SatoCameraOutput {
             view.insertSubview(sampleBufferView, at: 0)
         }
         
-        if let outputImageView = outputImageView {
-            outputImageView.frame = view.bounds
-            outputImageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            view.insertSubview(outputImageView, at: 1)
+        if let gifOutputView = gifOutputView {
+            gifOutputView.frame = view.bounds
+            gifOutputView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            view.insertSubview(gifOutputView, at: 1)
         }
         
         satoCamera.cameraOutput = self
