@@ -126,7 +126,12 @@ class SatoCamera: NSObject {
             }
             
             sampleBufferOutput.addSubview(videoGLKPreview)
-            session.startRunning()
+            
+            
+            if let outputImageView = cameraOutput.outputImageView {
+                outputImageView.addSubview(gifGLKView)
+                print("gifGLKView added")
+            }
         }
     }
     
@@ -204,12 +209,19 @@ class SatoCamera: NSObject {
         return self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0
     }
     
+    var gifGLKViewPreviewViewBounds = CGRect()
+    var gifGLKView: GLKView!
+    var gifCIContext: CIContext?
+    var gifEaglContext: EAGLContext?
+    
+    
     // MARK: - Setups
     init(frame: CGRect) {
         self.frame = frame
         //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
         super.init()
-    
+        
+// ==============================================================================================
         // EAGLContext object manages an OpenGL ES rendering context
         guard let eaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
             print("eaglContext is nil")
@@ -230,6 +242,31 @@ class SatoCamera: NSObject {
         videoGLKPreviewViewBounds?.size.height = CGFloat(videoGLKPreview.drawableHeight) // 749 pixels
         
         ciContext = CIContext(eaglContext: eaglContext)
+        
+// ==============================================================================================
+        guard let gifEaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
+            print("Error: failed to create EAGLContext in \(#function)")
+            return
+        }
+        
+        self.gifEaglContext = gifEaglContext
+        
+        gifGLKView = GLKView(frame: frame, context: gifEaglContext)
+        self.cameraOutput?.outputImageView?.addSubview(gifGLKView)
+    
+        gifGLKView.enableSetNeedsDisplay = false
+        gifGLKView.frame = frame
+        gifGLKView.bindDrawable()
+        
+        //gifGLKView.bindDrawable()
+        self.gifGLKViewPreviewViewBounds = CGRect.zero
+        self.gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
+        self.gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
+        
+        gifCIContext = CIContext(eaglContext: gifEaglContext)
+        
+// ==============================================================================================
+        
         configureOpenGL()
         
         configureSession()
@@ -524,15 +561,16 @@ class SatoCamera: NSObject {
         filteredUIImages.removeAll()
         cameraOutput?.sampleBufferView?.isHidden = false
         didOutputSampleBufferMethodCallCount = 0
-        
-        if let cameraOutput = cameraOutput {
-            if let outputImageView = cameraOutput.outputImageView {
-                outputImageView.isHidden = false
-                for subview in outputImageView.subviews {
-                    subview.removeFromSuperview()
-                }
-            }
-        }
+        cameraOutput?.outputImageView?.isHidden = true
+
+//        if let cameraOutput = cameraOutput {
+//            if let outputImageView = cameraOutput.outputImageView {
+//                outputImageView.isHidden = false
+//                for subview in outputImageView.subviews {
+//                    subview.removeFromSuperview()
+//                }
+//            }
+//        }
         start()
     }
 
@@ -756,63 +794,21 @@ class SatoCamera: NSObject {
         
         cameraOutput?.sampleBufferView?.isHidden = true
         cameraOutput?.outputImageView?.isHidden = false
-//        guard let gifEaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
-//            print("Error: failed to create EAGLContext in \(#function)")
-//            return
-//        }
-//        
-//        let gifGLKView = GLKView(frame: frame, context: gifEaglContext)
-//        cameraOutput?.outputImageView?.addSubview(gifGLKView)
-//        gifGLKView.bindDrawable()
-//        gifGLKViewPreviewViewBounds = CGRect.zero
-//        gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
-//        gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
-//        
-//        let gifCIContext = CIContext(eaglContext: gifEaglContext)
-//        
-//        gifGLKView.enableSetNeedsDisplay = false
-//        
-//        gifGLKView.bindDrawable()
-//        
-//        if gifEaglContext != EAGLContext.current() {
-//            EAGLContext.setCurrent(gifEaglContext)
-//        }
-//        
-//        configureOpenGL()
-
-        guard let gifEaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
-            print("Error: failed to create EAGLContext in \(#function)")
-            return
-        }
-        
 
         DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
-
-            let gifGLKView = GLKView(frame: self.frame, context: gifEaglContext)
-            DispatchQueue.main.sync {
-                self.cameraOutput?.outputImageView?.addSubview(gifGLKView)
-            }
-            gifGLKView.enableSetNeedsDisplay = false
-            gifGLKView.bindDrawable()
-
-            //gifGLKView.bindDrawable()
-            self.gifGLKViewPreviewViewBounds = CGRect.zero
-            self.gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
-            self.gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
-            
-            let gifCIContext = CIContext(eaglContext: gifEaglContext)
-            
-            if gifEaglContext != EAGLContext.current() {
-                EAGLContext.setCurrent(gifEaglContext)
+            self.gifGLKView.bindDrawable()
+    
+            if self.gifEaglContext != EAGLContext.current() {
+                EAGLContext.setCurrent(self.gifEaglContext)
             }
             
-             self.configureOpenGL()
-
-            
+            self.configureOpenGL()
             while !self.session.isRunning {
                 if self.session.isRunning {
                     break
                 }
+                
+                self.configureOpenGL()
                 for image in resizedCIImages {
                     if self.session.isRunning {
                         break
@@ -820,24 +816,22 @@ class SatoCamera: NSObject {
                     if let filter = self.currentFilter.filter {
                         filter.setValue(image, forKey: kCIInputImageKey)
                         if let outputImage = filter.outputImage {
-                            //self.ciContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-                            gifCIContext.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                            self.gifCIContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+
                         }
                     } else {
-                        //self.ciContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-                        gifCIContext.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                        self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
                     }
                     
-                    gifGLKView.display()
+                    self.gifGLKView.display()
                     let sleepDuration = self.currentLiveGifPreset.frameDelay * 1000000
                     usleep(useconds_t(sleepDuration)) // 1000000 = 1 second
                 }
             }
+            
+            print("user initiated queue stopped running in \(#function)")
         }
     }
-    
-    var gifGLKViewPreviewViewBounds = CGRect()
-
 
     /** Make a gif image view from urls. */
     func makeGif(urls: [URL], filter: CIFilter?) -> UIImageView? {
@@ -1279,12 +1273,13 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         
-        //videoGLKPreview?.bindDrawable()
+        videoGLKPreview?.bindDrawable()
         
         // Prepare CIContext with EAGLContext
         if eaglContext != EAGLContext.current() {
             EAGLContext.setCurrent(eaglContext)
         }
+        configureOpenGL()
 
         ciContext?.draw(filteredImage, in: videoGLKPreviewViewBounds!, from: sourceImage.extent)
         // Dispatch display() so that display() won't be executed when views are not ready to use in Camera VC
