@@ -209,11 +209,11 @@ class SatoCamera: NSObject {
         return self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0
     }
     
+    // MARK: Display preview gif
     var gifGLKViewPreviewViewBounds = CGRect()
     var gifGLKView: GLKView!
     var gifCIContext: CIContext?
     var gifEaglContext: EAGLContext?
-    
     
     // MARK: - Setups
     init(frame: CGRect) {
@@ -221,8 +221,15 @@ class SatoCamera: NSObject {
         //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
         super.init()
         
-// ==============================================================================================
-        // EAGLContext object manages an OpenGL ES rendering context
+        setupVideoGLKPreview()
+        setupGifGLKView()
+        
+        configureOpenGL()
+        
+        configureSession()
+    }
+    
+    func setupVideoGLKPreview() {
         guard let eaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
             print("eaglContext is nil")
             setupResult = .configurationFailed
@@ -232,9 +239,9 @@ class SatoCamera: NSObject {
         
         videoGLKPreview = GLKView(frame: frame, context: eaglContext)
         videoGLKPreview.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
-
+        
         videoGLKPreview.frame = frame
-
+        
         videoGLKPreview.bindDrawable()
         videoGLKPreviewViewBounds = CGRect.zero
         // drawable width The width, in pixels, of the underlying framebuffer object.
@@ -242,8 +249,9 @@ class SatoCamera: NSObject {
         videoGLKPreviewViewBounds?.size.height = CGFloat(videoGLKPreview.drawableHeight) // 749 pixels
         
         ciContext = CIContext(eaglContext: eaglContext)
-        
-// ==============================================================================================
+    }
+    
+    func setupGifGLKView() {
         guard let gifEaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
             print("Error: failed to create EAGLContext in \(#function)")
             return
@@ -253,23 +261,16 @@ class SatoCamera: NSObject {
         
         gifGLKView = GLKView(frame: frame, context: gifEaglContext)
         self.cameraOutput?.outputImageView?.addSubview(gifGLKView)
-    
+        
         gifGLKView.enableSetNeedsDisplay = false
         gifGLKView.frame = frame
         gifGLKView.bindDrawable()
         
-        //gifGLKView.bindDrawable()
         self.gifGLKViewPreviewViewBounds = CGRect.zero
         self.gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
         self.gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
         
         gifCIContext = CIContext(eaglContext: gifEaglContext)
-        
-// ==============================================================================================
-        
-        configureOpenGL()
-        
-        configureSession()
     }
     
     /** Authorize camera usage. */
@@ -541,7 +542,6 @@ class SatoCamera: NSObject {
     
     // MARK: - Camera Controls
     internal func start() {
-        cameraOutput?.sampleBufferView?.isHidden = false
         session.startRunning()
         if !session.isRunning {
             print("camera failed to run.")
@@ -549,7 +549,6 @@ class SatoCamera: NSObject {
     }
     
     internal func stop() {
-        cameraOutput?.sampleBufferView?.isHidden = true
         session.stopRunning()
     }
     
@@ -560,17 +559,8 @@ class SatoCamera: NSObject {
         renderedURLs.removeAll()
         filteredUIImages.removeAll()
         cameraOutput?.sampleBufferView?.isHidden = false
-        didOutputSampleBufferMethodCallCount = 0
         cameraOutput?.outputImageView?.isHidden = true
-
-//        if let cameraOutput = cameraOutput {
-//            if let outputImageView = cameraOutput.outputImageView {
-//                outputImageView.isHidden = false
-//                for subview in outputImageView.subviews {
-//                    subview.removeFromSuperview()
-//                }
-//            }
-//        }
+        didOutputSampleBufferMethodCallCount = 0
         start()
     }
 
@@ -730,6 +720,8 @@ class SatoCamera: NSObject {
         isSnappedGif = false
         cameraOutput?.didLiveGifStop?()
         deviceOrientation = UIDevice.current.orientation
+        cameraOutput?.outputImageView?.isHidden = false
+        cameraOutput?.sampleBufferView?.isHidden = true
         stop()
         //showGif()
         showGifWithGLKView()
@@ -767,8 +759,6 @@ class SatoCamera: NSObject {
         }
     }
     
-    
-    
     func showGifWithGLKView() {
         // make resized images from originals here
         var resizedTempURLs = [URL]()
@@ -792,9 +782,6 @@ class SatoCamera: NSObject {
             resizedCIImages.append(sourceCIImage)
         }
         
-        cameraOutput?.sampleBufferView?.isHidden = true
-        cameraOutput?.outputImageView?.isHidden = false
-
         DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
             self.gifGLKView.bindDrawable()
     
@@ -828,7 +815,6 @@ class SatoCamera: NSObject {
                     usleep(useconds_t(sleepDuration)) // 1000000 = 1 second
                 }
             }
-            
             print("user initiated queue stopped running in \(#function)")
         }
     }
