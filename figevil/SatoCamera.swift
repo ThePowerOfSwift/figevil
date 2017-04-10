@@ -87,7 +87,7 @@ class SatoCamera: NSObject {
     fileprivate var liveCameraEaglContext: EAGLContext?
     fileprivate var liveCameraGLKViewBounds: CGRect?
     internal var session = AVCaptureSession()
-    internal var sessionQueue = DispatchQueue(label: "sessionQueue", attributes: [], target: nil)
+    internal var sessionQueue = DispatchQueue(label: "sessionQueue")
     internal var frameSavingSerialQueue = DispatchQueue(label: "frameSavingSerialQueue")
     /** Frame of sampleBufferView of CameraOutput delegate. Should be set when being initialized. */
     fileprivate var frame: CGRect
@@ -1188,23 +1188,14 @@ extension AVCaptureDevice {
 // MARK: - FilterImageEffectDelegate
 extension SatoCamera: FilterImageEffectDelegate {
     
-    /** Changes the current filter. If camera is live, applies filter to the live preview. 
-     If a gif or image has already been taken and is showing on outputImageView, applies fitler to it. */
     func didSelectFilter(_ sender: FilterImageEffect, filter: Filter?) {
-        // set filtered output image to outputImageView
 
-        // if camera is running, just change the filter name
         guard let filter = filter else {
             print("filter is nil in \(#function)")
             return
         }
         
         self.currentFilter = filter
-        
-        // if camera is not running
-        if !session.isRunning {
-            //showGif()
-        }
     }
 }
 
