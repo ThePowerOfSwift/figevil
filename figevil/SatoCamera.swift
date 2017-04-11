@@ -9,69 +9,9 @@
 import UIKit
 import AVFoundation
 import GLKit
-
 import QuartzCore
-
-import MobileCoreServices // for HDD saving
+import MobileCoreServices // for HDD
 import Photos // for HDD saving
-
-/** Indicate camera state. */
-enum CameraFace {
-    case Back
-    case Front
-}
-
-/** Holds URLs saved in SatoCamera. */
-struct SavedURLs {
-    var thumbnail: URL
-    var message: URL
-    var original: URL
-}
-
-/** Gif preset. */
-struct LiveGifPreset {
-    /** has to be 0 < gifFPS <= 15 and 30 */
-    var gifFPS: Int
-    var gifDuration: TimeInterval
-    
-    var frameCaptureFrequency: Int {
-        return Int(sampleBufferFPS) / gifFPS
-    }
-    var sampleBufferFPS: Int32 = 30
-    var liveGifFrameTotalCount: Int {
-        return Int(gifDuration * Double(gifFPS))
-    }
-    
-    /** The amount of time each frame stays. */
-    var frameDelay: Double {
-        return Double(gifDuration) / Double(liveGifFrameTotalCount)
-    }
-    
-    /** Used in usleep() function to pause outputting filtered CIImage. 1000000 = 1 second in usleep().*/
-    var sleepDuration: Double {
-        return frameDelay * 1000000
-    }
-    
-    init(gifFPS: Int, gifDuration: TimeInterval) {
-        self.gifFPS = gifFPS
-        self.gifDuration = gifDuration
-    }
-    
-    init() {
-        self.gifFPS = 10
-        self.gifDuration = 2
-    }
-}
-
-
-@objc protocol SatoCameraOutput {
-    /** Show the filtered output image view. */
-    var gifOutputView: UIView? { get set }
-    /** Show the live preview. GLKView is added to this view. */
-    var sampleBufferView: UIView? { get }
-    
-    @objc optional func didLiveGifStop()
-}
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
 class SatoCamera: NSObject {
@@ -82,42 +22,36 @@ class SatoCamera: NSObject {
      3. call start(). */
     static let shared: SatoCamera = SatoCamera(frame: UIScreen.main.bounds)
     
-    // MARK: Basic Configuration for capturing
-    
+    // MARK: AVCaptureSession
     fileprivate var videoDevice: AVCaptureDevice?
     fileprivate var videoDeviceInput: AVCaptureDeviceInput?
     fileprivate var videoDataOutput = AVCaptureVideoDataOutput()
-    fileprivate var liveCameraGLKView: GLKView!
-    fileprivate var liveCameraCIContext: CIContext?
-    fileprivate var liveCameraEaglContext: EAGLContext?
-    fileprivate var liveCameraGLKViewBounds: CGRect?
     internal var session = AVCaptureSession()
     internal var sessionQueue = DispatchQueue(label: "sessionQueue")
-    internal var frameSavingSerialQueue = DispatchQueue(label: "frameSavingSerialQueue")
     /** Frame of sampleBufferView of CameraOutput delegate. Should be set when being initialized. */
     fileprivate var frame: CGRect
     
-    // MARK: Display preview gif
-    fileprivate var gifGLKViewPreviewViewBounds = CGRect()
+    // MARK: OpenGL for live camera
+    fileprivate var liveCameraGLKView: GLKView!
+    fileprivate var liveCameraCIContext: CIContext?
+    fileprivate var liveCameraEaglContext: EAGLContext?
+    fileprivate var liveCameraGLKViewBounds = CGRect()
+    
+    // MARK: OpenGL for gif preview
     fileprivate var gifGLKView: GLKView!
     fileprivate var gifCIContext: CIContext?
     fileprivate var gifEaglContext: EAGLContext?
+    fileprivate var gifGLKViewPreviewViewBounds = CGRect()
     
     // MARK: State
     fileprivate var cameraFace: CameraFace = .Back
     fileprivate var currentFilter: Filter = Filter.shared.list[0]
     fileprivate var light = Light()
-
-    // MARK: Results
-    /** Stores the result gif object. */
-    /** count variable to count how many times the method gets called */
-    fileprivate var didOutputSampleBufferMethodCallCount: Int = 0
+    fileprivate var currentLiveGifPreset: LiveGifPreset = LiveGifPreset()
     
     // MARK: User action state
-    /** Indicates if SatoCamera is recording gif.*/
     fileprivate var isRecording: Bool = false
-    /** Detect if user click the snap button. */
-    var isSnappedGif: Bool = false
+    internal var isSnappedGif: Bool = false
     
     // MARK: Delegate
     /** Delegate for SatoCamera. liveCameraGLKView will be added subview to sampleBufferOutput in dataSource. */
@@ -128,37 +62,27 @@ class SatoCamera: NSObject {
         }
         
         didSet {
-            
-            guard let liveCameraGLKView = liveCameraGLKView, let cameraOutput = cameraOutput else {
-                print("video preview or camera output is nil")
-                return
-            }
             liveCameraGLKView.removeFromSuperview()
-            
-            guard let sampleBufferOutput = cameraOutput.sampleBufferView else {
-                print("sample buffer view is nil")
+            gifGLKView.removeFromSuperview()
+            guard let cameraOutput = cameraOutput else {
+                print("Error: video preview or camera output is nil")
                 return
             }
-            
-            sampleBufferOutput.addSubview(liveCameraGLKView)
-            
-            
-            if let outputImageView = cameraOutput.gifOutputView {
-                outputImageView.addSubview(gifGLKView)
-                print("gifGLKView added")
+            guard let sampleBufferOutput = cameraOutput.sampleBufferView, let gifOutputView = cameraOutput.gifOutputView else {
+                print("Error: sample buffer view or gif output view is nil")
+                return
             }
+            sampleBufferOutput.addSubview(liveCameraGLKView)
+            gifOutputView.addSubview(gifGLKView)
         }
     }
     
-    // Gif setting
-    var currentLiveGifPreset: LiveGifPreset = LiveGifPreset()
-
+    // MARK: Result of session configuration
     private enum SessionSetupResult {
         case success
         case configurationFailed
         case notAuthorized
     }
-    
     private var setupResult: SessionSetupResult = .success
     
     // MARK: Orientation
@@ -179,47 +103,42 @@ class SatoCamera: NSObject {
     /** an integer value to be passed with kCGImagePropertyOrientation. */
     var cgImageOrientation: CGImagePropertyOrientation = CGImagePropertyOrientation.Default
     
-    // MARK: HDD saving
-    /** To be rendered. */
-    var filteredUIImages = [UIImage]()
-    var originalURLs = [URL]()
-    var resizedURLs = [URL]()
-    var renderedURLs = [URL]()
-    let fileManager = FileManager.default
-    
+    // MARK: Save frame to HDD
+    /** count variable to count how many times the method gets called */
+    fileprivate var didOutputSampleBufferMethodCallCount: Int = 0
+    internal var frameSavingSerialQueue = DispatchQueue(label: "frameSavingSerialQueue")    /** To be rendered. */
+    fileprivate var filteredUIImages = [UIImage]()
+    fileprivate var originalURLs = [URL]()
+    fileprivate var resizedURLs = [URL]()
+    fileprivate var renderedURLs = [URL]()
+    fileprivate let fileManager = FileManager.default
     /** Documents/thumbnail/{UUID}. */
-    var thumbnailUrlPath: URL {
+    fileprivate var thumbnailUrlPath: URL {
         let path = URL.pathWith(subpath: "/thumbnail")
         return URL(fileURLWithPath: path)
     }
-    
     /** Documents/resized/{UUID}. */
     var resizedUrlPath: URL {
         let path = URL.pathWith(subpath: "/resized")
         return URL(fileURLWithPath: path)
     }
-    
     /** Documents/original/{UUID}. */
     var originalUrlPath: URL {
         let path = URL.pathWith(subpath: "/original")
         return URL(fileURLWithPath: path)
     }
-    
     func getMaxPixel(scale: Double) -> Int {
         let longerSide = Double(max(frame.height, frame.width))
         return Int(longerSide / scale)
     }
-    
     // scale 3 is around 500KB
     // scale 2 is around 800KB ~ 1000KB
     // scale 2.1 is 900KB with text and drawing
     // scale 1 is around 3000K
     //let pixelSizeForMessage = getMaxPixel(scale: 2.1) // 350 on iPhone 7 plus, 317 on iPhone 6
     //let pixelSizeForThumbnail = getMaxPixel(scale: 3) // 245 on iPhone 7 plus, 222 on iphone 6
-    
     var messagePixelSize = 350
     var thumbnailPixelSize = 245
-    
     var shouldSaveFrame: Bool {
         return self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0
     }
@@ -229,34 +148,26 @@ class SatoCamera: NSObject {
         self.frame = frame
         //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
         super.init()
-        
         setupliveCameraGLKView()
         setupGifGLKView()
-        
-        configureOpenGL()
-        
-        configureSession()
+        setupOpenGL()
+        setupSession()
     }
     
     func setupliveCameraGLKView() {
         guard let liveCameraEaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
-            print("eaglContext is nil")
+            print("Error: eaglContext is nil")
             setupResult = .configurationFailed
             return
         }
         self.liveCameraEaglContext = liveCameraEaglContext
-        
         liveCameraGLKView = GLKView(frame: frame, context: liveCameraEaglContext)
         liveCameraGLKView.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
-        
         liveCameraGLKView.frame = frame
-        
         liveCameraGLKView.bindDrawable()
         liveCameraGLKViewBounds = CGRect.zero
-        // drawable width The width, in pixels, of the underlying framebuffer object.
-        liveCameraGLKViewBounds?.size.width = CGFloat(liveCameraGLKView.drawableWidth) // 1334 pixels
-        liveCameraGLKViewBounds?.size.height = CGFloat(liveCameraGLKView.drawableHeight) // 749 pixels
-        
+        liveCameraGLKViewBounds.size.width = CGFloat(liveCameraGLKView.drawableWidth) // 1334 pixels
+        liveCameraGLKViewBounds.size.height = CGFloat(liveCameraGLKView.drawableHeight) // 749 pixels
         liveCameraCIContext = CIContext(eaglContext: liveCameraEaglContext)
     }
     
@@ -265,20 +176,14 @@ class SatoCamera: NSObject {
             print("Error: failed to create EAGLContext in \(#function)")
             return
         }
-        
         self.gifEaglContext = gifEaglContext
-        
         gifGLKView = GLKView(frame: frame, context: gifEaglContext)
-        self.cameraOutput?.gifOutputView?.addSubview(gifGLKView)
-        
         gifGLKView.enableSetNeedsDisplay = false
         gifGLKView.frame = frame
         gifGLKView.bindDrawable()
-        
-        self.gifGLKViewPreviewViewBounds = CGRect.zero
-        self.gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
-        self.gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
-        
+        gifGLKViewPreviewViewBounds = CGRect.zero
+        gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
+        gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
         gifCIContext = CIContext(eaglContext: gifEaglContext)
     }
     
@@ -293,7 +198,7 @@ class SatoCamera: NSObject {
         }
     }
 
-    func configureOpenGL() {
+    func setupOpenGL() {
         // OpenGL official documentation: https://www.khronos.org/registry/OpenGL-Refpages/es2.0/
         // clear eagl view to grey
         glClearColor(0.5, 0.5, 0.5, 1.0) // specify clear values for the color buffers
@@ -303,12 +208,11 @@ class SatoCamera: NSObject {
         glBlendFunc(GLenum(GL_ONE), GLenum(GL_ONE_MINUS_SRC_ALPHA)) // specify pixel arithmetics
     }
     
-    /** Start running capture session. */
-    internal func configureSession() {
+    internal func setupSession() {
         
         // Get video device
         guard let videoDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo) else {
-            print("video device is nil")
+            print("Error: video device is nil")
             setupResult = .configurationFailed
             return
         }
@@ -324,7 +228,7 @@ class SatoCamera: NSObject {
             session.sessionPreset = AVCaptureSessionPresetLow
         }
         
-        // Configure video output setting
+        // setup video output setting
         let outputSettings: [AnyHashable : Any] = [kCVPixelBufferPixelFormatTypeKey as AnyHashable : Int(kCVPixelFormatType_32BGRA)]
         videoDataOutput.videoSettings = outputSettings
         // Ensure frames are delivered to the delegate in order
@@ -332,25 +236,22 @@ class SatoCamera: NSObject {
         videoDataOutput.setSampleBufferDelegate(self, queue: sessionQueue)
         videoDataOutput.alwaysDiscardsLateVideoFrames = true
         
-        // Configure input object with device
+        // setup input object with device
         // THIS CODE HAS TO BE BEFORE THE FRAME RATE  CONFIG
         // http://stackoverflow.com/questions/20330174/avcapture-capturing-and-getting-framebuffer-at-60-fps-in-ios-7
         do {
             videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
-            
             if session.canAddInput(videoDeviceInput) {
                 session.addInput(videoDeviceInput)
             } else {
-                print("video device input cannot be added to session.")
+                print("Error: video device input cannot be added to session.")
                 setupResult = .configurationFailed
             }
-            
         } catch {
-            print("Failed to instantiate input object")
+            print("Error: Failed to instantiate input object")
             setupResult = .configurationFailed
         }
         
-        // Minimize visibility or inconsistency of state
         session.beginConfiguration()
         
         if videoDevice.hasTorch && videoDevice.isTorchAvailable {
@@ -360,7 +261,7 @@ class SatoCamera: NSObject {
                 videoDevice.torchMode = light.torchState
                 videoDevice.unlockForConfiguration()
             } catch {
-                print("failed to lock device")
+                print("Error: failed to lock device")
                 setupResult = .configurationFailed
             }
         }
@@ -369,15 +270,14 @@ class SatoCamera: NSObject {
         if session.canAddOutput(videoDataOutput) {
             session.addOutput(videoDataOutput)
         } else {
-            print("cannot add video data output")
+            print("Error: cannot add video data output")
             setupResult = .configurationFailed
         }
         
-        configureVideoOrientation()
+        setupVideoOrientation()
         
         // Assemble all the settings together
         session.commitConfiguration()
-        
         // Check if camera usage is authorized by user before starting to run
         sessionQueue.suspend()
         askUserCameraAccessAuthorization { (authorized: Bool) in
@@ -387,7 +287,74 @@ class SatoCamera: NSObject {
                 self.sessionQueue.resume()
             } else {
                 self.setupResult = .configurationFailed
-                print("camera access failed to authorize")
+                print("Error: camera access failed to authorize")
+            }
+        }
+    }
+    
+    /** Change the orientation of data recieved by AVCaptureVideoData. */
+    func setupVideoOrientation() {
+        if let connection = videoDataOutput.connection(withMediaType: AVMediaTypeVideo) {
+            if connection.isVideoOrientationSupported {
+                connection.videoOrientation = AVCaptureVideoOrientation.portrait
+                
+                if cameraFace == CameraFace.Front {
+                    if connection.isVideoMirroringSupported {
+                        connection.isVideoMirrored = true
+                    }
+                }
+            }
+        }
+    }
+    
+    internal func tapToFocusAndExposure(touch: UITouch) {
+        let touchPoint = touch.location(in: liveCameraGLKView)
+        // https://developer.apple.com/library/content/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/04_MediaCapture.html
+        // convert device point to image point in unit
+        let convertedX = touchPoint.y / frame.height
+        let convertedY = (frame.width - touchPoint.x) / frame.width
+        let convertedPoint = CGPoint(x: convertedX, y: convertedY)
+        focus(with: .autoFocus, exposureMode: .autoExpose, at: convertedPoint)
+        
+        // feedback rect view
+        let feedbackView = UIView(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 50)))
+        feedbackView.center = touchPoint
+        feedbackView.layer.borderColor = UIColor.white.cgColor
+        feedbackView.layer.borderWidth = 2.0
+        feedbackView.layer.cornerRadius = feedbackView.frame.width / 2
+        feedbackView.clipsToBounds = true
+        feedbackView.backgroundColor = UIColor.clear
+        DispatchQueue.main.async {
+            self.cameraOutput?.sampleBufferView?.addSubview(feedbackView)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: {
+                // Put your code which should be executed with a delay here
+                feedbackView.removeFromSuperview()
+            })
+        }
+    }
+    
+    private func focus(with focusMode: AVCaptureFocusMode, exposureMode: AVCaptureExposureMode, at unitPoint: CGPoint) {
+        sessionQueue.async { [unowned self] in
+            if let device = self.videoDevice {
+                do {
+                    try device.lockForConfiguration()
+                    /*
+                     Setting (focus/exposure)PointOfInterest alone does not initiate a (focus/exposure) operation.
+                     Call set(Focus/Exposure)Mode() to apply the new point of interest.
+                     */
+                    if device.isFocusPointOfInterestSupported && device.isFocusModeSupported(focusMode) {
+                        device.focusPointOfInterest = unitPoint
+                        device.focusMode = focusMode
+                    }
+                    if device.isExposurePointOfInterestSupported && device.isExposureModeSupported(exposureMode) {
+                        device.exposurePointOfInterest = unitPoint
+                        device.exposureMode = exposureMode
+                    }
+                    device.unlockForConfiguration()
+                }
+                catch {
+                    print("Error: Could not lock device for configuration: \(error)")
+                }
             }
         }
     }
@@ -411,7 +378,7 @@ class SatoCamera: NSObject {
             }
             
             // set the format to the device
-            // this changes the AVCaptureSessionPreset to AVCaptureSessionPresetInputPriority 
+            // this changes the AVCaptureSessionPreset to AVCaptureSessionPresetInputPriority
             // which specifies that the capture session does not control audio and video output settings.
             videoDevice.activeFormat = bestFormat
             
@@ -440,77 +407,6 @@ class SatoCamera: NSObject {
         }
     }
     
-    /** Change the orientation of data recieved by AVCaptureVideoData. */
-    func configureVideoOrientation() {
-        if let connection = videoDataOutput.connection(withMediaType: AVMediaTypeVideo) {
-            if connection.isVideoOrientationSupported {
-                connection.videoOrientation = AVCaptureVideoOrientation.portrait
-                
-                if cameraFace == CameraFace.Front {
-                    if connection.isVideoMirroringSupported {
-                        connection.isVideoMirrored = true
-                    }
-                }
-            }
-        }
-    }
-    
-    /** Focus on where it's tapped. */
-    internal func tapToFocusAndExposure(touch: UITouch) {
-        
-        let touchPoint = touch.location(in: liveCameraGLKView)
-        // https://developer.apple.com/library/content/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/04_MediaCapture.html
-        // convert device point to image point in unit
-        let convertedX = touchPoint.y / frame.height
-        let convertedY = (frame.width - touchPoint.x) / frame.width
-        let convertedPoint = CGPoint(x: convertedX, y: convertedY)
-        focus(with: .autoFocus, exposureMode: .autoExpose, at: convertedPoint)
-        
-        // feedback rect view
-        let feedbackView = UIView(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 50)))
-        feedbackView.center = touchPoint
-        feedbackView.layer.borderColor = UIColor.white.cgColor
-        feedbackView.layer.borderWidth = 2.0
-        feedbackView.backgroundColor = UIColor.clear
-        
-        DispatchQueue.main.async {
-            self.cameraOutput?.sampleBufferView?.addSubview(feedbackView)
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
-                // Put your code which should be executed with a delay here
-                feedbackView.removeFromSuperview()
-            })
-        }
-    }
-    
-    private func focus(with focusMode: AVCaptureFocusMode, exposureMode: AVCaptureExposureMode, at unitPoint: CGPoint) {
-        sessionQueue.async { [unowned self] in
-            if let device = self.videoDevice {
-                do {
-                    try device.lockForConfiguration()
-                    
-                    /*
-                     Setting (focus/exposure)PointOfInterest alone does not initiate a (focus/exposure) operation.
-                     Call set(Focus/Exposure)Mode() to apply the new point of interest.
-                     */
-                    if device.isFocusPointOfInterestSupported && device.isFocusModeSupported(focusMode) {
-                        device.focusPointOfInterest = unitPoint
-                        device.focusMode = focusMode
-                    }
-                    
-                    if device.isExposurePointOfInterestSupported && device.isExposureModeSupported(exposureMode) {
-                        device.exposurePointOfInterest = unitPoint
-                        device.exposureMode = exposureMode
-                    }
-                    
-                    device.unlockForConfiguration()
-                }
-                catch {
-                    print("Could not lock device for configuration: \(error)")
-                }
-            }
-        }
-    }
-    
     
     // MARK: - Camera Settings
     internal func toggleFlash() -> String {
@@ -524,27 +420,23 @@ class SatoCamera: NSObject {
     /** Toggles back camera or front camera. */
     internal func toggleCamera() {
         let cameraDevice = AVCaptureDevice.getCameraDevice(cameraFace: &cameraFace)
-
         didOutputSampleBufferMethodCallCount = 0
         session.beginConfiguration()
         session.removeInput(videoDeviceInput)
         videoDevice = cameraDevice
-        
-        // Configure input object with device
+        // setup input object with device
         do {
             videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
             // Add it to session
             if let videoDeviceInput = videoDeviceInput {
                 session.addInput(videoDeviceInput)
             } else {
-                print("videoDeviceInput is nil")
+                print("Error: videoDeviceInput is nil")
             }
-            
         } catch {
-            print("Failed to instantiate input object")
+            print("Error: Failed to instantiate input object")
         }
-
-        configureVideoOrientation()
+        setupVideoOrientation()
         session.commitConfiguration()
     }
     
@@ -552,7 +444,7 @@ class SatoCamera: NSObject {
     internal func start() {
         session.startRunning()
         if !session.isRunning {
-            print("camera failed to run.")
+            print("Error: camera failed to run.")
         }
     }
     
@@ -574,30 +466,25 @@ class SatoCamera: NSObject {
 
     /** Render everything together. */
     internal func render(imageUrls: [URL], renderItems: [UIImage]?) -> [URL] {
-
         var filteredResizedUIImages = [UIImage]()
         let ciContext = CIContext()
         for url in imageUrls {
             if let image = url.makeUIImage(filter: currentFilter.filter, context: ciContext) {
                 filteredResizedUIImages.append(image)
             } else {
-                print("resized image is nil in \(#function)")
+                print("Error: resized image is nil in \(#function)")
             }
         }
         
         var urls = [URL]()
-        
         for image in filteredResizedUIImages {
-            
             let renderedImage = image.render(items: renderItems, frame: frame)
-            
             guard let cgImage = renderedImage.cgImage else {
-                print("Could not get cgImage from rendered UIImage in \(#function)")
+                print("Error: Could not get cgImage from rendered UIImage in \(#function)")
                 break
             }
-            
             guard let url = cgImage.saveToDisk(cgImagePropertyOrientation: cgImageOrientation) else {
-                print("Could not save cgImage to disk in \(#function)")
+                print("Error: Could not save cgImage to disk in \(#function)")
                 break
             }
             urls.append(url)
@@ -606,28 +493,24 @@ class SatoCamera: NSObject {
     }
 
     internal func save(renderItems: [UIImage]?, completion: ((_ saved: Bool, _ savedUrl: SavedURLs?, _ fileSize: String?) -> ())?) {
-
-        // render here
         renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
-
         var thumbnailURLs = [URL]()
         var messageURLs = [URL]()
         for url in renderedURLs {
             if let thumbnailURL = url.resize(maxSize: thumbnailPixelSize, destinationURL: resizedUrlPath) {
                 thumbnailURLs.append(thumbnailURL)
             } else {
-                print("resizing to thumbnail failed in \(#function)")
+                print("Error: resizing to thumbnail failed in \(#function)")
             }
             
             if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
                 messageURLs.append(messageURL)
             } else {
-                print("resizing to message failed in \(#function)")
+                print("Error: resizing to message failed in \(#function)")
             }
         }
         
         let path = String(Date().timeIntervalSinceReferenceDate)
-        
         let thumbnailURL = URL.thumbnailURL(path: path)
         let messageURL = URL.messageURL(path: path)
         let originalURL = URL.originalURL(path: path)
@@ -637,13 +520,13 @@ class SatoCamera: NSObject {
         if thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: thumbnailURL) {
             print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
         } else {
-            print("thumbnail gif URL failed to save in \(#function)")
+            print("Error: thumbnail gif URL failed to save in \(#function)")
         }
         
         if messageURLs.createGif(frameDelay: 0.5, destinationURL: messageURL) {
             print("message gif URL filesize: \(messageURL.filesize!)")
         } else {
-            print("message gif URL failed to save in \(#function)")
+            print("Error: message gif URL failed to save in \(#function)")
         }
         
         if renderedURLs.createGif(frameDelay: 0.5, destinationURL: originalURL) {
@@ -653,42 +536,38 @@ class SatoCamera: NSObject {
                     switch (status)
                     {
                     case .authorized:
-                        // Permission Granted
-                        // save data to the url
                         PHPhotoLibrary.shared().performChanges({
                             PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
                         }, completionHandler: { (saved: Bool, error: Error?) in
                             if saved {
                                 completion?(true, savedURLs, originalURL.filesize!)
                             } else {
-                                print("did not save gif")
+                                print("Error: did not save gif")
                                 completion?(false, nil, nil)
                             }
                         })
                     case .denied:
-                        // Permission Denied
-                        print("User denied")
+                        print("Error: User denied")
                     default:
-                        print("Restricted")
+                        print("Error: Restricted")
                     }
             }
 
         } else {
-            print("original gif URL failed to save in \(#function)")
+            print("Error: original gif URL failed to save in \(#function)")
         }
     }
     
+    /** Share message size gif. */
     func share(renderItems: [UIImage], completion: ((_ saved: Bool, _ savedUrl: URL?) -> ())?) {
-
         renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
-        
         var messageURLs = [URL]()
         for url in renderedURLs {
             
             if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
                 messageURLs.append(messageURL)
             } else {
-                print("resizing to message failed in \(#function)")
+                print("Error: resizing to message failed in \(#function)")
             }
         }
         
@@ -701,7 +580,7 @@ class SatoCamera: NSObject {
             print("gif is saved to \(url). Filesize is \(String(describing: url.filesize!))")
             completion?(success, url)
         } else {
-            print("gif file is not saved in \(#function)")
+            print("Error: gif file is not saved in \(#function)")
         }
     }
     
@@ -743,7 +622,7 @@ class SatoCamera: NSObject {
             if let resizedUrl = url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
                 resizedTempURLs.append(resizedUrl)
             } else {
-                print("failed to get resized URL")
+                print("Error: failed to get resized URL")
             }
         }
         
@@ -762,7 +641,7 @@ class SatoCamera: NSObject {
             cameraOutput?.gifOutputView?.sendSubview(toBack: gifImageView)
             gifImageView.startAnimating()
         } else {
-            print("gifImageView is nil")
+            print("Error: gifImageView is nil")
         }
     }
     
@@ -774,7 +653,7 @@ class SatoCamera: NSObject {
             if let resizedUrl = url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
                 resizedTempURLs.append(resizedUrl)
             } else {
-                print("failed to get resized URL")
+                print("Error: failed to get resized URL")
             }
         }
         
@@ -783,7 +662,7 @@ class SatoCamera: NSObject {
         var resizedCIImages = [CIImage]()
         for url in resizedTempURLs {
             guard let sourceCIImage = url.cgImage?.ciImage else {
-                print("cgImage is nil in \(#function)")
+                print("Error: cgImage is nil in \(#function)")
                 return
             }
             resizedCIImages.append(sourceCIImage)
@@ -796,13 +675,13 @@ class SatoCamera: NSObject {
                 EAGLContext.setCurrent(self.gifEaglContext)
             }
             
-            self.configureOpenGL()
+            self.setupOpenGL()
             while !self.session.isRunning {
                 if self.session.isRunning {
                     break
                 }
                 
-                self.configureOpenGL()
+                self.setupOpenGL()
                 for image in resizedCIImages {
                     if self.session.isRunning {
                         break
@@ -834,7 +713,7 @@ class SatoCamera: NSObject {
             if let image = url.makeUIImage(filter: filter, context: ciContext) {
                 filteredUIImages.append(image)
             } else {
-                print("original image is nil in \(#function)")
+                print("Error: original image is nil in \(#function)")
             }
         }
         
@@ -847,17 +726,62 @@ class SatoCamera: NSObject {
     }
 }
 
-class CustomView: UIView {
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        print("touched")
+// MARK: - Other types
+@objc protocol SatoCameraOutput {
+    /** Show the filtered output image view. */
+    var gifOutputView: UIView? { get set }
+    /** Show the live preview. GLKView is added to this view. */
+    var sampleBufferView: UIView? { get }
+    @objc optional func didLiveGifStop()
+}
+
+/** Indicate camera state. */
+enum CameraFace {
+    case Back
+    case Front
+}
+
+/** Holds URLs saved in SatoCamera. */
+struct SavedURLs {
+    var thumbnail: URL
+    var message: URL
+    var original: URL
+}
+
+/** Gif preset. */
+struct LiveGifPreset {
+    /** has to be 0 < gifFPS <= 15 and 30 */
+    var gifFPS: Int
+    var gifDuration: TimeInterval
+    var frameCaptureFrequency: Int {
+        return Int(sampleBufferFPS) / gifFPS
+    }
+    var sampleBufferFPS: Int32 = 30
+    var liveGifFrameTotalCount: Int {
+        return Int(gifDuration * Double(gifFPS))
+    }
+    /** The amount of time each frame stays. */
+    var frameDelay: Double {
+        return Double(gifDuration) / Double(liveGifFrameTotalCount)
+    }
+    /** Used in usleep() function to pause outputting filtered CIImage. 1000000 = 1 second in usleep().*/
+    var sleepDuration: Double {
+        return frameDelay * 1000000
+    }
+    init(gifFPS: Int, gifDuration: TimeInterval) {
+        self.gifFPS = gifFPS
+        self.gifDuration = gifDuration
+    }
+    init() {
+        self.gifFPS = 10
+        self.gifDuration = 2
     }
 }
 
-// MARK: - Other Extensions
 extension URL {
     var cgImage: CGImage? {
         guard let imageSource = CGImageSourceCreateWithURL(self as CFURL, nil) else {
-            print("CGImage is nil in \(#function)")
+            print("Error: CGImage is nil in \(#function)")
             return nil
         }
         let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
@@ -913,7 +837,7 @@ extension URL {
     /** Make UIImage from URL*/
     func makeUIImage(filter: CIFilter?, context: CIContext) -> UIImage? {
         guard let sourceCIImage = self.cgImage?.ciImage else {
-            print("cgImage is nil in \(#function)")
+            print("Error: cgImage is nil in \(#function)")
             return nil
         }
         
@@ -954,7 +878,7 @@ extension URL {
             return intermediate​Path.appending("/\(UUID().uuidString)")
         }
         
-        print("failed to make path in \(#function)")
+        print("Error: failed to make path in \(#function)")
         return NSTemporaryDirectory().appending(UUID().uuidString)
     }
     
@@ -967,7 +891,7 @@ extension URL {
 
         } else {
             url = URL(fileURLWithPath: NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif"))
-            print("failed to create thumbnail URL")
+            print("Error: failed to create thumbnail URL")
         }
         return url
     }
@@ -981,7 +905,7 @@ extension URL {
 
         } else {
             url = URL(fileURLWithPath: NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif"))
-            print("failed to create thumbnail URL")
+            print("Error: failed to create thumbnail URL")
         }
         return url
     }
@@ -995,14 +919,13 @@ extension URL {
             
         } else {
             url = URL(fileURLWithPath: NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif"))
-            print("failed to create thumbnail URL")
+            print("Error: failed to create thumbnail URL")
         }
         return url
     }
 }
 
 extension UIImage {
-    //func render(drawImage: UIImage?, textImage: UIImage?, pngOverlayImage: UIImage?, frame: CGRect) ->
     func render(items: [UIImage]?, frame: CGRect) ->UIImage {
         UIGraphicsBeginImageContext(frame.size)
         if let images = items {
@@ -1168,7 +1091,6 @@ extension Sequence where Iterator.Element == URL {
         } else {
             print("Saved gif to \(destinationURL.path)")
         }
-        
         return true
     }
 }
@@ -1208,7 +1130,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
-        // Save and remove serially
+        // Save and remove serially and asynchronously
         frameSavingSerialQueue.async { [unowned self] in
             
             self.didOutputSampleBufferMethodCallCount += 1
@@ -1231,10 +1153,8 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                         
                     } else {
                         // post-saving
-                        
                         if self.originalURLs.count >= self.currentLiveGifPreset.liveGifFrameTotalCount {
                             DispatchQueue.main.async { [unowned self] in
-                                // UI change has to be in main thread
                                 self.stopLiveGif()
                             }
                         }
@@ -1244,26 +1164,26 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            print("image buffer is nil")
+            print("Error: image buffer is nil")
             return
         }
         let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
-            print("filtered image is nil in \(#function)")
+            print("Error: filtered image is nil in \(#function)")
             return
         }
         
-        liveCameraGLKView?.bindDrawable()
+        liveCameraGLKView.bindDrawable()
         
         // Prepare CIContext with EAGLContext
         if liveCameraEaglContext != EAGLContext.current() {
             EAGLContext.setCurrent(liveCameraEaglContext)
         }
-        configureOpenGL()
+        setupOpenGL()
         
-        liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds!, from: sourceImage.extent)
+        liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
         liveCameraGLKView.display()
     }
 }
