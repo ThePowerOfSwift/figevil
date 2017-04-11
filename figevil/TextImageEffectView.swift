@@ -13,7 +13,7 @@ class TextImageEffectView: UIView, CameraViewBubbleMenu {
     /** Model */
     var textView = TextView()
     
-    // MARK: CameraViewBubbleMenu
+    // MARK: CameraViewBubbleMenu variables
     var menuContent: [BubbleMenuCollectionViewCellContent] = []
     var iconContent = BubbleMenuCollectionViewCellContent(image: UIImage(named: "text.png")!, label: "Text")
     var showsMenuContentOnKeyboard: Bool = true

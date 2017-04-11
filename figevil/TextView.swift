@@ -8,7 +8,7 @@
 
 import UIKit
 
-private let defaultText = ":)"
+private let defaultText = "😜"
 private let defaultFont = UIFont(name: "Helvetica", size: 50)
 private let defaultColor = UIColor.white
 /** CGContext; Quality; 0.0 is screen resolution */
@@ -221,16 +221,11 @@ class TextView: UIView, UITextFieldDelegate {
         
         // Configure context
         UIGraphicsBeginImageContextWithOptions(imageView.frame.size, false, imageScale)
-//        imageView.image?.draw(in: imageView.frame)
         
         for textField in textFields {
             // Draw text in rect
-//            let textLabelPointInImage = CGPoint(x: textField.frame.origin.x, y: textField.frame.origin.y)
-//            let rect = CGRect(origin: textLabelPointInImage, size: imageView.frame.size)
-//            textNSString.draw(in: rect, withAttributes: textFontAttributes)
-            let rect = CGRect(origin: CGPoint(x: textField.frame.origin.x, y: textField.frame.origin.y), size: textField.frame.size)
-            textField.drawText(in: rect)
-
+//            let rect = CGRect(origin: CGPoint(x: textField.frame.origin.x, y: textField.frame.origin.y), size: textField.frame.size)
+            textField.drawText(in: textField.frame)
         }
         
         imageView.image = UIGraphicsGetImageFromCurrentImageContext()

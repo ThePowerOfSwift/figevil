@@ -94,7 +94,9 @@ class DrawView: UIView {
         UIGraphicsBeginImageContextWithOptions(self.frame.size, false, imageScale)
         if let context = UIGraphicsGetCurrentContext() {
             // Draw previous contents (preserve)
-            imageView.image?.draw(in: CGRect(x: 0, y: 0, width: imageView.frame.width, height: imageView.frame.size.height))
+//            imageView.image?.draw(in: CGRect(x: 0, y: 0, width: imageView.frame.width, height: imageView.frame.size.height))
+            imageView.image?.draw(in: imageView.frame)
+
             
             // Add a line segment from lastPoint to currentPoint.
             context.addPath(path)

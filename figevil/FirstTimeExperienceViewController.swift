@@ -33,7 +33,6 @@ class FirstTimeExperienceViewController: UIViewController, UIPageViewControllerD
         pageVC.delegate = self
         
         let storyboard = UIStoryboard(name: "FirstTimeExperience", bundle: nil)
-        vcs.append(storyboard.instantiateViewController(withIdentifier: "FTEWelcomeViewController"))
         vcs.append(storyboard.instantiateViewController(withIdentifier: "FTEGetStartedViewController"))
         vcs.append(storyboard.instantiateViewController(withIdentifier: "FTECameraViewController"))
 

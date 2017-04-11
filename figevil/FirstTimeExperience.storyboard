@@ -6,6 +6,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12086"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -75,8 +76,17 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Make me-GIFs" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="f3s-ne-9j3">
+                                <rect key="frame" x="16" y="40" width="343" height="29"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="29" id="LdU-fe-sc4"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="24"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Let's get started" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1QN-CL-GMU">
-                                <rect key="frame" x="16" y="20" width="343" height="29"/>
+                                <rect key="frame" x="16" y="209" width="343" height="29"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="29" id="WXQ-sP-uk1"/>
                                 </constraints>
@@ -85,42 +95,57 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Time to make your first me-GIF!  When you're ready, swipe right!" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="orJ-Q6-XvC">
-                                <rect key="frame" x="16" y="49" width="343" height="151"/>
+                                <rect key="frame" x="16" y="238" width="343" height="90"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="151" id="eCi-h5-0e8"/>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="151" id="vhP-Sb-mRo"/>
+                                    <constraint firstAttribute="height" constant="90" id="eCi-h5-0e8"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="20"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="bottom" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="selfie.gif" translatesAutoresizingMaskIntoConstraints="NO" id="iiU-ym-pNb">
-                                <rect key="frame" x="112" y="254" width="150" height="393"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="bottom" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="selfie.gif" translatesAutoresizingMaskIntoConstraints="NO" id="iiU-ym-pNb" customClass="FLAnimatedImageView">
+                                <rect key="frame" x="112" y="328" width="150" height="425"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="393" id="5Lu-gO-BQN"/>
+                                    <constraint firstAttribute="height" constant="425" id="5Lu-gO-BQN"/>
                                 </constraints>
                             </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="me me lets you make personalized GIFs to share with your friends and family. " textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="c7M-MW-jYZ">
+                                <rect key="frame" x="16" y="69" width="343" height="120"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="120" id="8FG-XD-Tet"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="20"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="0.10428158193826675" green="0.65683513879776001" blue="0.61343508958816528" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="orJ-Q6-XvC" firstAttribute="top" secondItem="1QN-CL-GMU" secondAttribute="bottom" id="4bO-Zn-0Yw"/>
+                            <constraint firstItem="f3s-ne-9j3" firstAttribute="top" secondItem="aF6-Qs-r9Q" secondAttribute="bottom" constant="20" id="6bm-7Y-VKC"/>
                             <constraint firstItem="orJ-Q6-XvC" firstAttribute="trailing" secondItem="sCj-UN-9tv" secondAttribute="trailingMargin" id="A9I-fc-lQC"/>
                             <constraint firstItem="orJ-Q6-XvC" firstAttribute="leading" secondItem="sCj-UN-9tv" secondAttribute="leadingMargin" id="D1L-tE-Cc6"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="c7M-MW-jYZ" secondAttribute="trailing" id="Gg4-BA-ZeN"/>
                             <constraint firstItem="1QN-CL-GMU" firstAttribute="trailing" secondItem="sCj-UN-9tv" secondAttribute="trailingMargin" id="OXM-gZ-DLR"/>
-                            <constraint firstItem="1QN-CL-GMU" firstAttribute="top" secondItem="aF6-Qs-r9Q" secondAttribute="bottom" id="bZq-3i-5kY"/>
+                            <constraint firstItem="c7M-MW-jYZ" firstAttribute="leading" secondItem="sCj-UN-9tv" secondAttribute="leadingMargin" id="Opz-iB-HFH"/>
+                            <constraint firstItem="c7M-MW-jYZ" firstAttribute="top" secondItem="f3s-ne-9j3" secondAttribute="bottom" id="PYD-bY-0Wl"/>
+                            <constraint firstItem="iiU-ym-pNb" firstAttribute="top" secondItem="orJ-Q6-XvC" secondAttribute="bottom" id="XSo-Mf-kHZ"/>
+                            <constraint firstItem="f3s-ne-9j3" firstAttribute="leading" secondItem="sCj-UN-9tv" secondAttribute="leadingMargin" id="ieS-gh-Qux"/>
                             <constraint firstAttribute="trailing" secondItem="iiU-ym-pNb" secondAttribute="trailing" constant="113" id="n8I-1T-ek3"/>
-                            <constraint firstItem="Kyu-db-UI0" firstAttribute="top" secondItem="iiU-ym-pNb" secondAttribute="bottom" constant="20" id="rXx-DY-0OV"/>
+                            <constraint firstItem="f3s-ne-9j3" firstAttribute="trailing" secondItem="sCj-UN-9tv" secondAttribute="trailingMargin" id="qRb-ej-dBB"/>
+                            <constraint firstItem="1QN-CL-GMU" firstAttribute="top" secondItem="c7M-MW-jYZ" secondAttribute="bottom" constant="20" id="rey-He-KEN"/>
                             <constraint firstItem="iiU-ym-pNb" firstAttribute="leading" secondItem="sCj-UN-9tv" secondAttribute="leading" constant="112" id="x1V-CG-AsF"/>
                             <constraint firstItem="1QN-CL-GMU" firstAttribute="leading" secondItem="sCj-UN-9tv" secondAttribute="leadingMargin" id="yXv-fk-o1A"/>
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="selfieImageView" destination="iiU-ym-pNb" id="MON-r4-L8K"/>
+                        <outlet property="animatedImageView" destination="iiU-ym-pNb" id="MON-r4-L8K"/>
+                        <outlet property="animatedImageViewTopConstraint" destination="XSo-Mf-kHZ" id="1aw-V2-x3O"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Fwe-U9-DaV" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1565.5999999999999" y="152.47376311844079"/>
+            <point key="canvasLocation" x="-25" y="152"/>
         </scene>
         <!--Camera View Controller-->
         <scene sceneID="rBX-3D-DX7">
@@ -133,94 +158,106 @@
                     <view key="view" contentMode="scaleToFill" id="SJg-Jx-TVn">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="c4F-sc-A4g">
+                                <rect key="frame" x="137.5" y="547" width="100" height="100"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="c4F-sc-A4g" secondAttribute="height" multiplier="1:1" id="kBd-rX-vmE"/>
+                                    <constraint firstAttribute="width" constant="100" id="pXW-Mi-fd8"/>
+                                </constraints>
+                                <state key="normal" title="hello" image="circle.png"/>
+                                <state key="selected" image="circle.png"/>
+                                <connections>
+                                    <action selector="tappedSnap:" destination="bsm-wn-Vuw" eventType="touchUpInside" id="czX-9m-MMA"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PoJ-C1-mOm">
+                                <rect key="frame" x="53" y="60" width="268" height="42.5"/>
+                                <attributedString key="attributedText">
+                                    <fragment content="WHAT'S UP?!?!">
+                                        <attributes>
+                                            <color key="NSColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <font key="NSFont" size="36" name="Arial-BoldMT"/>
+                                        </attributes>
+                                    </fragment>
+                                </attributedString>
+                                <nil key="highlightedColor"/>
+                                <color key="shadowColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <size key="shadowOffset" width="-2" height="-2"/>
+                            </label>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="Vkc-dk-U93" firstAttribute="top" secondItem="c4F-sc-A4g" secondAttribute="bottom" constant="20" id="BrF-ps-kC2"/>
+                            <constraint firstItem="PoJ-C1-mOm" firstAttribute="top" secondItem="DVH-XU-Ul7" secondAttribute="bottom" constant="40" id="FuO-8F-d7p"/>
+                            <constraint firstItem="PoJ-C1-mOm" firstAttribute="centerX" secondItem="SJg-Jx-TVn" secondAttribute="centerX" id="aNo-Z3-uU4"/>
+                            <constraint firstItem="c4F-sc-A4g" firstAttribute="centerX" secondItem="SJg-Jx-TVn" secondAttribute="centerX" id="nY4-bi-KP8"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="snapButton" destination="c4F-sc-A4g" id="XkZ-id-5kj"/>
+                        <outlet property="stickerLabel" destination="PoJ-C1-mOm" id="ywd-Su-xCu"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XVj-dy-M0Y" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2273" y="152"/>
+            <point key="canvasLocation" x="685.60000000000002" y="151.57421289355324"/>
         </scene>
         <!--View Controller-->
-        <scene sceneID="hyc-7l-OZG">
+        <scene sceneID="bsm-5o-4ay">
             <objects>
-                <viewController storyboardIdentifier="FTEWelcomeViewController" id="Kpz-Q5-HBE" sceneMemberID="viewController">
+                <viewController id="xJe-a9-4vu" sceneMemberID="viewController">
                     <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="pW8-Ob-wDR"/>
-                        <viewControllerLayoutGuide type="bottom" id="lQF-pt-BgS"/>
+                        <viewControllerLayoutGuide type="top" id="OWr-Sw-nc5"/>
+                        <viewControllerLayoutGuide type="bottom" id="s8K-Wo-KvQ"/>
                     </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="5nl-wx-YRw">
+                    <view key="view" contentMode="scaleToFill" id="3u1-Jd-LQ6">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Make me-GIFs" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="39q-2g-KxX">
-                                <rect key="frame" x="16" y="20" width="343" height="29"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="29" id="Qtw-w3-0VI"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="24"/>
-                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="me me lets you make personalized GIFs to share with your friends and family. Before we begin, enable our keyboard:" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vAF-0d-hll">
-                                <rect key="frame" x="16" y="49" width="343" height="151"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="151" id="ahS-LO-sQB"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="20"/>
-                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="settings icon.png" translatesAutoresizingMaskIntoConstraints="NO" id="7Oj-uW-Ip0">
-                                <rect key="frame" x="16" y="208" width="50" height="62"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="settings icon.png" translatesAutoresizingMaskIntoConstraints="NO" id="qTq-VF-Bhk">
+                                <rect key="frame" x="29" y="75" width="50" height="62"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="general.png" translatesAutoresizingMaskIntoConstraints="NO" id="ZYA-Gh-5Bp">
-                                <rect key="frame" x="16" y="278" width="330" height="43"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="general.png" translatesAutoresizingMaskIntoConstraints="NO" id="aNz-sO-PrZ">
+                                <rect key="frame" x="29" y="145" width="330" height="43"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="keyboard.png" translatesAutoresizingMaskIntoConstraints="NO" id="b4C-H9-fhr">
-                                <rect key="frame" x="16" y="329" width="330" height="43"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="keyboard.png" translatesAutoresizingMaskIntoConstraints="NO" id="KpN-zF-wG5">
+                                <rect key="frame" x="29" y="196" width="330" height="43"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="keyboards.png" translatesAutoresizingMaskIntoConstraints="NO" id="bDi-sJ-I6a">
-                                <rect key="frame" x="16" y="380" width="330" height="43"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="keyboards.png" translatesAutoresizingMaskIntoConstraints="NO" id="jpv-yw-GQ0">
+                                <rect key="frame" x="29" y="247" width="330" height="43"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="add new keyboard.png" translatesAutoresizingMaskIntoConstraints="NO" id="FTR-jU-Hnp">
-                                <rect key="frame" x="16" y="431" width="330" height="43"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="add new keyboard.png" translatesAutoresizingMaskIntoConstraints="NO" id="8uW-CX-JOg">
+                                <rect key="frame" x="29" y="298" width="330" height="43"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="figevil keyboard.png" translatesAutoresizingMaskIntoConstraints="NO" id="NtJ-ry-eNT">
-                                <rect key="frame" x="16" y="482" width="330" height="43"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="figevil keyboard.png" translatesAutoresizingMaskIntoConstraints="NO" id="fQe-sw-1g7">
+                                <rect key="frame" x="29" y="349" width="330" height="43"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="figevil enable.png" translatesAutoresizingMaskIntoConstraints="NO" id="oMY-oq-Se9">
-                                <rect key="frame" x="16" y="533" width="330" height="43"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="figevil enable.png" translatesAutoresizingMaskIntoConstraints="NO" id="mK2-7i-W5L">
+                                <rect key="frame" x="29" y="400" width="330" height="43"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="full access.png" translatesAutoresizingMaskIntoConstraints="NO" id="gOi-mL-oBc">
-                                <rect key="frame" x="16" y="584" width="330" height="43"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="full access.png" translatesAutoresizingMaskIntoConstraints="NO" id="9nt-p4-9Gj">
+                                <rect key="frame" x="29" y="451" width="330" height="43"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
                         </subviews>
-                        <color key="backgroundColor" red="0.0" green="1" blue="0.50196081400000003" alpha="1" colorSpace="calibratedRGB"/>
-                        <constraints>
-                            <constraint firstItem="39q-2g-KxX" firstAttribute="leading" secondItem="5nl-wx-YRw" secondAttribute="leadingMargin" id="LQw-eX-lSy"/>
-                            <constraint firstItem="vAF-0d-hll" firstAttribute="top" secondItem="39q-2g-KxX" secondAttribute="bottom" id="Myt-ax-ZqQ"/>
-                            <constraint firstItem="vAF-0d-hll" firstAttribute="leading" secondItem="5nl-wx-YRw" secondAttribute="leadingMargin" id="PNV-sP-3f3"/>
-                            <constraint firstItem="39q-2g-KxX" firstAttribute="trailing" secondItem="5nl-wx-YRw" secondAttribute="trailingMargin" id="XtJ-yi-PgE"/>
-                            <constraint firstItem="39q-2g-KxX" firstAttribute="top" secondItem="pW8-Ob-wDR" secondAttribute="bottom" id="dew-s7-BN1"/>
-                            <constraint firstAttribute="trailingMargin" secondItem="vAF-0d-hll" secondAttribute="trailing" id="lMQ-TW-aGv"/>
-                        </constraints>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="0ZL-U1-vry" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="hzr-YE-zyw" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="821.60000000000002" y="154.27286356821591"/>
+            <point key="canvasLocation" x="-26" y="860"/>
         </scene>
     </scenes>
     <resources>
         <image name="add new keyboard.png" width="870" height="126"/>
+        <image name="circle.png" width="240" height="240"/>
         <image name="figevil enable.png" width="880" height="122"/>
         <image name="figevil keyboard.png" width="878" height="116"/>
         <image name="full access.png" width="880" height="108"/>

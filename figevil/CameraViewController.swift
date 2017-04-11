@@ -136,7 +136,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     var effects: [AnyObject] = [FilterImageEffect(),
                                 DrawImageEffectView(),
                                 TextImageEffectView(),
-                                StickerEffectView(),]
+                                GIFAnimationEffectView()]
     
     // MARK: Camera Controls & Tools
     // Tools
@@ -338,7 +338,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     /** Select the first tool.  Usually used during setup */
     func selectFirstEffect() {
-        //let indexPath = IndexPath(row: 0, section: 0)
         let indexPath = IndexPath(item: 0, section: 0)
         // Show selection
         effectToolBubbleCVC.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: .left)

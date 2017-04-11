@@ -10,13 +10,14 @@ import UIKit
 
 class FilterImageEffect: NSObject, CameraViewBubbleMenu {
 
+    // MARK: CameraViewBubbleMenu variables
+
     var menuContent: [BubbleMenuCollectionViewCellContent] = []
     var iconContent = BubbleMenuCollectionViewCellContent(image: UIImage(named: "filter.png")!, label: "Filter")
     var delegate: FilterImageEffectDelegate?
     
     override init() {
         super.init()
-        
         setupBubbleMenuContent()
     }
     
@@ -26,7 +27,7 @@ class FilterImageEffect: NSObject, CameraViewBubbleMenu {
             menuContent.append(bubble)
         }
     }
-    
+
     // MARK: CameraViewBubbleMenu
     
     func menu(_ sender: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
