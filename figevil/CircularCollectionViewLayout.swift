@@ -9,6 +9,7 @@
 import UIKit
 
 
+// https://www.raywenderlich.com/107687/uicollectionview-custom-layout-tutorial-spinning-wheel
 /** Attibutes for each item. */
 class CircularCollectionViewLayoutAttributes: UICollectionViewLayoutAttributes {
     var anchorPoint = CGPoint(x: 0.5, y: 0.5)

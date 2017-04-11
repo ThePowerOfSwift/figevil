@@ -72,11 +72,9 @@
 		E335FE721E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE711E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift */; };
 		E335FE741E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE731E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift */; };
 		E335FE761E70EEBC00A5BAD2 /* CIImage+Resize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE751E70EEBC00A5BAD2 /* CIImage+Resize.swift */; };
-		E335FE7E1E70F08B00A5BAD2 /* LiveGifPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335FE7D1E70F08B00A5BAD2 /* LiveGifPreset.swift */; };
 		E36FA67E1E7714AC00F70925 /* CircularCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36FA67D1E7714AC00F70925 /* CircularCollectionViewLayout.swift */; };
 		E377C1431E89DF5200573E12 /* StraightCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E377C1421E89DF5200573E12 /* StraightCollectionViewLayout.swift */; };
 		E377C1451E89E9C200573E12 /* UIImageView+Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E377C1441E89E9C200573E12 /* UIImageView+Gif.swift */; };
-		E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B491491E68E16B007C8F29 /* Gif.swift */; };
 		E3BF4D251E95BAD0005346E0 /* icecream.png in Resources */ = {isa = PBXBuildFile; fileRef = E3BF4D241E95BAD0005346E0 /* icecream.png */; };
 		E3BF4D291E95CD86005346E0 /* ice_cream_cone.png in Resources */ = {isa = PBXBuildFile; fileRef = E3BF4D281E95CD86005346E0 /* ice_cream_cone.png */; };
 /* End PBXBuildFile section */
@@ -176,11 +174,9 @@
 		E335FE711E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CMSampleBuffer+CIImage.swift"; sourceTree = "<group>"; };
 		E335FE731E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CVPixelBuffer+DeepCopy.swift"; sourceTree = "<group>"; };
 		E335FE751E70EEBC00A5BAD2 /* CIImage+Resize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CIImage+Resize.swift"; sourceTree = "<group>"; };
-		E335FE7D1E70F08B00A5BAD2 /* LiveGifPreset.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveGifPreset.swift; sourceTree = "<group>"; };
 		E36FA67D1E7714AC00F70925 /* CircularCollectionViewLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularCollectionViewLayout.swift; sourceTree = "<group>"; };
 		E377C1421E89DF5200573E12 /* StraightCollectionViewLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StraightCollectionViewLayout.swift; sourceTree = "<group>"; };
 		E377C1441E89E9C200573E12 /* UIImageView+Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImageView+Gif.swift"; sourceTree = "<group>"; };
-		E3B491491E68E16B007C8F29 /* Gif.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Gif.swift; sourceTree = "<group>"; };
 		E3BF4D241E95BAD0005346E0 /* icecream.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icecream.png; sourceTree = "<group>"; };
 		E3BF4D281E95CD86005346E0 /* ice_cream_cone.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ice_cream_cone.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -299,15 +295,7 @@
 			children = (
 				78239A011E85E24300207B56 /* figevil.entitlements */,
 				782BB2631E7C7FD300EFD135 /* Shared */,
-				7854B9F21E64FD5B00591255 /* SatoCamera.swift */,
-				E328102F1E82F3C9001AA77D /* UIImage+Gif.swift */,
-				E335FE7D1E70F08B00A5BAD2 /* LiveGifPreset.swift */,
-				E335FE6F1E70E89F00A5BAD2 /* Light.swift */,
-				E3B491491E68E16B007C8F29 /* Gif.swift */,
-				7854BA0D1E65005600591255 /* Index.swift */,
-				E335FE7F1E70F19500A5BAD2 /* Camera Extentions */,
-				7854B9F41E64FD7D00591255 /* Camera.storyboard */,
-				7854B9F51E64FD7D00591255 /* CameraViewController.swift */,
+				E37ADCB71E96FE3B0037C084 /* Camera */,
 				782BB2641E7C7FEE00EFD135 /* Effects */,
 				782399FE1E85CBC100207B56 /* BubbleCollectionView */,
 				78BEF4331E89E49C00047212 /* GifCollectionView */,
@@ -392,12 +380,26 @@
 		E335FE7F1E70F19500A5BAD2 /* Camera Extentions */ = {
 			isa = PBXGroup;
 			children = (
+				E328102F1E82F3C9001AA77D /* UIImage+Gif.swift */,
 				E335FE751E70EEBC00A5BAD2 /* CIImage+Resize.swift */,
 				E335FE731E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift */,
 				E377C1441E89E9C200573E12 /* UIImageView+Gif.swift */,
 				E335FE711E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift */,
 			);
 			name = "Camera Extentions";
+			sourceTree = "<group>";
+		};
+		E37ADCB71E96FE3B0037C084 /* Camera */ = {
+			isa = PBXGroup;
+			children = (
+				7854B9F21E64FD5B00591255 /* SatoCamera.swift */,
+				E335FE6F1E70E89F00A5BAD2 /* Light.swift */,
+				7854BA0D1E65005600591255 /* Index.swift */,
+				E335FE7F1E70F19500A5BAD2 /* Camera Extentions */,
+				7854B9F41E64FD7D00591255 /* Camera.storyboard */,
+				7854B9F51E64FD7D00591255 /* CameraViewController.swift */,
+			);
+			name = Camera;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -643,7 +645,6 @@
 				7825A8C71E9597DC0091DCF7 /* FTECameraViewController.swift in Sources */,
 				7854BA051E64FD7D00591255 /* FilterImageEffect.swift in Sources */,
 				7854B9F31E64FD5B00591255 /* SatoCamera.swift in Sources */,
-				E335FE7E1E70F08B00A5BAD2 /* LiveGifPreset.swift in Sources */,
 				E335FE761E70EEBC00A5BAD2 /* CIImage+Resize.swift in Sources */,
 				780293D21E9C28E000FE9889 /* GIFAnimationView.swift in Sources */,
 				7854BA081E64FD7D00591255 /* DrawView.swift in Sources */,
@@ -667,7 +668,6 @@
 				E377C1451E89E9C200573E12 /* UIImageView+Gif.swift in Sources */,
 				E335FE721E70EDB700A5BAD2 /* CMSampleBuffer+CIImage.swift in Sources */,
 				784E84AA1E96EE860099AF45 /* FTEGetStartedViewController.swift in Sources */,
-				E3B4914A1E68E16B007C8F29 /* Gif.swift in Sources */,
 				E36FA67E1E7714AC00F70925 /* CircularCollectionViewLayout.swift in Sources */,
 				78BEF43B1E89E4F100047212 /* GifCollectionViewController.swift in Sources */,
 				7854BA091E64FD7D00591255 /* BubbleMenuCollectionViewController.swift in Sources */,
