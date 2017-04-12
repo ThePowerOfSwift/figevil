@@ -23,6 +23,10 @@ class FTEGetStartedViewController: UIViewController {
         loadGifData()
     }
     
+    deinit {
+        print("FTE started controller deallocated")
+    }
+    
     func loadGifData() {
         guard let url = Bundle.main.url(forResource: "selfie", withExtension: "gif") else {
             print("Error: did not find selfie gif in bundle")

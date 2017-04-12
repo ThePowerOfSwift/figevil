@@ -35,6 +35,10 @@ class FTECameraViewController: UIViewController, SatoCameraOutput {
         // Dispose of any resources that can be recreated.
     }
     
+    deinit {
+        print("FTE camera controller deallocated")
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         view.insertSubview(sampleBufferView!, at: 0)

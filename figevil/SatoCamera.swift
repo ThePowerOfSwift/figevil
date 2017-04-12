@@ -137,8 +137,8 @@ class SatoCamera: NSObject {
     // scale 1 is around 3000K
     //let pixelSizeForMessage = getMaxPixel(scale: 2.1) // 350 on iPhone 7 plus, 317 on iPhone 6
     //let pixelSizeForThumbnail = getMaxPixel(scale: 3) // 245 on iPhone 7 plus, 222 on iphone 6
-    var messagePixelSize = 350
-    var thumbnailPixelSize = 245
+    var messagePixelSize = Camera.Size.MessagePixelSize
+    var thumbnailPixelSize = Camera.Size.ThumbnailPixelSize
     var shouldSaveFrame: Bool {
         return self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0
     }
@@ -756,7 +756,7 @@ struct LiveGifPreset {
     var frameCaptureFrequency: Int {
         return Int(sampleBufferFPS) / gifFPS
     }
-    var sampleBufferFPS: Int32 = 30
+    var sampleBufferFPS: Int32 = Camera.LiveGifPreset.SampleBufferFPS
     var liveGifFrameTotalCount: Int {
         return Int(gifDuration * Double(gifFPS))
     }
@@ -773,8 +773,8 @@ struct LiveGifPreset {
         self.gifDuration = gifDuration
     }
     init() {
-        self.gifFPS = 10
-        self.gifDuration = 2
+        self.gifFPS = Camera.LiveGifPreset.GifFPS
+        self.gifDuration = Camera.LiveGifPreset.GifDuration
     }
 }
 
