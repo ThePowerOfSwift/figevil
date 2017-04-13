@@ -8,7 +8,7 @@
 
 import UIKit
 
-let debug: Bool = true
+let debug: Bool = false
 
 /// Time Internals for animation
 enum AnimationTime {

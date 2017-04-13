@@ -9,11 +9,11 @@
 import UIKit
 
 
-class StickerEffectView: UIView, CameraViewBubbleMenu {
+class AnimationEffectView: UIView, CameraViewBubbleMenu {
 
     /** Model */
     var stickerURLs: [URL] = []
-    let imageView = UIImageView()
+    let animationView = AnimationView()
     
     private static let defaultBubbleContent = BubbleMenuCollectionViewCellContent(image: UIImage(), label: "None")
     
@@ -34,14 +34,14 @@ class StickerEffectView: UIView, CameraViewBubbleMenu {
     }
     
     func setup() {
-        setupForegroundView()
+        setupAnimationView()
         setupBubbleMenuContent()
     }
     
-    func setupForegroundView() {
-        imageView.frame = bounds
-        imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        addSubview(imageView)
+    func setupAnimationView() {
+        animationView.frame = bounds
+        animationView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        addSubview(animationView)
     }
     
     func setupBubbleMenuContent() {
@@ -51,7 +51,7 @@ class StickerEffectView: UIView, CameraViewBubbleMenu {
         }
 
         // Reset model
-        menuContent = [StickerEffectView.defaultBubbleContent]
+        menuContent = [AnimationEffectView.defaultBubbleContent]
 
         // Get gif contents and load to datasource
         do {
@@ -75,11 +75,16 @@ class StickerEffectView: UIView, CameraViewBubbleMenu {
     // MARK: CameraViewBubbleMenu
     
     func menu(_ sender: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
-        imageView.image = menuContent[indexPath.row].image
+        if indexPath.row == 0 {
+            animationView.render()
+        }
+        else {
+            animationView.addAnimation(stickerURLs[indexPath.row - 1])
+        }
     }
     
     func reset() {
-        imageView.image = nil
+        // TODO
     }
 
 }

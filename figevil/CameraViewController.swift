@@ -97,22 +97,17 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     var renderItems: [UIImage] {
         var items = [UIImage]()
         
+        // TODO: Why are we using embedded ImageViews?
         if let drawImageEffectView = effects[1] as? DrawImageEffectView {
             if let drawImage = drawImageEffectView.drawView.imageView.image {
                 items.append(drawImage)
             }
         }
-        
+        // TODO: Why are we using embedded ImageViews?
         if let textImageEffectView = effects[2] as? TextImageEffectView {
             textImageEffectView.textView.render()
             if let textImage = textImageEffectView.textView.imageView.image {
                 items.append(textImage)
-            }
-        }
-        
-        if let stickerEffectView = effects[3] as? StickerEffectView {
-            if let stickerImage = stickerEffectView.imageView.image {
-                items.append(stickerImage)
             }
         }
         return items
@@ -135,7 +130,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     var effects: [AnyObject] = [FilterImageEffect(),
                                 DrawImageEffectView(),
                                 TextImageEffectView(),
-                                GIFAnimationEffectView()]
+                                AnimationEffectView()]
     
     // MARK: Camera Controls & Tools
     // Tools
