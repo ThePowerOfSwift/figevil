@@ -152,6 +152,81 @@ class SatoCamera: NSObject {
         setupGifGLKView()
         setupOpenGL()
         setupSession()
+        setupAssetWriter()
+    }
+    
+    var assetWriter: AVAssetWriter?
+    var assetWriterInput: AVAssetWriterInput!
+    var pixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
+    var videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension(".mp4")
+    func setupAssetWriter() {
+        let outputSettings: [String:Any] = [
+            AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
+            AVVideoHeightKey : Int(UIScreen.main.bounds.height) + 1,
+            AVVideoCodecKey : AVVideoCodecH264
+        ]
+        
+//        let outputSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4)
+//        
+//        assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings as! [String : Any])
+        
+        print("URL: \(videoURL)")
+        assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
+        
+        pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: assetWriterInput, sourcePixelBufferAttributes:
+            [ kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)])
+        
+        do {
+            assetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
+            if let assetWriter = assetWriter {
+                assetWriter.add(assetWriterInput)
+                assetWriterInput.expectsMediaDataInRealTime = true
+            }
+        } catch let e {
+            print(e.localizedDescription)
+        }
+    }
+    
+    func startAssetWriter() {
+        guard let assetWriter = assetWriter else {
+            print("Error: asset writer is nil in \(#function)")
+            return
+        }
+        assetWriter.startWriting()
+        assetWriter.startSession(atSourceTime: kCMTimeZero)
+    }
+    
+    func stopAssetWriter() {
+        assetWriter?.finishWriting {
+            if self.assetWriter?.status == AVAssetWriterStatus.completed {
+                print("writing video is done")
+                PHPhotoLibrary.requestAuthorization
+                    { (status) -> Void in
+                        switch (status)
+                        {
+                        case .authorized:
+                            PHPhotoLibrary.shared().performChanges({
+
+                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.videoURL)
+                            }, completionHandler: { (saved: Bool, error: Error?) in
+                                if saved {
+                                    print("saved video to camera roll")
+                                } else {
+                                    print("failed to save video to camera roll")
+                                    print(error)
+                                }
+                            })
+                        case .denied:
+                            print("Error: User denied")
+                        default:
+                            print("Error: Restricted")
+                        }
+                }
+            } else if self.assetWriter?.status == AVAssetWriterStatus.failed {
+                print("writing video failed")
+                print(self.assetWriter?.error)
+            }
+        }
     }
     
     func setupliveCameraGLKView() {
@@ -446,10 +521,12 @@ class SatoCamera: NSObject {
         if !session.isRunning {
             print("Error: camera failed to run.")
         }
+        //startAssetWriter()
     }
     
     internal func stop() {
         session.stopRunning()
+        stopAssetWriter()
     }
     
     /** Set to the initial state. */
@@ -611,6 +688,7 @@ class SatoCamera: NSObject {
         stop()
         //showGif()
         showGifWithGLKView()
+        
     }
     
     /** Creates an image view with images for animation. Show the image view on output image view. */
@@ -1130,43 +1208,61 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
-        // Save and remove serially and asynchronously
-        frameSavingSerialQueue.async { [unowned self] in
-            
-            self.didOutputSampleBufferMethodCallCount += 1
-            if self.shouldSaveFrame {
-                
-                if let url = sampleBuffer.saveFrameToDisk(outputURL: self.originalUrlPath) {
-                    self.originalURLs.append(url)
-                    
-                    if !self.isSnappedGif {
-                        // pre-saving
-                        if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
-                            // Remove the first item in the array
-                            let firstItem = self.originalURLs.removeFirst()
-                            do {
-                                try self.fileManager.removeItem(at: firstItem)
-                            } catch let e {
-                                print(e)
-                            }
-                        }
-                        
-                    } else {
-                        // post-saving
-                        if self.originalURLs.count >= self.currentLiveGifPreset.liveGifFrameTotalCount {
-                            DispatchQueue.main.async { [unowned self] in
-                                self.stopLiveGif()
-                            }
-                        }
-                    }
-                }
-            }
+//        // Save and remove serially and asynchronously
+//        frameSavingSerialQueue.async { [unowned self] in
+//            
+//            self.didOutputSampleBufferMethodCallCount += 1
+//            if self.shouldSaveFrame {
+//                
+//                if let url = sampleBuffer.saveFrameToDisk(outputURL: self.originalUrlPath) {
+//                    self.originalURLs.append(url)
+//                    
+//                    if !self.isSnappedGif {
+//                        // pre-saving
+//                        if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+//                            // Remove the first item in the array
+//                            let firstItem = self.originalURLs.removeFirst()
+//                            do {
+//                                try self.fileManager.removeItem(at: firstItem)
+//                            } catch let e {
+//                                print(e)
+//                            }
+//                        }
+//                        
+//                    } else {
+//                        // post-saving
+//                        if self.originalURLs.count >= self.currentLiveGifPreset.liveGifFrameTotalCount {
+//                            DispatchQueue.main.async { [unowned self] in
+//                                self.stopLiveGif()
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+        if didOutputSampleBufferMethodCallCount == 0 {
+            startAssetWriter()
         }
-    
+        
+        didOutputSampleBufferMethodCallCount += 1
+        
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             print("Error: image buffer is nil")
             return
         }
+        
+        
+        let time = CMTimeMake(Int64(didOutputSampleBufferMethodCallCount), 25)
+        if assetWriterInput.isReadyForMoreMediaData {
+            pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+        }
+        
+        if didOutputSampleBufferMethodCallCount == 120 {
+            stopLiveGif()
+        }
+        
+    
+
         let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
         
         // filteredImage has the same address as sourceImage
