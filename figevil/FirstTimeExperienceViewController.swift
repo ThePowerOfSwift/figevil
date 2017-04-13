@@ -50,6 +50,10 @@ class FirstTimeExperienceViewController: UIViewController, UIPageViewControllerD
         // Dispose of any resources that can be recreated.
     }
     
+    deinit {
+        print("FTE view controller deallocated")
+    }
+    
     // MARK: Setup
     
 
@@ -110,7 +114,5 @@ class FirstTimeExperienceViewController: UIViewController, UIPageViewControllerD
             pageVC.setViewControllers([next], direction: .forward, animated: true, completion: { (success) in
             })
         }
-        
     }
-
 }

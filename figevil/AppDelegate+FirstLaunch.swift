@@ -30,6 +30,7 @@ extension AppDelegate {
     var firstViewController: UIViewController {
         get {
             return AppDelegate.isFirstTimeLaunch ? Storyboard.FTEViewContoller : Storyboard.rootViewController
+            //return Storyboard.rootViewController
         }
     }
 }

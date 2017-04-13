@@ -88,3 +88,17 @@ enum Storyboard {
         return storyboard.instantiateInitialViewController()!
     }
 }
+
+struct Camera {
+    struct LiveGifPreset {
+        static let SampleBufferFPS = 30
+        static let GifFPS = 10
+        static let GifDuration = 2
+    }
+    
+    struct Size {
+        static let MessagePixelSize = 350
+        static let ThumbnailPixelSize = 245
+        
+    }
+}
