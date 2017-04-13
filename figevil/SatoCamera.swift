@@ -756,7 +756,7 @@ struct LiveGifPreset {
     var frameCaptureFrequency: Int {
         return Int(sampleBufferFPS) / gifFPS
     }
-    var sampleBufferFPS: Int32 = Camera.LiveGifPreset.SampleBufferFPS
+    var sampleBufferFPS: Int32 = Int32(Camera.LiveGifPreset.SampleBufferFPS)
     var liveGifFrameTotalCount: Int {
         return Int(gifDuration * Double(gifFPS))
     }
@@ -774,7 +774,7 @@ struct LiveGifPreset {
     }
     init() {
         self.gifFPS = Camera.LiveGifPreset.GifFPS
-        self.gifDuration = Camera.LiveGifPreset.GifDuration
+        self.gifDuration = TimeInterval(Camera.LiveGifPreset.GifDuration)
     }
 }
 
