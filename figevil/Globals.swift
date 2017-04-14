@@ -10,6 +10,15 @@ import UIKit
 
 let debug: Bool = false
 
+enum Sizes {
+    static let minimumTappable = CGSize(width: 44.0, height: 44.0)
+    static let minimumGestureManipulation = CGSize(width: 90.0, height: 90.0)
+}
+
+enum Numbers {
+    static let tiny: CGFloat = 0.001
+}
+
 /// Time Internals for animation
 enum AnimationTime {
     static let select = 0.25 / 2

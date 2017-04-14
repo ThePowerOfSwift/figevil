@@ -28,7 +28,6 @@ class AnimationView: UIView {
     }
     
     func setup() {
-        
     }
     
     func addAnimation(_ url: URL) {
@@ -38,11 +37,10 @@ class AnimationView: UIView {
             return
         }
         animationView.contentMode = .scaleAspectFit
-        animationView.frame.size = CGSize(width: 80, height: 80)
+        animationView.frame.size = Sizes.minimumGestureManipulation
         animationView.center = center
-        
-        animationView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.01)
-        
+        // Let the clear background recieve gestures
+        animationView.backgroundColor = UIColor.lightGray.withAlphaComponent(Numbers.tiny)
         addGestures(animationView)
         
         addSubview(animationView)
@@ -67,26 +65,6 @@ class AnimationView: UIView {
         // Rotation (to rotate)
         let rotate = UIRotationGestureRecognizer(target: self, action: #selector(rotated(_:)))
         view.addGestureRecognizer(rotate)
-    }
-    
-    func setAnimation(_ layer: CALayer) {
-        
-        let beginTime = 1.0
-        
-        let quiver = CABasicAnimation(keyPath: "transform.rotation")
-        quiver.isRemovedOnCompletion = false
-        quiver.beginTime =  CACurrentMediaTime() + beginTime
-        let startAngle: Float = -5.25 * Float.pi / Float(180.0)
-        let stopAngle: Float = -startAngle
-        quiver.fromValue = startAngle
-        quiver.toValue = stopAngle * 5.25
-        quiver.autoreverses = true
-        quiver.duration = 0.075
-        quiver.repeatCount = 5
-        let random: CFTimeInterval = Double(arc4random_uniform(50)) / 100
-        quiver.timeOffset = random
-        
-        layer.add(quiver, forKey: "quiver")
     }
     
     // MARK: Gestures
