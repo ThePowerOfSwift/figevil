@@ -156,18 +156,21 @@ class SatoCamera: NSObject {
         setupSecondAssetWriter()
     }
     
+    // MARK: - Asset writer
     enum AssetWriter {
         case First
         case Second
     }
+    
     var currentAssetWriter: AssetWriter = .First
     var firstAssetWriter: AVAssetWriter?
     var firstAssetWriterInput: AVAssetWriterInput!
+    var firstPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
+    var firstVideoURL: URL!
+
     var secondAssetWriter: AVAssetWriter?
     var secondAssetWriterInput: AVAssetWriterInput!
-    var firstPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
     var secondPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
-    var firstVideoURL: URL!
     var secondVideoURL: URL!
 
     var pixelBufferArray = [CVPixelBuffer]()
@@ -178,15 +181,15 @@ class SatoCamera: NSObject {
     var isAssetWriterRunning = false
     
     func setupFirstAssetWriter() {
-        let outputSettings: [String:Any] = [
+        var outputSettings: [String:Any] = [
             AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
             AVVideoHeightKey : Int(UIScreen.main.bounds.height) + 1,
             AVVideoCodecKey : AVVideoCodecH264
         ]
         
-//        let outputSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4)
-//        assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings as! [String : Any])
-        
+        if let settings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
+            outputSettings = settings
+        }
         firstAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
         
         firstPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: firstAssetWriterInput, sourcePixelBufferAttributes:
@@ -205,18 +208,19 @@ class SatoCamera: NSObject {
     }
     
     func setupSecondAssetWriter() {
-        let outputSettings: [String:Any] = [
+        var outputSettings: [String:Any] = [
             AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
             AVVideoHeightKey : Int(UIScreen.main.bounds.height) + 1,
             AVVideoCodecKey : AVVideoCodecH264
         ]
         
-        //        let outputSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4)
-        //        assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings as! [String : Any])
+        if let settings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
+            outputSettings = settings
+        }
+        
+        secondAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
         let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
         secondVideoURL = videoURL
-        print("URL: \(videoURL)")
-        secondAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
         
         secondPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: secondAssetWriterInput, sourcePixelBufferAttributes:
             [ kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)])
@@ -232,8 +236,6 @@ class SatoCamera: NSObject {
         }
     }
     
-    
-    
     func startFirstAssetWriter() {
         currentAssetWriter = .First
         guard let firstAssetWriter = firstAssetWriter else {
@@ -242,7 +244,6 @@ class SatoCamera: NSObject {
         }
         firstAssetWriter.startWriting()
         firstAssetWriter.startSession(atSourceTime: kCMTimeZero)
-        //isAssetWriterRunning = true
         print("asset writer has started")
     }
     
@@ -254,7 +255,6 @@ class SatoCamera: NSObject {
         }
         secondAssetWriter.startWriting()
         secondAssetWriter.startSession(atSourceTime: kCMTimeZero)
-        //isAssetWriterRunning = true
         print("asset writer has started")
     }
     
@@ -275,7 +275,6 @@ class SatoCamera: NSObject {
                             }, completionHandler: { (saved: Bool, error: Error?) in
                                 if saved {
                                     print("saved video to camera roll")
-                                    //self.startAssetWriter()
                                 } else {
                                     print("failed to save video to camera roll")
                                     if let error = error {
@@ -315,7 +314,6 @@ class SatoCamera: NSObject {
                             }, completionHandler: { (saved: Bool, error: Error?) in
                                 if saved {
                                     print("saved video to camera roll")
-                                    //self.startAssetWriter()
                                 } else {
                                     print("failed to save video to camera roll")
                                     if let error = error {
