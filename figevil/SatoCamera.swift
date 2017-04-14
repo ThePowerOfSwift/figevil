@@ -163,14 +163,28 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // if it's less than 1 second, go to the previous video
     // take 1 - (1 - lv) from the prev video
     func getPreVideo() {
+        var firstVideoDuration = CMTime()
+        var lastVideoDuration = CMTime()
+        
+        // first video duration is always max
         if let firstVideoURL = preVideoURLs.first {
             let videoAsset = AVURLAsset(url: firstVideoURL)
+            firstVideoDuration = videoAsset.duration
             print("first video asset duration: \(videoAsset.duration)")
         }
+        // last video duration can be shorter than specified max
         if let lastVideoURL = preVideoURLs.last {
             let videoAsset = AVURLAsset(url: lastVideoURL)
+            lastVideoDuration = videoAsset.duration
             print("last video asset duration: \(videoAsset.duration)")
         }
+        
+        print("gap: \(CMTimeSubtract(firstVideoDuration, lastVideoDuration))")
+//        if lastVideoDuration < firstVideoDuration {
+//            lastVideoDuration.epoch
+//        }
+        
+        
     }
     
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
