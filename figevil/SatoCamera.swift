@@ -195,7 +195,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 print(error.localizedDescription)
             }
             let lastTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
-            let fullTimeRange = CMTimeRange(start: kCMTimeZero, end: lastVideoDuration)
+            let fullTimeRange = CMTimeRange(start: durationToBeTrimmed, end: maxVideoDuration)
             do {
                 try lastTrack.insertTimeRange(fullTimeRange, of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0], at: kCMTimeZero)
             } catch let error {
