@@ -159,6 +159,11 @@ class SatoCamera: NSObject {
     var assetWriterInput: AVAssetWriterInput!
     var pixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
     var pixelBufferArray = [CVPixelBuffer]()
+    var pixelBufferArrayCount = 0
+    var pixelBufferArrayMaxCount = 100
+    var videoMaxCount = 2
+    var assetVideos = [URL]()
+    var isAssetWriterRunning = false
     var videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
     func setupAssetWriter() {
         let outputSettings: [String:Any] = [
@@ -168,7 +173,6 @@ class SatoCamera: NSObject {
         ]
         
 //        let outputSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4)
-//        
 //        assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings as! [String : Any])
         
         print("URL: \(videoURL)")
@@ -195,10 +199,14 @@ class SatoCamera: NSObject {
         }
         assetWriter.startWriting()
         assetWriter.startSession(atSourceTime: kCMTimeZero)
+        //isAssetWriterRunning = true
+        print("asset writer has started")
     }
     
     func stopAssetWriter() {
+        self.isAssetWriterRunning = true
         assetWriter?.finishWriting {
+            print("asset writer has finished")
             if self.assetWriter?.status == AVAssetWriterStatus.completed {
                 print("writing video is done")
                 PHPhotoLibrary.requestAuthorization
@@ -212,9 +220,12 @@ class SatoCamera: NSObject {
                             }, completionHandler: { (saved: Bool, error: Error?) in
                                 if saved {
                                     print("saved video to camera roll")
+                                    //self.startAssetWriter()
                                 } else {
                                     print("failed to save video to camera roll")
-                                    print(error)
+                                    if let error = error {
+                                        print(error.localizedDescription)
+                                    }
                                 }
                             })
                         case .denied:
@@ -225,9 +236,19 @@ class SatoCamera: NSObject {
                 }
             } else if self.assetWriter?.status == AVAssetWriterStatus.failed {
                 print("writing video failed")
-                print(self.assetWriter?.error)
+                if let error = self.assetWriter?.error {
+                    print(error.localizedDescription)
+                }
             }
         }
+    }
+    
+    func saveVideo(completion: () -> Void) {
+        assetWriter?.finishWriting(completionHandler: { 
+            if self.assetWriter?.status == AVAssetWriterStatus.completed {
+                
+            }
+        })
     }
     
     func setupliveCameraGLKView() {
@@ -1208,65 +1229,49 @@ extension SatoCamera: FilterImageEffectDelegate {
 extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-        
-//        // Save and remove serially and asynchronously
-//        frameSavingSerialQueue.async { [unowned self] in
-//            
-//            self.didOutputSampleBufferMethodCallCount += 1
-//            if self.shouldSaveFrame {
-//                
-//                if let url = sampleBuffer.saveFrameToDisk(outputURL: self.originalUrlPath) {
-//                    self.originalURLs.append(url)
-//                    
-//                    if !self.isSnappedGif {
-//                        // pre-saving
-//                        if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
-//                            // Remove the first item in the array
-//                            let firstItem = self.originalURLs.removeFirst()
-//                            do {
-//                                try self.fileManager.removeItem(at: firstItem)
-//                            } catch let e {
-//                                print(e)
-//                            }
-//                        }
-//                        
-//                    } else {
-//                        // post-saving
-//                        if self.originalURLs.count >= self.currentLiveGifPreset.liveGifFrameTotalCount {
-//                            DispatchQueue.main.async { [unowned self] in
-//                                self.stopLiveGif()
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
+//        var pixelBufferArrayCount = 0
+//        var pixelBufferArrayMaxCount = 10
+//        var videoMaxCount = 2
+//        var assetVideos = [URL]()
+
+        print("pixel buffer array count: \(pixelBufferArrayCount)")
         if didOutputSampleBufferMethodCallCount == 0 {
             startAssetWriter()
+            isAssetWriterRunning = true
         }
-        
-        didOutputSampleBufferMethodCallCount += 1
         
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             print("Error: image buffer is nil")
             return
         }
-//        if let pixelBufferDeepCopy = pixelBuffer.deepcopy() {
-//            pixelBufferArray.append(pixelBufferDeepCopy)
+
+        // if pixel buffer adaptor count > 10, save to disk, and save the url to array. 
+        // reset count to 0 start appending
+        // if the url array > 3, delete the first item
+        if isAssetWriterRunning {
+            let time = CMTimeMake(Int64(didOutputSampleBufferMethodCallCount), currentLiveGifPreset.sampleBufferFPS)
+            if assetWriterInput.isReadyForMoreMediaData {
+                pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+            }
+        }
+        
+        
+        if pixelBufferArrayCount == pixelBufferArrayMaxCount {
+            stopAssetWriter()
+            //pixelBufferArrayCount = 0
+            isAssetWriterRunning = false
+        }
+        
+        
+        
+//        if didOutputSampleBufferMethodCallCount == 120 {
+//            stopLiveGif()
 //        }
-        
-        let time = CMTimeMake(Int64(didOutputSampleBufferMethodCallCount), 60)
-        if assetWriterInput.isReadyForMoreMediaData {
-            pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
-            
-        }
-        
-        if didOutputSampleBufferMethodCallCount == 120 {
-            stopLiveGif()
-        }
-        
     
 
+        didOutputSampleBufferMethodCallCount += 1
+        pixelBufferArrayCount += 1
+        
         let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
         
         
@@ -1288,3 +1293,36 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         liveCameraGLKView.display()
     }
 }
+
+//        // Save and remove serially and asynchronously
+//        frameSavingSerialQueue.async { [unowned self] in
+//
+//            self.didOutputSampleBufferMethodCallCount += 1
+//            if self.shouldSaveFrame {
+//
+//                if let url = sampleBuffer.saveFrameToDisk(outputURL: self.originalUrlPath) {
+//                    self.originalURLs.append(url)
+//
+//                    if !self.isSnappedGif {
+//                        // pre-saving
+//                        if self.originalURLs.count > self.currentLiveGifPreset.liveGifFrameTotalCount / 2 {
+//                            // Remove the first item in the array
+//                            let firstItem = self.originalURLs.removeFirst()
+//                            do {
+//                                try self.fileManager.removeItem(at: firstItem)
+//                            } catch let e {
+//                                print(e)
+//                            }
+//                        }
+//
+//                    } else {
+//                        // post-saving
+//                        if self.originalURLs.count >= self.currentLiveGifPreset.liveGifFrameTotalCount {
+//                            DispatchQueue.main.async { [unowned self] in
+//                                self.stopLiveGif()
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
