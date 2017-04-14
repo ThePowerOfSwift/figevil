@@ -14,7 +14,7 @@ import MobileCoreServices // for HDD
 import Photos // for HDD saving
 
 /** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
-class SatoCamera: NSObject {
+class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     /** To use, SatoCamera.shared, 
      1. conform to SatoCameraOutput protocol.
@@ -156,6 +156,75 @@ class SatoCamera: NSObject {
         setupSecondAssetWriter()
     }
     
+    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
+        //        var pixelBufferArrayCount = 0
+        //        var pixelBufferArrayMaxCount = 10
+        //        var videoMaxCount = 2
+        //        var assetVideos = [URL]()
+        
+        print("pixel buffer array count: \(pixelBufferArrayCount)")
+        if didOutputSampleBufferMethodCallCount == 0 {
+            startFirstAssetWriter()
+        }
+        
+        guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+            print("Error: image buffer is nil")
+            return
+        }
+        
+        // if pixel buffer adaptor count > 10, save to disk, and save the url to array.
+        // reset count to 0 start appending
+        // if the url array > 3, delete the first item
+        if currentAssetWriter == .First {
+            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+            if firstAssetWriterInput.isReadyForMoreMediaData {
+                firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+            }
+        } else {
+            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+            if secondAssetWriterInput.isReadyForMoreMediaData {
+                secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+            }
+        }
+        
+        if pixelBufferArrayCount == pixelBufferArrayMaxCount {
+            if currentAssetWriter == .First {
+                stopFirstAssetWriter()
+                setupSecondAssetWriter()
+                startSecondAssetWriter()
+            } else {
+                stopSecondAssetWriter()
+                setupFirstAssetWriter()
+                startFirstAssetWriter()
+            }
+            pixelBufferArrayCount = 0
+        }
+        
+        didOutputSampleBufferMethodCallCount += 1
+        pixelBufferArrayCount += 1
+        
+        let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
+        
+        
+        // filteredImage has the same address as sourceImage
+        guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
+            print("Error: filtered image is nil in \(#function)")
+            return
+        }
+        
+        liveCameraGLKView.bindDrawable()
+        
+        // Prepare CIContext with EAGLContext
+        if liveCameraEaglContext != EAGLContext.current() {
+            EAGLContext.setCurrent(liveCameraEaglContext)
+        }
+        setupOpenGL()
+        
+        liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
+        liveCameraGLKView.display()
+    }
+
+    
     // MARK: - Asset writer
     enum AssetWriter {
         case First
@@ -190,6 +259,7 @@ class SatoCamera: NSObject {
         if let settings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
             outputSettings = settings
         }
+        
         firstAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
         
         firstPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: firstAssetWriterInput, sourcePixelBufferAttributes:
@@ -351,6 +421,7 @@ class SatoCamera: NSObject {
         liveCameraGLKViewBounds.size.width = CGFloat(liveCameraGLKView.drawableWidth) // 1334 pixels
         liveCameraGLKViewBounds.size.height = CGFloat(liveCameraGLKView.drawableHeight) // 749 pixels
         liveCameraCIContext = CIContext(eaglContext: liveCameraEaglContext)
+        liveCameraGLKView.delegate = self
     }
     
     func setupGifGLKView() {
@@ -1309,75 +1380,9 @@ extension SatoCamera: FilterImageEffectDelegate {
     }
 }
 
-// MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
-extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
-    
-    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-//        var pixelBufferArrayCount = 0
-//        var pixelBufferArrayMaxCount = 10
-//        var videoMaxCount = 2
-//        var assetVideos = [URL]()
-
-        print("pixel buffer array count: \(pixelBufferArrayCount)")
-        if didOutputSampleBufferMethodCallCount == 0 {
-            startFirstAssetWriter()
-        }
-        
-        guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            print("Error: image buffer is nil")
-            return
-        }
-
-        // if pixel buffer adaptor count > 10, save to disk, and save the url to array. 
-        // reset count to 0 start appending
-        // if the url array > 3, delete the first item
-        if currentAssetWriter == .First {
-            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
-            if firstAssetWriterInput.isReadyForMoreMediaData {
-                firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
-            }
-        } else {
-            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
-            if secondAssetWriterInput.isReadyForMoreMediaData {
-                secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
-            }
-        }
-        
-        if pixelBufferArrayCount == pixelBufferArrayMaxCount {
-            if currentAssetWriter == .First {
-                stopFirstAssetWriter()
-                setupSecondAssetWriter()
-                startSecondAssetWriter()
-            } else {
-                stopSecondAssetWriter()
-                setupFirstAssetWriter()
-                startFirstAssetWriter()
-            }
-            pixelBufferArrayCount = 0
-        }
-
-        didOutputSampleBufferMethodCallCount += 1
-        pixelBufferArrayCount += 1
-        
-        let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        
-        
-        // filteredImage has the same address as sourceImage
-        guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
-            print("Error: filtered image is nil in \(#function)")
-            return
-        }
-        
-        liveCameraGLKView.bindDrawable()
-        
-        // Prepare CIContext with EAGLContext
-        if liveCameraEaglContext != EAGLContext.current() {
-            EAGLContext.setCurrent(liveCameraEaglContext)
-        }
-        setupOpenGL()
-        
-        liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
-        liveCameraGLKView.display()
+extension SatoCamera: GLKViewDelegate {
+    func glkView(_ view: GLKView, drawIn rect: CGRect) {
+        print("glkview is about to draw")
     }
 }
 
