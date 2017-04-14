@@ -158,7 +158,8 @@ class SatoCamera: NSObject {
     var assetWriter: AVAssetWriter?
     var assetWriterInput: AVAssetWriterInput!
     var pixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
-    var videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension(".mp4")
+    var pixelBufferArray = [CVPixelBuffer]()
+    var videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
     func setupAssetWriter() {
         let outputSettings: [String:Any] = [
             AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
@@ -1250,11 +1251,14 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
             print("Error: image buffer is nil")
             return
         }
+//        if let pixelBufferDeepCopy = pixelBuffer.deepcopy() {
+//            pixelBufferArray.append(pixelBufferDeepCopy)
+//        }
         
-        
-        let time = CMTimeMake(Int64(didOutputSampleBufferMethodCallCount), 25)
+        let time = CMTimeMake(Int64(didOutputSampleBufferMethodCallCount), 60)
         if assetWriterInput.isReadyForMoreMediaData {
             pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+            
         }
         
         if didOutputSampleBufferMethodCallCount == 120 {
@@ -1264,6 +1268,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
     
 
         let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
+        
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
