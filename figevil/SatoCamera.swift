@@ -180,7 +180,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             if firstAssetWriterInput.isReadyForMoreMediaData {
                 firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
             }
-        } else {
+        } else if currentAssetWriter == .Second {
             let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
             if secondAssetWriterInput.isReadyForMoreMediaData {
                 secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
@@ -189,16 +189,34 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         
         if pixelBufferArrayCount == pixelBufferArrayMaxCount {
             if currentAssetWriter == .First {
-                stopFirstAssetWriter()
+                stopFirstAssetWriter(completion: <#(() -> ())?#>)
                 setupSecondAssetWriter()
                 startSecondAssetWriter()
-            } else {
-                stopSecondAssetWriter()
+            } else if currentAssetWriter == .Second {
+                stopSecondAssetWriter(completion: <#(() -> ())?#>)
                 setupFirstAssetWriter()
                 startFirstAssetWriter()
             }
             pixelBufferArrayCount = 0
         }
+        // snap
+        // look at stored array
+        // take the last video's time
+        // if it's more than 1 second, trim the last 1 second
+        // if it's less than 1 second, go to the previous video
+        // take 1 - (1 - lv) from the prev video
+        
+//        if isSnappedGif {
+//            if currentAssetWriter == .First {
+//                // can be stopped before 30 frame
+//                stopFirstAssetWriter()
+//            } else if currentAssetWriter == .Second {
+//                stopSecondAssetWriter()
+//            }
+//            isSnappedGif = false
+//            currentAssetWriter
+//            pixelBufferArrayCount = 0
+//        }
         
         didOutputSampleBufferMethodCallCount += 1
         pixelBufferArrayCount += 1
@@ -224,11 +242,16 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         liveCameraGLKView.display()
     }
 
+    func getPreVideo() {
+        
+    }
+    
     
     // MARK: - Asset writer
     enum AssetWriter {
         case First
         case Second
+        case Third
     }
     
     var currentAssetWriter: AssetWriter = .First
@@ -241,12 +264,17 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var secondAssetWriterInput: AVAssetWriterInput!
     var secondPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
     var secondVideoURL: URL!
+    
+    var thirdAssetWriter: AVAssetWriter?
+    var thirdAssetWriterInput: AVAssetWriterInput!
+    var thirdPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
+    var thirdVideoURL: URL!
 
     var pixelBufferArray = [CVPixelBuffer]()
     var pixelBufferArrayCount = 0
-    var pixelBufferArrayMaxCount = 50
-    var videoMaxCount = 2
-    var assetVideos = [URL]()
+    var pixelBufferArrayMaxCount = 30
+    var preVideoMaxCount = 2
+    var preVideos = [URL]()
     var isAssetWriterRunning = false
     
     func setupFirstAssetWriter() {
@@ -328,36 +356,42 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         print("asset writer has started")
     }
     
-    func stopFirstAssetWriter() {
+    func stopFirstAssetWriter(completion: (() -> ())?) {
         self.isAssetWriterRunning = true
         firstAssetWriter?.finishWriting {
             print("asset writer has finished")
             if self.firstAssetWriter?.status == AVAssetWriterStatus.completed {
                 print("writing video is done")
-                PHPhotoLibrary.requestAuthorization
-                    { (status) -> Void in
-                        switch (status)
-                        {
-                        case .authorized:
-                            PHPhotoLibrary.shared().performChanges({
-
-                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.firstVideoURL)
-                            }, completionHandler: { (saved: Bool, error: Error?) in
-                                if saved {
-                                    print("saved video to camera roll")
-                                } else {
-                                    print("failed to save video to camera roll")
-                                    if let error = error {
-                                        print(error.localizedDescription)
-                                    }
-                                }
-                            })
-                        case .denied:
-                            print("Error: User denied")
-                        default:
-                            print("Error: Restricted")
-                        }
+                if self.preVideos.count > self.preVideoMaxCount {
+                    self.preVideos.removeFirst()
                 }
+                self.preVideos.append(self.firstVideoURL)
+                // when snapped, save two videos from array
+                
+//                PHPhotoLibrary.requestAuthorization
+//                    { (status) -> Void in
+//                        switch (status)
+//                        {
+//                        case .authorized:
+//                            PHPhotoLibrary.shared().performChanges({
+//
+//                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.firstVideoURL)
+//                            }, completionHandler: { (saved: Bool, error: Error?) in
+//                                if saved {
+//                                    print("saved video to camera roll")
+//                                } else {
+//                                    print("failed to save video to camera roll")
+//                                    if let error = error {
+//                                        print(error.localizedDescription)
+//                                    }
+//                                }
+//                            })
+//                        case .denied:
+//                            print("Error: User denied")
+//                        default:
+//                            print("Error: Restricted")
+//                        }
+//                }
             } else if self.firstAssetWriter?.status == AVAssetWriterStatus.failed {
                 print("writing video failed")
                 if let error = self.firstAssetWriter?.error {
@@ -367,36 +401,41 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    func stopSecondAssetWriter() {
+    func stopSecondAssetWriter(completion: (() -> ())?) {
         self.isAssetWriterRunning = true
         secondAssetWriter?.finishWriting {
             print("asset writer has finished")
             if self.secondAssetWriter?.status == AVAssetWriterStatus.completed {
                 print("writing video is done")
-                PHPhotoLibrary.requestAuthorization
-                    { (status) -> Void in
-                        switch (status)
-                        {
-                        case .authorized:
-                            PHPhotoLibrary.shared().performChanges({
-                                
-                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.secondVideoURL)
-                            }, completionHandler: { (saved: Bool, error: Error?) in
-                                if saved {
-                                    print("saved video to camera roll")
-                                } else {
-                                    print("failed to save video to camera roll")
-                                    if let error = error {
-                                        print(error.localizedDescription)
-                                    }
-                                }
-                            })
-                        case .denied:
-                            print("Error: User denied")
-                        default:
-                            print("Error: Restricted")
-                        }
+                if self.preVideos.count > self.preVideoMaxCount {
+                    self.preVideos.removeFirst()
                 }
+                self.preVideos.append(self.secondVideoURL)
+                
+//                PHPhotoLibrary.requestAuthorization
+//                    { (status) -> Void in
+//                        switch (status)
+//                        {
+//                        case .authorized:
+//                            PHPhotoLibrary.shared().performChanges({
+//                                
+//                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.secondVideoURL)
+//                            }, completionHandler: { (saved: Bool, error: Error?) in
+//                                if saved {
+//                                    print("saved video to camera roll")
+//                                } else {
+//                                    print("failed to save video to camera roll")
+//                                    if let error = error {
+//                                        print(error.localizedDescription)
+//                                    }
+//                                }
+//                            })
+//                        case .denied:
+//                            print("Error: User denied")
+//                        default:
+//                            print("Error: Restricted")
+//                        }
+//                }
             } else if self.secondAssetWriter?.status == AVAssetWriterStatus.failed {
                 print("writing video failed")
                 if let error = self.secondAssetWriter?.error {
