@@ -163,7 +163,9 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        satoCamera.start()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.satoCamera.start()
+        }
         setupKeyboardObserver()
 
     }

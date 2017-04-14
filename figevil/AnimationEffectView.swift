@@ -76,7 +76,7 @@ class AnimationEffectView: UIView, CameraViewBubbleMenu {
     
     func menu(_ sender: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
         if indexPath.row == 0 {
-            animationView.render()
+            //animationView.render()
         }
         else {
             animationView.addAnimation(stickerURLs[indexPath.row - 1])

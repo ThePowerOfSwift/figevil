@@ -43,7 +43,9 @@ class FTECameraViewController: UIViewController, SatoCameraOutput {
         super.viewWillAppear(animated)
         view.insertSubview(sampleBufferView!, at: 0)
         view.insertSubview(gifOutputView!, at: 1)
-        satoCamera.start()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { 
+            self.satoCamera.start()
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
