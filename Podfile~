@@ -8,7 +8,7 @@ target 'figevil' do
   # Pods for figevil
   pod 'Firebase/Core'
   pod 'FLAnimatedImage', '~> 1.0'
-  
+  pod 'lottie-ios', '~> 1.5'
 end
 
 target 'MeKeyboard' do

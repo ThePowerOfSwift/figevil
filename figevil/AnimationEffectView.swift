@@ -7,7 +7,10 @@
 //
 
 import UIKit
+import AVKit
+import AVFoundation
 
+private let animationExtension = "json"
 
 class AnimationEffectView: UIView, CameraViewBubbleMenu {
 
@@ -54,7 +57,7 @@ class AnimationEffectView: UIView, CameraViewBubbleMenu {
         // Get gif contents and load to datasource
         do {
             // Get gif files in application container that end
-            stickerURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter { $0.pathExtension == "png" }
+            stickerURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter { $0.pathExtension == animationExtension }
         } catch {
             print("Error: Cannot get contents of sticker directory \(error.localizedDescription)")
             return
@@ -62,9 +65,8 @@ class AnimationEffectView: UIView, CameraViewBubbleMenu {
 
         // TODO: need thumbnails?
         for url in stickerURLs {
-            guard let image = UIImage(contentsOfFile: url.path) else {
-                break
-            }
+            let image = UIImage()
+            
             let filename = url.lastPathComponent.components(separatedBy: ".").first
             menuContent.append(BubbleMenuCollectionViewCellContent(image: image, label: filename!))
         }
