@@ -97,9 +97,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     var renderItems: [UIImage] {
         var items = [UIImage]()
         
-        // TODO: Why are we using embedded ImageViews?
         if let drawImageEffectView = effects[1] as? DrawImageEffectView {
-            if let drawImage = drawImageEffectView.drawView.imageView.image {
+            if let drawImage = drawImageEffectView.drawView.image {
                 items.append(drawImage)
             }
         }
