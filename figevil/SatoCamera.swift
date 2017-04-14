@@ -152,20 +152,32 @@ class SatoCamera: NSObject {
         setupGifGLKView()
         setupOpenGL()
         setupSession()
-        setupAssetWriter()
+        setupFirstAssetWriter()
+        setupSecondAssetWriter()
     }
     
-    var assetWriter: AVAssetWriter?
-    var assetWriterInput: AVAssetWriterInput!
-    var pixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
+    enum AssetWriter {
+        case First
+        case Second
+    }
+    var currentAssetWriter: AssetWriter = .First
+    var firstAssetWriter: AVAssetWriter?
+    var firstAssetWriterInput: AVAssetWriterInput!
+    var secondAssetWriter: AVAssetWriter?
+    var secondAssetWriterInput: AVAssetWriterInput!
+    var firstPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
+    var secondPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
+    var firstVideoURL: URL!
+    var secondVideoURL: URL!
+
     var pixelBufferArray = [CVPixelBuffer]()
     var pixelBufferArrayCount = 0
-    var pixelBufferArrayMaxCount = 100
+    var pixelBufferArrayMaxCount = 50
     var videoMaxCount = 2
     var assetVideos = [URL]()
     var isAssetWriterRunning = false
-    var videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
-    func setupAssetWriter() {
+    
+    func setupFirstAssetWriter() {
         let outputSettings: [String:Any] = [
             AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
             AVVideoHeightKey : Int(UIScreen.main.bounds.height) + 1,
@@ -175,39 +187,82 @@ class SatoCamera: NSObject {
 //        let outputSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4)
 //        assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings as! [String : Any])
         
-        print("URL: \(videoURL)")
-        assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
+        firstAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
         
-        pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: assetWriterInput, sourcePixelBufferAttributes:
+        firstPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: firstAssetWriterInput, sourcePixelBufferAttributes:
             [ kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)])
-        
+        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
+        firstVideoURL = videoURL
         do {
-            assetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
-            if let assetWriter = assetWriter {
-                assetWriter.add(assetWriterInput)
-                assetWriterInput.expectsMediaDataInRealTime = true
+            firstAssetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
+            if let assetWriter = firstAssetWriter {
+                assetWriter.add(firstAssetWriterInput)
+                firstAssetWriterInput.expectsMediaDataInRealTime = true
             }
         } catch let e {
             print(e.localizedDescription)
         }
     }
     
-    func startAssetWriter() {
-        guard let assetWriter = assetWriter else {
+    func setupSecondAssetWriter() {
+        let outputSettings: [String:Any] = [
+            AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
+            AVVideoHeightKey : Int(UIScreen.main.bounds.height) + 1,
+            AVVideoCodecKey : AVVideoCodecH264
+        ]
+        
+        //        let outputSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4)
+        //        assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings as! [String : Any])
+        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
+        secondVideoURL = videoURL
+        print("URL: \(videoURL)")
+        secondAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
+        
+        secondPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: secondAssetWriterInput, sourcePixelBufferAttributes:
+            [ kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)])
+        
+        do {
+            secondAssetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
+            if let assetWriter = secondAssetWriter {
+                assetWriter.add(secondAssetWriterInput)
+                secondAssetWriterInput.expectsMediaDataInRealTime = true
+            }
+        } catch let e {
+            print(e.localizedDescription)
+        }
+    }
+    
+    
+    
+    func startFirstAssetWriter() {
+        currentAssetWriter = .First
+        guard let firstAssetWriter = firstAssetWriter else {
             print("Error: asset writer is nil in \(#function)")
             return
         }
-        assetWriter.startWriting()
-        assetWriter.startSession(atSourceTime: kCMTimeZero)
+        firstAssetWriter.startWriting()
+        firstAssetWriter.startSession(atSourceTime: kCMTimeZero)
         //isAssetWriterRunning = true
         print("asset writer has started")
     }
     
-    func stopAssetWriter() {
+    func startSecondAssetWriter() {
+        currentAssetWriter = .Second
+        guard let secondAssetWriter = secondAssetWriter else {
+            print("Error: asset writer is nil in \(#function)")
+            return
+        }
+        secondAssetWriter.startWriting()
+        secondAssetWriter.startSession(atSourceTime: kCMTimeZero)
+        //isAssetWriterRunning = true
+        print("asset writer has started")
+    }
+    
+    func stopFirstAssetWriter() {
         self.isAssetWriterRunning = true
-        assetWriter?.finishWriting {
+        firstAssetWriter?.finishWriting {
             print("asset writer has finished")
-            if self.assetWriter?.status == AVAssetWriterStatus.completed {
+            if self.firstAssetWriter?.status == AVAssetWriterStatus.completed {
                 print("writing video is done")
                 PHPhotoLibrary.requestAuthorization
                     { (status) -> Void in
@@ -216,7 +271,7 @@ class SatoCamera: NSObject {
                         case .authorized:
                             PHPhotoLibrary.shared().performChanges({
 
-                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.videoURL)
+                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.firstVideoURL)
                             }, completionHandler: { (saved: Bool, error: Error?) in
                                 if saved {
                                     print("saved video to camera roll")
@@ -234,21 +289,53 @@ class SatoCamera: NSObject {
                             print("Error: Restricted")
                         }
                 }
-            } else if self.assetWriter?.status == AVAssetWriterStatus.failed {
+            } else if self.firstAssetWriter?.status == AVAssetWriterStatus.failed {
                 print("writing video failed")
-                if let error = self.assetWriter?.error {
+                if let error = self.firstAssetWriter?.error {
                     print(error.localizedDescription)
                 }
             }
         }
     }
     
-    func saveVideo(completion: () -> Void) {
-        assetWriter?.finishWriting(completionHandler: { 
-            if self.assetWriter?.status == AVAssetWriterStatus.completed {
-                
+    func stopSecondAssetWriter() {
+        self.isAssetWriterRunning = true
+        secondAssetWriter?.finishWriting {
+            print("asset writer has finished")
+            if self.secondAssetWriter?.status == AVAssetWriterStatus.completed {
+                print("writing video is done")
+                PHPhotoLibrary.requestAuthorization
+                    { (status) -> Void in
+                        switch (status)
+                        {
+                        case .authorized:
+                            PHPhotoLibrary.shared().performChanges({
+                                
+                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.secondVideoURL)
+                            }, completionHandler: { (saved: Bool, error: Error?) in
+                                if saved {
+                                    print("saved video to camera roll")
+                                    //self.startAssetWriter()
+                                } else {
+                                    print("failed to save video to camera roll")
+                                    if let error = error {
+                                        print(error.localizedDescription)
+                                    }
+                                }
+                            })
+                        case .denied:
+                            print("Error: User denied")
+                        default:
+                            print("Error: Restricted")
+                        }
+                }
+            } else if self.secondAssetWriter?.status == AVAssetWriterStatus.failed {
+                print("writing video failed")
+                if let error = self.secondAssetWriter?.error {
+                    print(error.localizedDescription)
+                }
             }
-        })
+        }
     }
     
     func setupliveCameraGLKView() {
@@ -548,7 +635,6 @@ class SatoCamera: NSObject {
     
     internal func stop() {
         session.stopRunning()
-        stopAssetWriter()
     }
     
     /** Set to the initial state. */
@@ -1236,8 +1322,7 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
 
         print("pixel buffer array count: \(pixelBufferArrayCount)")
         if didOutputSampleBufferMethodCallCount == 0 {
-            startAssetWriter()
-            isAssetWriterRunning = true
+            startFirstAssetWriter()
         }
         
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
@@ -1248,26 +1333,30 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         // if pixel buffer adaptor count > 10, save to disk, and save the url to array. 
         // reset count to 0 start appending
         // if the url array > 3, delete the first item
-        if isAssetWriterRunning {
-            let time = CMTimeMake(Int64(didOutputSampleBufferMethodCallCount), currentLiveGifPreset.sampleBufferFPS)
-            if assetWriterInput.isReadyForMoreMediaData {
-                pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+        if currentAssetWriter == .First {
+            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+            if firstAssetWriterInput.isReadyForMoreMediaData {
+                firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+            }
+        } else {
+            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+            if secondAssetWriterInput.isReadyForMoreMediaData {
+                secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
             }
         }
         
-        
         if pixelBufferArrayCount == pixelBufferArrayMaxCount {
-            stopAssetWriter()
-            //pixelBufferArrayCount = 0
-            isAssetWriterRunning = false
+            if currentAssetWriter == .First {
+                stopFirstAssetWriter()
+                setupSecondAssetWriter()
+                startSecondAssetWriter()
+            } else {
+                stopSecondAssetWriter()
+                setupFirstAssetWriter()
+                startFirstAssetWriter()
+            }
+            pixelBufferArrayCount = 0
         }
-        
-        
-        
-//        if didOutputSampleBufferMethodCallCount == 120 {
-//            stopLiveGif()
-//        }
-    
 
         didOutputSampleBufferMethodCallCount += 1
         pixelBufferArrayCount += 1
@@ -1326,3 +1415,31 @@ extension SatoCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
 //                }
 //            }
 //        }
+
+
+//func setupAssetWriter() {
+//    let outputSettings: [String:Any] = [
+//        AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
+//        AVVideoHeightKey : Int(UIScreen.main.bounds.height) + 1,
+//        AVVideoCodecKey : AVVideoCodecH264
+//    ]
+//    
+//    //        let outputSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4)
+//    //        assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings as! [String : Any])
+//    
+//    print("URL: \(videoURL)")
+//    assetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
+//    
+//    pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: assetWriterInput, sourcePixelBufferAttributes:
+//        [ kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)])
+//    
+//    do {
+//        assetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
+//        if let assetWriter = assetWriter {
+//            assetWriter.add(assetWriterInput)
+//            assetWriterInput.expectsMediaDataInRealTime = true
+//        }
+//    } catch let e {
+//        print(e.localizedDescription)
+//    }
+//}
