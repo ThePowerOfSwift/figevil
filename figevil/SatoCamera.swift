@@ -156,6 +156,23 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         setupSecondAssetWriter()
     }
     
+    // snap
+    // look at stored array
+    // take the last video's time
+    // if it's more than 1 second, trim the last 1 second
+    // if it's less than 1 second, go to the previous video
+    // take 1 - (1 - lv) from the prev video
+    func getPreVideo() {
+        if let firstVideoURL = preVideoURLs.first {
+            let videoAsset = AVURLAsset(url: firstVideoURL)
+            print("first video asset duration: \(videoAsset.duration)")
+        }
+        if let lastVideoURL = preVideoURLs.last {
+            let videoAsset = AVURLAsset(url: lastVideoURL)
+            print("last video asset duration: \(videoAsset.duration)")
+        }
+    }
+    
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         //        var pixelBufferArrayCount = 0
         //        var pixelBufferArrayMaxCount = 10
@@ -172,10 +189,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         
-        // if pixel buffer adaptor count > 10, save to disk, and save the url to array.
-        // reset count to 0 start appending
-        // if the url array > 3, delete the first item
         if !isSnappedGif {
+            
             if currentAssetWriter == .First {
                 let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
                 if firstAssetWriterInput.isReadyForMoreMediaData {
@@ -201,13 +216,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 pixelBufferArrayCount = 0
             }
         }
-        // snap
-        // look at stored array
-        // take the last video's time
-        // if it's more than 1 second, trim the last 1 second
-        // if it's less than 1 second, go to the previous video
-        // take 1 - (1 - lv) from the prev video
-        
+
         
         if isSnappedGif {
             if currentAssetWriter == .First {
@@ -223,6 +232,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                                         PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: preVideoURL)
                                     }, completionHandler: { (saved: Bool, error: Error?) in
                                         if saved {
+                                            self.getPreVideo()
                                             print("saved video to camera roll in \(#function)")
                                         } else {
                                             print("failed to save video to camera roll in \(#function)")
@@ -251,6 +261,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                                         PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: preVideoURL)
                                     }, completionHandler: { (saved: Bool, error: Error?) in
                                         if saved {
+                                            self.getPreVideo()
                                             print("saved video to camera roll in \(#function)")
                                         } else {
                                             print("failed to save video to camera roll in \(#function)")
@@ -295,11 +306,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
         liveCameraGLKView.display()
     }
-
-    func getPreVideo() {
-        
-    }
-    
     
     // MARK: - Asset writer
     enum AssetWriter {
@@ -326,7 +332,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 
     var pixelBufferArray = [CVPixelBuffer]()
     var pixelBufferArrayCount = 0
-    var pixelBufferArrayMaxCount = 30
+    var pixelBufferArrayMaxCount = 60
     var preVideoMaxCount = 2
     var preVideoURLs = [URL]()
     var isAssetWriterRunning = false
