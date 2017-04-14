@@ -84,18 +84,30 @@ class AnimationView: UIView {
     }
     
     func setAnimation(_ layer: CALayer) {
-        let quiver = CABasicAnimation(keyPath: "transform.rotation")
         
+        let beginTime = 1.0
+        
+        // Add animations
+//        let opacity = CABasicAnimation(keyPath: "opacity")
+//        opacity.isRemovedOnCompletion = false
+//        opacity.beginTime = CACurrentMediaTime() + beginTime
+//        opacity.fromValue = 0.0
+//        opacity.toValue = 1.0
+//        opacity.duration = 0.5
+//        opacity.fillMode = kCAFillModeBackwards
+//        opacity.repeatCount = HUGE
+//        layer.add(opacity, forKey: "opacity")
+        
+        let quiver = CABasicAnimation(keyPath: "transform.rotation")
+        quiver.isRemovedOnCompletion = false
+        quiver.beginTime =  CACurrentMediaTime() + beginTime
         let startAngle: Float = -5.25 * Float.pi / Float(180.0)
         let stopAngle: Float = -startAngle
-        
-        quiver.isRemovedOnCompletion = false
-        quiver.beginTime = AVCoreAnimationBeginTimeAtZero
         quiver.fromValue = startAngle
         quiver.toValue = stopAngle * 5.25
         quiver.autoreverses = true
         quiver.duration = 0.075
-        quiver.repeatCount = HUGE
+        quiver.repeatCount = 5
         let random: CFTimeInterval = Double(arc4random_uniform(50)) / 100
         quiver.timeOffset = random
         
