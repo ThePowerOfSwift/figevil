@@ -163,29 +163,92 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // if it's less than 1 second, go to the previous video
     // take 1 - (1 - lv) from the prev video
     func getPreVideo() {
-        var firstVideoDuration = CMTime()
-        var lastVideoDuration = CMTime()
-        
-        // first video duration is always max
-        if let firstVideoURL = preVideoURLs.first {
-            let videoAsset = AVURLAsset(url: firstVideoURL)
-            firstVideoDuration = videoAsset.duration
-            print("first video asset duration: \(videoAsset.duration)")
-        }
-        // last video duration can be shorter than specified max
-        if let lastVideoURL = preVideoURLs.last {
-            let videoAsset = AVURLAsset(url: lastVideoURL)
-            lastVideoDuration = videoAsset.duration
-            print("last video asset duration: \(videoAsset.duration)")
+        guard let firstVideoURL = preVideoURLs.first, let lastVideoURL = preVideoURLs.last else {
+            print("Error: url is nil in \(#function)")
+            return
         }
         
-        print("gap: \(CMTimeSubtract(firstVideoDuration, lastVideoDuration))")
-//        if lastVideoDuration < firstVideoDuration {
-//            lastVideoDuration.epoch
-//        }
+        let firstVideoAsset = AVURLAsset(url: firstVideoURL)
+        let lastVideoAsset = AVURLAsset(url: lastVideoURL)
         
+        let firstVideoDuration = firstVideoAsset.duration // first video duration is always max
+        let maxVideoDuration = firstVideoDuration
+        let lastVideoDuration = lastVideoAsset.duration // last video duration can be shorter than specified max
         
+        print("first video duration: \(firstVideoDuration)")
+        print("last video duration: \(lastVideoDuration)")
+        
+        let durationToBeTrimmed = CMTimeSubtract(maxVideoDuration, lastVideoDuration)
+        print("duration to be trimmed: \(durationToBeTrimmed)")
+                //CMTIME_COMPARE_INLINE(time1, <=, time2)
+        if CMTimeCompare(durationToBeTrimmed, kCMTimeZero) == 1 {
+            print("durationToBeTrimmed is greater than 0")
+            let trimmingStartTime = CMTimeSubtract(maxVideoDuration, durationToBeTrimmed)
+            print("trimming start time: \(trimmingStartTime)")
+            
+            let mixComposition = AVMutableComposition()
+            let firstTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
+            let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, end: maxVideoDuration)
+            do {
+                try firstTrack.insertTimeRange(timeRangeTobeTrimmed, of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0], at: kCMTimeZero)
+            } catch let error {
+                print(error.localizedDescription)
+            }
+            let lastTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
+            let fullTimeRange = CMTimeRange(start: kCMTimeZero, end: lastVideoDuration)
+            do {
+                try lastTrack.insertTimeRange(fullTimeRange, of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0], at: kCMTimeZero)
+            } catch let error {
+                print(error.localizedDescription)
+            }
+            
+            let finalVideoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
+            guard let exporter = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetHighestQuality) else {
+                print("Error: could not make an exporter in \(#function)")
+                return
+            }
+            exporter.outputURL = finalVideoURL
+            exporter.outputFileType = AVFileTypeMPEG4
+            exporter.shouldOptimizeForNetworkUse = false
+            
+            exporter.exportAsynchronously(completionHandler: { 
+                self.exportDidFinish(session: exporter)
+            })
+        }
     }
+    
+    func exportDidFinish(session: AVAssetExportSession) {
+        if session.status == AVAssetExportSessionStatus.completed {
+            if let outputURL = session.outputURL {
+                let outputAsset = AVURLAsset(url: outputURL)
+                print("output URL duration: \(outputAsset.duration)")
+                    PHPhotoLibrary.requestAuthorization
+                        { (status) -> Void in
+                            switch (status) {
+                            case .authorized:
+                                PHPhotoLibrary.shared().performChanges({
+                                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputURL)
+                                }, completionHandler: { (saved: Bool, error: Error?) in
+                                    if saved {
+                                        print("saved video to camera roll in \(#function)")
+                                    } else {
+                                        print("failed to save video to camera roll in \(#function)")
+                                        if let error = error {
+                                            print(error.localizedDescription)
+                                        }
+                                    }
+                                })
+                            case .denied:
+                                print("Error: User denied")
+                            default:
+                                print("Error: Restricted")
+                            }
+                    }
+            }
+        }
+    }
+
+
     
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         //        var pixelBufferArrayCount = 0
@@ -231,66 +294,68 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
         }
 
-        
         if isSnappedGif {
             if currentAssetWriter == .First {
                 // can be stopped before 30 frame
                 self.stop()
                 stopFirstAssetWriter(completion: {
-                    PHPhotoLibrary.requestAuthorization
-                        { (status) -> Void in
-                            switch (status) {
-                            case .authorized:
-                                for preVideoURL in self.preVideoURLs {
-                                    PHPhotoLibrary.shared().performChanges({
-                                        PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: preVideoURL)
-                                    }, completionHandler: { (saved: Bool, error: Error?) in
-                                        if saved {
-                                            self.getPreVideo()
-                                            print("saved video to camera roll in \(#function)")
-                                        } else {
-                                            print("failed to save video to camera roll in \(#function)")
-                                            if let error = error {
-                                                print(error.localizedDescription)
-                                            }
-                                        }
-                                    })
-                                }
-                            case .denied:
-                                print("Error: User denied")
-                            default:
-                                print("Error: Restricted")
-                            }
-                    }
+                    self.getPreVideo()
+
+//                    PHPhotoLibrary.requestAuthorization
+//                        { (status) -> Void in
+//                            switch (status) {
+//                            case .authorized:
+//                                for preVideoURL in self.preVideoURLs {
+//                                    PHPhotoLibrary.shared().performChanges({
+//                                        PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: preVideoURL)
+//                                    }, completionHandler: { (saved: Bool, error: Error?) in
+//                                        if saved {
+////                                            self.getPreVideo()
+//                                            print("saved video to camera roll in \(#function)")
+//                                        } else {
+//                                            print("failed to save video to camera roll in \(#function)")
+//                                            if let error = error {
+//                                                print(error.localizedDescription)
+//                                            }
+//                                        }
+//                                    })
+//                                }
+//                            case .denied:
+//                                print("Error: User denied")
+//                            default:
+//                                print("Error: Restricted")
+//                            }
+//                    }
                 })
             } else if currentAssetWriter == .Second {
                 self.stop()
                 stopSecondAssetWriter(completion: {
-                    PHPhotoLibrary.requestAuthorization
-                        { (status) -> Void in
-                            switch (status) {
-                            case .authorized:
-                                for preVideoURL in self.preVideoURLs {
-                                    PHPhotoLibrary.shared().performChanges({
-                                        PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: preVideoURL)
-                                    }, completionHandler: { (saved: Bool, error: Error?) in
-                                        if saved {
-                                            self.getPreVideo()
-                                            print("saved video to camera roll in \(#function)")
-                                        } else {
-                                            print("failed to save video to camera roll in \(#function)")
-                                            if let error = error {
-                                                print(error.localizedDescription)
-                                            }
-                                        }
-                                    })
-                                }
-                            case .denied:
-                                print("Error: User denied")
-                            default:
-                                print("Error: Restricted")
-                            }
-                    }
+                    self.getPreVideo()
+//                    PHPhotoLibrary.requestAuthorization
+//                        { (status) -> Void in
+//                            switch (status) {
+//                            case .authorized:
+//                                for preVideoURL in self.preVideoURLs {
+//                                    PHPhotoLibrary.shared().performChanges({
+//                                        PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: preVideoURL)
+//                                    }, completionHandler: { (saved: Bool, error: Error?) in
+//                                        if saved {
+//                                            self.getPreVideo()
+//                                            print("saved video to camera roll in \(#function)")
+//                                        } else {
+//                                            print("failed to save video to camera roll in \(#function)")
+//                                            if let error = error {
+//                                                print(error.localizedDescription)
+//                                            }
+//                                        }
+//                                    })
+//                                }
+//                            case .denied:
+//                                print("Error: User denied")
+//                            default:
+//                                print("Error: Restricted")
+//                            }
+//                    }
                 })
             }
             isSnappedGif = false
@@ -461,7 +526,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     self.preVideoURLs.removeFirst()
                 }
                 self.preVideoURLs.append(self.secondVideoURL)
-                
+                completion?()
             } else if self.secondAssetWriter?.status == AVAssetWriterStatus.failed {
                 print("writing video failed")
                 if let error = self.secondAssetWriter?.error {
