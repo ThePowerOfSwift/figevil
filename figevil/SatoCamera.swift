@@ -171,9 +171,13 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         let firstVideoAsset = AVURLAsset(url: firstVideoURL)
         let lastVideoAsset = AVURLAsset(url: lastVideoURL)
         
-        let firstVideoDuration = firstVideoAsset.duration // first video duration is always max
+//        let firstVideoDuration = firstVideoAsset.duration // first video duration is always max
+//        let lastVideoDuration = lastVideoAsset.duration // last video duration can be shorter than specified max
+        let firstVideoTrack = firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
+        let firstVideoDuration = firstVideoTrack.timeRange.duration
+        let lastVideoTrack = lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
+        let lastVideoDuration = lastVideoTrack.timeRange.duration
         let maxVideoDuration = CMTimeMultiply(firstVideoDuration, 2)
-        let lastVideoDuration = lastVideoAsset.duration // last video duration can be shorter than specified max
         
         print("first video duration: \(firstVideoDuration)")
         print("last video duration: \(lastVideoDuration)")
@@ -201,13 +205,13 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 //                print(error.localizedDescription)
 //            }
 
-//            do {
-//                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: firstVideoAsset.duration),
-//                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-//                                               at: kCMTimeZero)
-//            } catch let error {
-//                print(error.localizedDescription)
-//            }
+            do {
+                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: firstVideoDuration),
+                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+                                               at: kCMTimeZero)
+            } catch let error {
+                print(error.localizedDescription)
+            }
             
             // Last track
             let lastTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
@@ -221,13 +225,13 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 //                print(error.localizedDescription)
 //            }
 
-            do {
-                try lastTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: lastVideoAsset.duration),
-                                              of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-                                              at: firstVideoAsset.duration)
-            } catch let error {
-                print(error.localizedDescription)
-            }
+//            do {
+//                try lastTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: lastVideoAsset.duration),
+//                                              of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+//                                              at: firstVideoAsset.duration)
+//            } catch let error {
+//                print(error.localizedDescription)
+//            }
             // Export
             let finalVideoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
             guard let exporter = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetHighestQuality) else {
@@ -243,11 +247,14 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             })
         }
     }
+
     
     func exportDidFinish(session: AVAssetExportSession) {
         if session.status == AVAssetExportSessionStatus.completed {
             if let outputURL = session.outputURL {
                 let outputAsset = AVURLAsset(url: outputURL)
+                let vc = cameraOutput as! CameraViewController
+                vc.showAVPlayer(url: outputURL)
                 print("output URL duration: \(outputAsset.duration)")
                     PHPhotoLibrary.requestAuthorization
                         { (status) -> Void in
