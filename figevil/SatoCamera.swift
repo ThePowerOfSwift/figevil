@@ -148,7 +148,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         self.frame = frame
         //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
         super.init()
-        setupliveCameraGLKView()
+        setupLiveCameraGLKView()
         setupGifGLKView()
         setupOpenGL()
         setupSession()
@@ -162,8 +162,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // if it's more than 1 second, trim the last 1 second
     // if it's less than 1 second, go to the previous video
     // take 1 - (1 - lv) from the prev video
-    func getPreVideo() {
-        guard let firstVideoURL = preVideoURLs.first, let lastVideoURL = preVideoURLs.last else {
+    func getVideo() {
+        guard let firstVideoURL = videoURLs.first, let lastVideoURL = videoURLs.last else {
             print("Error: url is nil in \(#function)")
             return
         }
@@ -178,7 +178,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         
         // duration to be trimmed from last video
         let durationToBeTrimmed = CMTimeSubtract(maxVideoDuration, lastVideoDuration)
-        
         if durationToBeTrimmed > kCMTimeZero {
 
             let trimmingStartTime = CMTimeSubtract(firstVideoDuration, durationToBeTrimmed)
@@ -217,6 +216,11 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             exporter.exportAsynchronously(completionHandler: { 
                 self.exportDidFinish(session: exporter)
             })
+        } else {
+            // should be one
+            print("no need to trim from the first video")
+            let vc = cameraOutput as! CameraViewController
+            vc.showAVPlayer(url: lastVideoURL)
         }
     }
 
@@ -253,9 +257,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
 
-
     var isPostRecording = false
-    var countAtSnapping = 0
+    var pixelBufferCountAtSnapping = 0
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
 
         if didOutputSampleBufferMethodCallCount == 0 {
@@ -268,57 +271,57 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         if isSnappedGif {
-            countAtSnapping = pixelBufferArrayCount
+            pixelBufferCountAtSnapping = pixelBufferCount
             isSnappedGif = false
             isPostRecording = true
         }
         
         if currentAssetWriter == .First {
-            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+            let time = CMTimeMake(Int64(pixelBufferCount), currentLiveGifPreset.sampleBufferFPS)
             if firstAssetWriterInput.isReadyForMoreMediaData {
                 firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
-                pixelBufferArrayCount += 1
+                pixelBufferCount += 1
                 print("CMTime: \(time) in not isPostRecording first")
                 //print("pixel buffer: \(pixelBuffer)")
             }
         } else if currentAssetWriter == .Second {
-            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+            let time = CMTimeMake(Int64(pixelBufferCount), currentLiveGifPreset.sampleBufferFPS)
             if secondAssetWriterInput.isReadyForMoreMediaData {
                 secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
-                pixelBufferArrayCount += 1
+                pixelBufferCount += 1
                 print("CMTime: \(time) in not isPostRecording second")
                 //print("pixel buffer: \(pixelBuffer)")
             }
         }
         
         if !isPostRecording {
-            if pixelBufferArrayCount == pixelBufferArrayMaxCount {
+            if pixelBufferCount == pixelBufferMaxCount {
                 print("pixelBufferArrayCount == pixelBufferArrayMaxCount")
                 if currentAssetWriter == .First {
-                    stopFirstAssetWriter(completion: nil)
+                    saveFirstAssetWriter(completion: nil)
                     setupSecondAssetWriter()
                     startSecondAssetWriter()
                 } else if currentAssetWriter == .Second {
-                    stopSecondAssetWriter(completion: nil)
+                    saveSecondAssetWriter(completion: nil)
                     setupFirstAssetWriter()
                     startFirstAssetWriter()
                 }
-                pixelBufferArrayCount = 0
+                pixelBufferCount = 0
             }
         }
         
         if isPostRecording {
             // stop
-            if pixelBufferArrayCount == countAtSnapping + pixelBufferArrayMaxCount {
+            if pixelBufferCount == pixelBufferCountAtSnapping + pixelBufferMaxCount {
                 self.stop()
                 if currentAssetWriter == .First {
-                    stopFirstAssetWriter(completion: {
-                        self.getPreVideo()
+                    saveFirstAssetWriter(completion: {
+                        self.getVideo()
                         
                     })
                 } else if currentAssetWriter == .Second {
-                    stopSecondAssetWriter(completion: {
-                        self.getPreVideo()
+                    saveSecondAssetWriter(completion: {
+                        self.getVideo()
                         
                     })
                 }
@@ -371,12 +374,10 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var thirdPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
     var thirdVideoURL: URL!
 
-    var pixelBufferArray = [CVPixelBuffer]()
-    var pixelBufferArrayCount = 0
-    var pixelBufferArrayMaxCount = 15
+    var pixelBufferCount = 0
+    var pixelBufferMaxCount = 60
     var preVideoMaxCount = 2
-    var preVideoURLs = [URL]()
-    var isAssetWriterRunning = false
+    var videoURLs = [URL]()
     
     func setupFirstAssetWriter() {
         var outputSettings: [String:Any] = [
@@ -457,16 +458,27 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         print("asset writer has started")
     }
     
-    func stopFirstAssetWriter(completion: (() -> Void)?) {
-        self.isAssetWriterRunning = true
+    func cancelFirstAssetWriter() {
+        firstAssetWriter?.finishWriting {
+            print("first asset writer canceled")
+        }
+    }
+    
+    func cancelSecondAssetWriter() {
+        secondAssetWriter?.finishWriting {
+            print("second asset writer canceled")
+        }
+    }
+    
+    func saveFirstAssetWriter(completion: (() -> Void)?) {
         firstAssetWriter?.finishWriting {
             print("asset writer has finished in \(#function)")
             if self.firstAssetWriter?.status == AVAssetWriterStatus.completed {
                 print("writing video is done in \(#function)")
-                if self.preVideoURLs.count > self.preVideoMaxCount - 1{
-                    self.preVideoURLs.removeFirst()
+                if self.videoURLs.count > self.preVideoMaxCount - 1{
+                    self.videoURLs.removeFirst()
                 }
-                self.preVideoURLs.append(self.firstVideoURL)
+                self.videoURLs.append(self.firstVideoURL)
                 // when snapped, save two videos from array
                 completion?()
             } else if self.firstAssetWriter?.status == AVAssetWriterStatus.failed {
@@ -478,16 +490,15 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    func stopSecondAssetWriter(completion: (() -> Void)?) {
-        self.isAssetWriterRunning = true
+    func saveSecondAssetWriter(completion: (() -> Void)?) {
         secondAssetWriter?.finishWriting {
             print("asset writer has finished in \(#function)")
             if self.secondAssetWriter?.status == AVAssetWriterStatus.completed {
                 print("writing video is done in \(#function)")
-                if self.preVideoURLs.count > self.preVideoMaxCount - 1 {
-                    self.preVideoURLs.removeFirst()
+                if self.videoURLs.count > self.preVideoMaxCount - 1 {
+                    self.videoURLs.removeFirst()
                 }
-                self.preVideoURLs.append(self.secondVideoURL)
+                self.videoURLs.append(self.secondVideoURL)
                 completion?()
             } else if self.secondAssetWriter?.status == AVAssetWriterStatus.failed {
                 print("writing video failed in \(#function)")
@@ -498,7 +509,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    func setupliveCameraGLKView() {
+    func setupLiveCameraGLKView() {
         guard let liveCameraEaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
             print("Error: eaglContext is nil")
             setupResult = .configurationFailed
@@ -807,6 +818,11 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         cameraOutput?.sampleBufferView?.isHidden = false
         cameraOutput?.gifOutputView?.isHidden = true
         didOutputSampleBufferMethodCallCount = 0
+        
+        // Asset writer
+        isPostRecording = false
+        cancelFirstAssetWriter()
+        cancelSecondAssetWriter()
         start()
     }
 
