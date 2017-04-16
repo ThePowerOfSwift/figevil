@@ -187,18 +187,28 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             print("trimming start time: \(trimmingStartTime)")
             
             let mixComposition = AVMutableComposition()
+            
+            // First track
             let firstTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
-//            let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, duration: durationToBeTrimmed)
-            let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, end: firstVideoDuration)
+            //let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, end: firstVideoDuration)
+            let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, duration: durationToBeTrimmed)
+            print("time range to be trimmed: \(timeRangeTobeTrimmed)")
             do {
-                try firstTrack.insertTimeRange(timeRangeTobeTrimmed, of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0], at: kCMTimeZero)
+                try firstTrack.insertTimeRange(timeRangeTobeTrimmed,
+                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+                                               at: kCMTimeZero)
             } catch let error {
                 print(error.localizedDescription)
             }
+            
+            // Last track
             let lastTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
-            let fullTimeRange = CMTimeRange(start: durationToBeTrimmed, end: maxVideoDuration)
+            let fullTimeRange = CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration)
+            print("full time range: \(fullTimeRange)")
             do {
-                try lastTrack.insertTimeRange(fullTimeRange, of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0], at: kCMTimeZero)
+                try lastTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration),
+                                              of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+                                              at: durationToBeTrimmed)
             } catch let error {
                 print(error.localizedDescription)
             }
@@ -274,11 +284,19 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
                 if firstAssetWriterInput.isReadyForMoreMediaData {
                     firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+                    pixelBufferArrayCount += 1
+                    print("CMTime: \(time) in not isPostRecording first")
+                    print("pixel buffer: \(pixelBuffer)")
+
                 }
             } else if currentAssetWriter == .Second {
                 let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
                 if secondAssetWriterInput.isReadyForMoreMediaData {
                     secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+                    pixelBufferArrayCount += 1
+                    print("CMTime: \(time) in not isPostRecording second")
+                    print("pixel buffer: \(pixelBuffer)")
+
                 }
             }
             
@@ -327,14 +345,19 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
                 if firstAssetWriterInput.isReadyForMoreMediaData {
                     firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+                    pixelBufferArrayCount += 1
+                    print("CMTime: \(time) in isPostRecording second")
+                    print("pixel buffer: \(pixelBuffer)")
                 }
-                print("pixel buffer array count: \(pixelBufferArrayCount)")
             } else if currentAssetWriter == .Second {
                 let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
                 if secondAssetWriterInput.isReadyForMoreMediaData {
                     secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+                    pixelBufferArrayCount += 1
+                    print("CMTime: \(time) in isPostRecording second, pixel buffer: \(pixelBuffer)")
+                    print("pixel buffer: \(pixelBuffer)")
+
                 }
-                print("pixel buffer array count: \(pixelBufferArrayCount)")
             }
             // stop
             if pixelBufferArrayCount == countAtSnapping + pixelBufferArrayMaxCount {
@@ -354,7 +377,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         didOutputSampleBufferMethodCallCount += 1
-        pixelBufferArrayCount += 1
         
         let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
         
