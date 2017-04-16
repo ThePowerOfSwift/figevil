@@ -169,81 +169,36 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         let firstVideoAsset = AVURLAsset(url: firstVideoURL)
-        let lastVideoAsset = AVURLAsset(url: lastVideoURL)
-        
-//        let firstVideoDuration = firstVideoAsset.duration // first video duration is always max
-//        let lastVideoDuration = lastVideoAsset.duration // last video duration can be shorter than specified max
         let firstVideoTrack = firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
         let firstVideoDuration = firstVideoTrack.timeRange.duration
+        let lastVideoAsset = AVURLAsset(url: lastVideoURL)
         let lastVideoTrack = lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
         let lastVideoDuration = lastVideoTrack.timeRange.duration
         let maxVideoDuration = CMTimeMultiply(firstVideoDuration, 2)
         
-        print("first video duration: \(firstVideoDuration)")
-        print("last video duration: \(lastVideoDuration)")
-        
+        // duration to be trimmed from last video
         let durationToBeTrimmed = CMTimeSubtract(maxVideoDuration, lastVideoDuration)
-        print("duration to be trimmed: \(durationToBeTrimmed)")
-                //CMTIME_COMPARE_INLINE(time1, <=, time2)
-        if CMTimeCompare(durationToBeTrimmed, kCMTimeZero) == 1 {
-            print("durationToBeTrimmed is greater than 0")
+        
+        if durationToBeTrimmed > kCMTimeZero {
+
             let trimmingStartTime = CMTimeSubtract(firstVideoDuration, durationToBeTrimmed)
-            print("trimming start time: \(trimmingStartTime)")
-            
             let mixComposition = AVMutableComposition()
-            //let mixComposition = AVMutableVideoComposition()
+            let track = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
             
-            // First track
-            let firstTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
-            //let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, end: firstVideoDuration)
+            // First video
             let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, duration: durationToBeTrimmed)
-            print("time range to be trimmed: \(timeRangeTobeTrimmed)")
             do {
-                try firstTrack.insertTimeRange(timeRangeTobeTrimmed,
-                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+                try track.insertTimeRange(timeRangeTobeTrimmed,
+                                               of: firstVideoTrack,
                                                at: kCMTimeZero)
             } catch let error {
                 print(error.localizedDescription)
             }
 
-//            do {
-//                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: firstVideoDuration),
-//                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-//                                               at: kCMTimeZero)
-//            } catch let error {
-//                print(error.localizedDescription)
-//            }
-            
-            // Last track
-            let lastTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
-            let fullTimeRange = CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration)
-            print("full time range: \(fullTimeRange)")
-            
-//            do {
-//                try lastTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: lastVideoDuration),
-//                                              of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-//                                              at: firstVideoDuration)
-//            } catch let error {
-//                print(error.localizedDescription)
-//            }
-//            do {
-//                try lastTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: firstVideoDuration),
-//                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-//                                               at: firstVideoDuration)
-//            } catch let error {
-//                print(error.localizedDescription)
-//            }
-            
-//            do {
-//                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: lastVideoDuration),
-//                                               of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-//                                               at: firstVideoDuration)
-//            } catch let error {
-//                print(error.localizedDescription)
-//            }
+            // Last video
             do {
-                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration),
-                                              of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+                try track.insertTimeRange(CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration),
+                                              of: lastVideoTrack,
                                               at: durationToBeTrimmed)
             } catch let error {
                 print(error.localizedDescription)
@@ -265,7 +220,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
 
-    
     func exportDidFinish(session: AVAssetExportSession) {
         if session.status == AVAssetExportSessionStatus.completed {
             if let outputURL = session.outputURL {
@@ -419,7 +373,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 
     var pixelBufferArray = [CVPixelBuffer]()
     var pixelBufferArrayCount = 0
-    var pixelBufferArrayMaxCount = 60
+    var pixelBufferArrayMaxCount = 15
     var preVideoMaxCount = 2
     var preVideoURLs = [URL]()
     var isAssetWriterRunning = false
