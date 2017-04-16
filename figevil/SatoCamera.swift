@@ -191,6 +191,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             print("trimming start time: \(trimmingStartTime)")
             
             let mixComposition = AVMutableComposition()
+            //let mixComposition = AVMutableVideoComposition()
             
             // First track
             let firstTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
@@ -205,18 +206,41 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 //                print(error.localizedDescription)
 //            }
 
-//            do {
-//                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: firstVideoDuration),
-//                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-//                                               at: kCMTimeZero)
-//            } catch let error {
-//                print(error.localizedDescription)
-//            }
+            do {
+                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: firstVideoDuration),
+                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+                                               at: kCMTimeZero)
+            } catch let error {
+                print(error.localizedDescription)
+            }
             
             // Last track
             let lastTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
             let fullTimeRange = CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration)
             print("full time range: \(fullTimeRange)")
+            
+//            do {
+//                try lastTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: lastVideoDuration),
+//                                              of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+//                                              at: firstVideoDuration)
+//            } catch let error {
+//                print(error.localizedDescription)
+//            }
+//            do {
+//                try lastTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: firstVideoDuration),
+//                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+//                                               at: firstVideoDuration)
+//            } catch let error {
+//                print(error.localizedDescription)
+//            }
+            
+            do {
+                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: lastVideoDuration),
+                                               of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+                                               at: firstVideoDuration)
+            } catch let error {
+                print(error.localizedDescription)
+            }
 //            do {
 //                try lastTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration),
 //                                              of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
@@ -224,14 +248,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 //            } catch let error {
 //                print(error.localizedDescription)
 //            }
-
-            do {
-                try lastTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: lastVideoAsset.duration),
-                                              of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-                                              at: firstVideoAsset.duration)
-            } catch let error {
-                print(error.localizedDescription)
-            }
+            
             // Export
             let finalVideoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
             guard let exporter = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetHighestQuality) else {
@@ -286,12 +303,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var isPostRecording = false
     var countAtSnapping = 0
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-        //        var pixelBufferArrayCount = 0
-        //        var pixelBufferArrayMaxCount = 10
-        //        var videoMaxCount = 2
-        //        var assetVideos = [URL]()
-        
-//        print("pixel buffer array count: \(pixelBufferArrayCount)")
+
         if didOutputSampleBufferMethodCallCount == 0 {
             startFirstAssetWriter()
         }
@@ -301,29 +313,33 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         
-        if !isPostRecording {
-            
-            if currentAssetWriter == .First {
-                let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
-                if firstAssetWriterInput.isReadyForMoreMediaData {
-                    firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
-                    print("pixel buffer \(firstPixelBufferAdaptor.debugDescription)")
-                    pixelBufferArrayCount += 1
-                    print("CMTime: \(time) in not isPostRecording first")
-                    //print("pixel buffer: \(pixelBuffer)")
-                }
-            } else if currentAssetWriter == .Second {
-                let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
-                if secondAssetWriterInput.isReadyForMoreMediaData {
-                    secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
-                    print("pixel buffer \(secondPixelBufferAdaptor.debugDescription)")
-                    pixelBufferArrayCount += 1
-                    print("CMTime: \(time) in not isPostRecording second")
-                    //print("pixel buffer: \(pixelBuffer)")
-                }
+        if isSnappedGif {
+            countAtSnapping = pixelBufferArrayCount
+            isSnappedGif = false
+            isPostRecording = true
+        }
+        
+        if currentAssetWriter == .First {
+            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+            if firstAssetWriterInput.isReadyForMoreMediaData {
+                firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+                pixelBufferArrayCount += 1
+                print("CMTime: \(time) in not isPostRecording first")
+                //print("pixel buffer: \(pixelBuffer)")
             }
-            
+        } else if currentAssetWriter == .Second {
+            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+            if secondAssetWriterInput.isReadyForMoreMediaData {
+                secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+                pixelBufferArrayCount += 1
+                print("CMTime: \(time) in not isPostRecording second")
+                //print("pixel buffer: \(pixelBuffer)")
+            }
+        }
+        
+        if !isPostRecording {
             if pixelBufferArrayCount == pixelBufferArrayMaxCount {
+                print("pixelBufferArrayCount == pixelBufferArrayMaxCount")
                 if currentAssetWriter == .First {
                     stopFirstAssetWriter(completion: nil)
                     setupSecondAssetWriter()
@@ -336,54 +352,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 pixelBufferArrayCount = 0
             }
         }
-
-//        if isSnappedGif {
-//            if currentAssetWriter == .First {
-//                // can be stopped before 30 frame
-//                self.stop()
-//                stopFirstAssetWriter(completion: {
-//                    self.getPreVideo()
-//
-//                })
-//            } else if currentAssetWriter == .Second {
-//                self.stop()
-//                stopSecondAssetWriter(completion: {
-//                    self.getPreVideo()
-//
-//                })
-//            }
-//            countAtSnapping = pixelBufferArrayCount
-//            isSnappedGif = false
-//            pixelBufferArrayCount = 0
-//        }
-
-        if isSnappedGif {
-            countAtSnapping = pixelBufferArrayCount
-            isSnappedGif = false
-            isPostRecording = true
-        }
         
         if isPostRecording {
-            if currentAssetWriter == .First {
-                let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
-                if firstAssetWriterInput.isReadyForMoreMediaData {
-                    firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
-                    print("pixel buffer \(firstPixelBufferAdaptor.debugDescription)")
-                    pixelBufferArrayCount += 1
-                    print("CMTime: \(time) in isPostRecording first")
-                    //print("pixel buffer: \(pixelBuffer)")
-                }
-            } else if currentAssetWriter == .Second {
-                let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
-                if secondAssetWriterInput.isReadyForMoreMediaData {
-                    secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
-                    print("pixel buffer \(secondPixelBufferAdaptor.debugDescription)")
-                    pixelBufferArrayCount += 1
-                    print("CMTime: \(time) in isPostRecording second")
-                    //print("pixel buffer: \(pixelBuffer)")
-                }
-            }
-            
             // stop
             if pixelBufferArrayCount == countAtSnapping + pixelBufferArrayMaxCount {
                 self.stop()
@@ -1613,4 +1583,145 @@ extension SatoCamera: GLKViewDelegate {
 //    } catch let e {
 //        print(e.localizedDescription)
 //    }
+//}
+
+
+
+//func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
+//    //        var pixelBufferArrayCount = 0
+//    //        var pixelBufferArrayMaxCount = 10
+//    //        var videoMaxCount = 2
+//    //        var assetVideos = [URL]()
+//    
+//    //        print("pixel buffer array count: \(pixelBufferArrayCount)")
+//    if didOutputSampleBufferMethodCallCount == 0 {
+//        startFirstAssetWriter()
+//    }
+//    
+//    guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+//        print("Error: image buffer is nil")
+//        return
+//    }
+//    
+//    if !isPostRecording {
+//        
+//        if currentAssetWriter == .First {
+//            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+//            if firstAssetWriterInput.isReadyForMoreMediaData {
+//                firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+//                print("pixel buffer \(firstPixelBufferAdaptor.debugDescription)")
+//                pixelBufferArrayCount += 1
+//                print("CMTime: \(time) in not isPostRecording first")
+//                //print("pixel buffer: \(pixelBuffer)")
+//            }
+//        } else if currentAssetWriter == .Second {
+//            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+//            if secondAssetWriterInput.isReadyForMoreMediaData {
+//                secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+//                print("pixel buffer \(secondPixelBufferAdaptor.debugDescription)")
+//                pixelBufferArrayCount += 1
+//                print("CMTime: \(time) in not isPostRecording second")
+//                //print("pixel buffer: \(pixelBuffer)")
+//            }
+//        }
+//        
+//        if pixelBufferArrayCount == pixelBufferArrayMaxCount {
+//            if currentAssetWriter == .First {
+//                stopFirstAssetWriter(completion: nil)
+//                setupSecondAssetWriter()
+//                startSecondAssetWriter()
+//            } else if currentAssetWriter == .Second {
+//                stopSecondAssetWriter(completion: nil)
+//                setupFirstAssetWriter()
+//                startFirstAssetWriter()
+//            }
+//            pixelBufferArrayCount = 0
+//        }
+//    }
+//    
+//    //        if isSnappedGif {
+//    //            if currentAssetWriter == .First {
+//    //                // can be stopped before 30 frame
+//    //                self.stop()
+//    //                stopFirstAssetWriter(completion: {
+//    //                    self.getPreVideo()
+//    //
+//    //                })
+//    //            } else if currentAssetWriter == .Second {
+//    //                self.stop()
+//    //                stopSecondAssetWriter(completion: {
+//    //                    self.getPreVideo()
+//    //
+//    //                })
+//    //            }
+//    //            countAtSnapping = pixelBufferArrayCount
+//    //            isSnappedGif = false
+//    //            pixelBufferArrayCount = 0
+//    //        }
+//    
+//    if isSnappedGif {
+//        countAtSnapping = pixelBufferArrayCount
+//        isSnappedGif = false
+//        isPostRecording = true
+//    }
+//    
+//    if isPostRecording {
+//        if currentAssetWriter == .First {
+//            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+//            if firstAssetWriterInput.isReadyForMoreMediaData {
+//                firstPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+//                print("pixel buffer \(firstPixelBufferAdaptor.debugDescription)")
+//                pixelBufferArrayCount += 1
+//                print("CMTime: \(time) in isPostRecording first")
+//                //print("pixel buffer: \(pixelBuffer)")
+//            }
+//        } else if currentAssetWriter == .Second {
+//            let time = CMTimeMake(Int64(pixelBufferArrayCount), currentLiveGifPreset.sampleBufferFPS)
+//            if secondAssetWriterInput.isReadyForMoreMediaData {
+//                secondPixelBufferAdaptor.append(pixelBuffer, withPresentationTime: time)
+//                print("pixel buffer \(secondPixelBufferAdaptor.debugDescription)")
+//                pixelBufferArrayCount += 1
+//                print("CMTime: \(time) in isPostRecording second")
+//                //print("pixel buffer: \(pixelBuffer)")
+//            }
+//        }
+//        
+//        // stop
+//        if pixelBufferArrayCount == countAtSnapping + pixelBufferArrayMaxCount {
+//            self.stop()
+//            if currentAssetWriter == .First {
+//                stopFirstAssetWriter(completion: {
+//                    self.getPreVideo()
+//                    
+//                })
+//            } else if currentAssetWriter == .Second {
+//                stopSecondAssetWriter(completion: {
+//                    self.getPreVideo()
+//                    
+//                })
+//            }
+//        }
+//    }
+//    
+//    didOutputSampleBufferMethodCallCount += 1
+//    
+//    let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
+//    
+//    
+//    // filteredImage has the same address as sourceImage
+//    guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
+//        print("Error: filtered image is nil in \(#function)")
+//        return
+//    }
+//    
+//    liveCameraGLKView.bindDrawable()
+//    
+//    // Prepare CIContext with EAGLContext
+//    if liveCameraEaglContext != EAGLContext.current() {
+//        EAGLContext.setCurrent(liveCameraEaglContext)
+//    }
+//    setupOpenGL()
+//    
+//    liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
+//    liveCameraGLKView.display()
 //}
