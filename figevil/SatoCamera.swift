@@ -198,21 +198,21 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             //let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, end: firstVideoDuration)
             let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, duration: durationToBeTrimmed)
             print("time range to be trimmed: \(timeRangeTobeTrimmed)")
-//            do {
-//                try firstTrack.insertTimeRange(timeRangeTobeTrimmed,
-//                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-//                                               at: kCMTimeZero)
-//            } catch let error {
-//                print(error.localizedDescription)
-//            }
-
             do {
-                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: firstVideoDuration),
+                try firstTrack.insertTimeRange(timeRangeTobeTrimmed,
                                                of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
                                                at: kCMTimeZero)
             } catch let error {
                 print(error.localizedDescription)
             }
+
+//            do {
+//                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: firstVideoDuration),
+//                                               of: firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+//                                               at: kCMTimeZero)
+//            } catch let error {
+//                print(error.localizedDescription)
+//            }
             
             // Last track
             let lastTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
@@ -234,20 +234,20 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 //                print(error.localizedDescription)
 //            }
             
-            do {
-                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: lastVideoDuration),
-                                               of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-                                               at: firstVideoDuration)
-            } catch let error {
-                print(error.localizedDescription)
-            }
 //            do {
-//                try lastTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration),
-//                                              of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
-//                                              at: durationToBeTrimmed)
+//                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, end: lastVideoDuration),
+//                                               of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+//                                               at: firstVideoDuration)
 //            } catch let error {
 //                print(error.localizedDescription)
 //            }
+            do {
+                try firstTrack.insertTimeRange(CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration),
+                                              of: lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0],
+                                              at: durationToBeTrimmed)
+            } catch let error {
+                print(error.localizedDescription)
+            }
             
             // Export
             let finalVideoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
