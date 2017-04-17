@@ -322,62 +322,64 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         //        print("image url count: \(imageURLs.count)")
     }
     
-//    func getThumbnailFrom(videoURL: URL) -> [URL] {
-//        let asset = AVAsset(url: videoURL)
-//        let assetImageGenerator = AVAssetImageGenerator(asset: asset)
-//        
-//        // let extractRate = 30 / currentLiveGifPreset.gifFPS // extract once in every three frames
-//        // milisecond 1000 / 10. extract once in every 100 milisecond
-//        // 10 / 1000
-//        let track = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
-//        let videoLength = track.timeRange.duration
-//        //let baseTime = CMTimeMake(100, 1000)
-//        let baseTime = CMTimeMake(60, 600)
-//        var currentTime = baseTime
-//        var imageURLs = [URL]()
-//        
-//        var times = [CMTime]()
-//        
-//        while videoLength > currentTime {
-//            times.append(currentTime)
-//            currentTime = CMTimeAdd(currentTime, baseTime)
-//        }
-//        
-//        assetImageGenerator.generateCGImagesAsynchronously(forTimes: times as [NSValue]) { (
-//            requestedTime: CMTime,
-//            image: CGImage?,
-//            actualTime: CMTime,
-//            result: AVAssetImageGeneratorResult,
-//            error: Error?) in
-//            
-//            if let image = image {
-//                if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
-//                    imageURLs.append(url)
-//                }
-//            }
-//        }
-//        
-//        
-////        while videoLength > currentTime {
-////            // extract CGImage at current time
-////            do {
-////                let image = try assetImageGenerator.copyCGImage(at: currentTime, actualTime: nil)
-////                // get url from CGImage
-////                // append it to array
-////                if let url = image.saveToDisk(cgImagePropertyOrientation: cgImageOrientation) {
-////                    imageURLs.append(url)
-////                }
-////                
-////            } catch let error {
-////                print(error.localizedDescription)
-////            }
-////            // currentTime = baseTime + baseTime
-////            currentTime = CMTimeAdd(currentTime, baseTime)
-////            print("current time: \(currentTime)")
-////        }
-////        print("image url count: \(imageURLs.count)")
-//        return imageURLs
-//    }
+    func getThumbnailFrom(videoURL: URL) -> [URL] {
+        let asset = AVAsset(url: videoURL)
+        let assetImageGenerator = AVAssetImageGenerator(asset: asset)
+        assetImageGenerator.requestedTimeToleranceBefore = kCMTimeZero
+        assetImageGenerator.requestedTimeToleranceAfter = kCMTimeZero
+        
+        // let extractRate = 30 / currentLiveGifPreset.gifFPS // extract once in every three frames
+        // milisecond 1000 / 10. extract once in every 100 milisecond
+        // 10 / 1000
+        let track = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
+        let videoLength = track.timeRange.duration
+        //let baseTime = CMTimeMake(100, 1000)
+        let baseTime = CMTimeMake(60, 600)
+        var currentTime = baseTime
+        var imageURLs = [URL]()
+        
+        var times = [CMTime]()
+        
+        while videoLength > currentTime {
+            times.append(currentTime)
+            currentTime = CMTimeAdd(currentTime, baseTime)
+        }
+        
+        assetImageGenerator.generateCGImagesAsynchronously(forTimes: times as [NSValue]) { (
+            requestedTime: CMTime,
+            image: CGImage?,
+            actualTime: CMTime,
+            result: AVAssetImageGeneratorResult,
+            error: Error?) in
+            
+            if let image = image {
+                if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
+                    imageURLs.append(url)
+                }
+            }
+        }
+        
+        
+        while videoLength > currentTime {
+            // extract CGImage at current time
+            do {
+                let image = try assetImageGenerator.copyCGImage(at: currentTime, actualTime: nil)
+                // get url from CGImage
+                // append it to array
+                if let url = image.saveToDisk(cgImagePropertyOrientation: cgImageOrientation) {
+                    imageURLs.append(url)
+                }
+                
+            } catch let error {
+                print(error.localizedDescription)
+            }
+            // currentTime = baseTime + baseTime
+            currentTime = CMTimeAdd(currentTime, baseTime)
+            print("current time: \(currentTime)")
+        }
+        print("image url count: \(imageURLs.count)")
+        return imageURLs
+    }
     
     // MARK: - Asset writer
     enum AssetWriter {
@@ -473,6 +475,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 self.showGifWithGLKView(with: imageURLs)
                 self.resizedURLs = imageURLs
             })
+//            let urls = getThumbnailFrom(videoURL: lastVideoURL)
+//            showGifWithGLKView(with: urls)
+//            resizedURLs = urls
         }
     }
     
@@ -484,6 +489,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     self.showGifWithGLKView(with: imageURLs)
                     self.resizedURLs = imageURLs
                 })
+//                let urls = getThumbnailFrom(videoURL: outputURL)
+//                showGifWithGLKView(with: urls)
+//                resizedURLs = urls
                 print("output URL duration: \(outputAsset.duration)")
                 PHPhotoLibrary.requestAuthorization
                     { (status) -> Void in
