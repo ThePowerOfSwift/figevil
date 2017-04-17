@@ -20,7 +20,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
      1. conform to SatoCameraOutput protocol.
      2. set your VC to shared.cameraOutput.
      3. call start(). */
-    static let shared: SatoCamera = SatoCamera(frame: UIScreen.main.bounds)
+    static let shared: SatoCamera = SatoCamera(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.width)))
     
     // MARK: AVCaptureSession
     fileprivate var videoDevice: AVCaptureDevice?
@@ -143,23 +143,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         return self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0
     }
     
-    // MARK: - Setups
-    init(frame: CGRect) {
-        self.frame = frame
-        //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
-        super.init()
-        setupLiveCameraGLKView()
-        setupGifGLKView()
-        setupOpenGL()
-        setupSession()
-        setupFirstAssetWriter()
-        setupSecondAssetWriter()
-    }
-    
-    var isPostRecording = false
-    var pixelBufferCountAtSnapping = 0
+    // MARK: - Capture output
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-
+        
         if didOutputSampleBufferMethodCallCount == 0 {
             setupFirstAssetWriter()
             startFirstAssetWriter()
@@ -225,8 +211,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         
         didOutputSampleBufferMethodCallCount += 1
         
-        let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        
+        var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
+        sourceImage = sourceImage.cropping(to: frame)
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -246,403 +232,17 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         liveCameraGLKView.display()
     }
     
-    // MARK: - Get thumbnail image from video
-    func getThumbnailFrom(videoURL: URL, completion: (([URL]) -> Void)?) {
-        let asset = AVAsset(url: videoURL)
-        let assetImageGenerator = AVAssetImageGenerator(asset: asset)
-        assetImageGenerator.requestedTimeToleranceAfter = kCMTimeZero
-        assetImageGenerator.requestedTimeToleranceBefore = kCMTimeZero
-        
-        // let extractRate = 30 / currentLiveGifPreset.gifFPS // extract once in every three frames
-        // milisecond 1000 / 10. extract once in every 100 milisecond
-        // 10 / 1000
-        let track = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
-        let videoLength = track.timeRange.duration
-        //let baseTime = CMTimeMake(100, 1000)
-        let baseTime = CMTimeMake(60, 600)
-        var currentTime = baseTime
-        var images = [CGImage]()
-        var imageURLs = [URL]()
-        
-        var times = [CMTime]()
-        
-        while videoLength > currentTime {
-            times.append(currentTime)
-            currentTime = CMTimeAdd(currentTime, baseTime)
-        }
-        
-        var generationCount = 0
-        assetImageGenerator.generateCGImagesAsynchronously(forTimes: times as [NSValue]) { (
-            requestedTime: CMTime,
-            image: CGImage?,
-            actualTime: CMTime,
-            result: AVAssetImageGeneratorResult,
-            error: Error?) in
-            if result == AVAssetImageGeneratorResult.succeeded {
-                if let image = image {
-                    images.append(image)
-
-                }
-            } else {
-                print("could not generate CGImage")
-            }
-            generationCount += 1
-            
-            if generationCount == times.count {
-                for image in images {
-                    if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
-                        imageURLs.append(url)
-                        print(imageURLs)
-                    }
-                }
-                
-                // end
-                completion?(imageURLs)
-            }
-        }
-        
-        
-        //        while videoLength > currentTime {
-        //            // extract CGImage at current time
-        //            do {
-        //                let image = try assetImageGenerator.copyCGImage(at: currentTime, actualTime: nil)
-        //                // get url from CGImage
-        //                // append it to array
-        //                if let url = image.saveToDisk(cgImagePropertyOrientation: cgImageOrientation) {
-        //                    imageURLs.append(url)
-        //                }
-        //
-        //            } catch let error {
-        //                print(error.localizedDescription)
-        //            }
-        //            // currentTime = baseTime + baseTime
-        //            currentTime = CMTimeAdd(currentTime, baseTime)
-        //            print("current time: \(currentTime)")
-        //        }
-        //        print("image url count: \(imageURLs.count)")
-    }
-    
-    func getThumbnailFrom(videoURL: URL) -> [URL] {
-        let asset = AVAsset(url: videoURL)
-        let assetImageGenerator = AVAssetImageGenerator(asset: asset)
-        assetImageGenerator.requestedTimeToleranceBefore = kCMTimeZero
-        assetImageGenerator.requestedTimeToleranceAfter = kCMTimeZero
-        
-        // let extractRate = 30 / currentLiveGifPreset.gifFPS // extract once in every three frames
-        // milisecond 1000 / 10. extract once in every 100 milisecond
-        // 10 / 1000
-        let track = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
-        let videoLength = track.timeRange.duration
-        //let baseTime = CMTimeMake(100, 1000)
-        let baseTime = CMTimeMake(60, 600)
-        var currentTime = baseTime
-        var imageURLs = [URL]()
-        
-        var times = [CMTime]()
-        
-        while videoLength > currentTime {
-            times.append(currentTime)
-            currentTime = CMTimeAdd(currentTime, baseTime)
-        }
-        
-        assetImageGenerator.generateCGImagesAsynchronously(forTimes: times as [NSValue]) { (
-            requestedTime: CMTime,
-            image: CGImage?,
-            actualTime: CMTime,
-            result: AVAssetImageGeneratorResult,
-            error: Error?) in
-            
-            if let image = image {
-                if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
-                    imageURLs.append(url)
-                }
-            }
-        }
-        
-        
-        while videoLength > currentTime {
-            // extract CGImage at current time
-            do {
-                let image = try assetImageGenerator.copyCGImage(at: currentTime, actualTime: nil)
-                // get url from CGImage
-                // append it to array
-                if let url = image.saveToDisk(cgImagePropertyOrientation: cgImageOrientation) {
-                    imageURLs.append(url)
-                }
-                
-            } catch let error {
-                print(error.localizedDescription)
-            }
-            // currentTime = baseTime + baseTime
-            currentTime = CMTimeAdd(currentTime, baseTime)
-            print("current time: \(currentTime)")
-        }
-        print("image url count: \(imageURLs.count)")
-        return imageURLs
-    }
-    
-    // MARK: - Asset writer
-    enum AssetWriter {
-        case First
-        case Second
-        case Third
-    }
-    
-    var currentAssetWriter: AssetWriter = .First
-    var firstAssetWriter: AVAssetWriter?
-    var firstAssetWriterInput: AVAssetWriterInput!
-    var firstPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
-    var firstVideoURL: URL!
-
-    var secondAssetWriter: AVAssetWriter?
-    var secondAssetWriterInput: AVAssetWriterInput!
-    var secondPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
-    var secondVideoURL: URL!
-    
-    var thirdAssetWriter: AVAssetWriter?
-    var thirdAssetWriterInput: AVAssetWriterInput!
-    var thirdPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
-    var thirdVideoURL: URL!
-
-    var pixelBufferCount = 0
-    var pixelBufferMaxCount = 15
-    var preVideoMaxCount = 2
-    var videoURLs = [URL]()
-    
-    // snap
-    // look at stored array
-    // take the last video's time
-    // if it's more than 1 second, trim the last 1 second
-    // if it's less than 1 second, go to the previous video
-    // take 1 - (1 - lv) from the prev video
-    func getVideo() {
-        guard let firstVideoURL = videoURLs.first, let lastVideoURL = videoURLs.last else {
-            print("Error: url is nil in \(#function)")
-            return
-        }
-        
-        let firstVideoAsset = AVURLAsset(url: firstVideoURL)
-        let firstVideoTrack = firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
-        let firstVideoDuration = firstVideoTrack.timeRange.duration
-        let lastVideoAsset = AVURLAsset(url: lastVideoURL)
-        let lastVideoTrack = lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
-        let lastVideoDuration = lastVideoTrack.timeRange.duration
-        let maxVideoDuration = CMTimeMultiply(firstVideoDuration, 2)
-        
-        // duration to be trimmed from last video
-        let durationToBeTrimmed = CMTimeSubtract(maxVideoDuration, lastVideoDuration)
-        if durationToBeTrimmed > kCMTimeZero {
-            
-            let trimmingStartTime = CMTimeSubtract(firstVideoDuration, durationToBeTrimmed)
-            let mixComposition = AVMutableComposition()
-            let track = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
-            
-            // First video
-            let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, duration: durationToBeTrimmed)
-            do {
-                try track.insertTimeRange(timeRangeTobeTrimmed,
-                                          of: firstVideoTrack,
-                                          at: kCMTimeZero)
-            } catch let error {
-                print(error.localizedDescription)
-            }
-            
-            // Last video
-            do {
-                try track.insertTimeRange(CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration),
-                                          of: lastVideoTrack,
-                                          at: durationToBeTrimmed)
-            } catch let error {
-                print(error.localizedDescription)
-            }
-            
-            // Export
-            let finalVideoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
-            guard let exporter = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetHighestQuality) else {
-                print("Error: could not make an exporter in \(#function)")
-                return
-            }
-            exporter.outputURL = finalVideoURL
-            exporter.outputFileType = AVFileTypeMPEG4
-            exporter.shouldOptimizeForNetworkUse = false
-            
-            exporter.exportAsynchronously(completionHandler: {
-                self.exportDidFinish(session: exporter)
-            })
-        } else {
-            print("no need to trim from the first video")
-            getThumbnailFrom(videoURL: lastVideoURL, completion: { (imageURLs: [URL]) in
-                self.showGifWithGLKView(with: imageURLs)
-                self.resizedURLs = imageURLs
-            })
-//            let urls = getThumbnailFrom(videoURL: lastVideoURL)
-//            showGifWithGLKView(with: urls)
-//            resizedURLs = urls
-        }
-    }
-    
-    func exportDidFinish(session: AVAssetExportSession) {
-        if session.status == AVAssetExportSessionStatus.completed {
-            if let outputURL = session.outputURL {
-                let outputAsset = AVURLAsset(url: outputURL)
-                getThumbnailFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
-                    self.showGifWithGLKView(with: imageURLs)
-                    self.resizedURLs = imageURLs
-                })
-//                let urls = getThumbnailFrom(videoURL: outputURL)
-//                showGifWithGLKView(with: urls)
-//                resizedURLs = urls
-                print("output URL duration: \(outputAsset.duration)")
-                PHPhotoLibrary.requestAuthorization
-                    { (status) -> Void in
-                        switch (status) {
-                        case .authorized:
-                            PHPhotoLibrary.shared().performChanges({
-                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputURL)
-                            }, completionHandler: { (saved: Bool, error: Error?) in
-                                if saved {
-                                    print("saved video to camera roll in \(#function)")
-                                } else {
-                                    print("failed to save video to camera roll in \(#function)")
-                                    if let error = error {
-                                        print(error.localizedDescription)
-                                    }
-                                }
-                            })
-                        case .denied:
-                            print("Error: User denied")
-                        default:
-                            print("Error: Restricted")
-                        }
-                }
-            }
-        }
-    }
-    
-    func setupFirstAssetWriter() {
-        var outputSettings: [String:Any] = [
-            AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
-            AVVideoHeightKey : Int(UIScreen.main.bounds.height) + 1,
-            AVVideoCodecKey : AVVideoCodecH264
-        ]
-        
-        if let settings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
-            outputSettings = settings
-        }
-        
-        firstAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
-        
-        firstPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: firstAssetWriterInput, sourcePixelBufferAttributes:
-            [ kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)])
-        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
-        firstVideoURL = videoURL
-        do {
-            firstAssetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
-            if let assetWriter = firstAssetWriter {
-                assetWriter.add(firstAssetWriterInput)
-                firstAssetWriterInput.expectsMediaDataInRealTime = true
-            }
-        } catch let e {
-            print(e.localizedDescription)
-        }
-    }
-    
-    func setupSecondAssetWriter() {
-        var outputSettings: [String:Any] = [
-            AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
-            AVVideoHeightKey : Int(UIScreen.main.bounds.height) + 1,
-            AVVideoCodecKey : AVVideoCodecH264
-        ]
-        
-        if let settings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
-            outputSettings = settings
-        }
-        
-        secondAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
-        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
-        secondVideoURL = videoURL
-        
-        secondPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: secondAssetWriterInput, sourcePixelBufferAttributes:
-            [ kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)])
-        
-        do {
-            secondAssetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
-            if let assetWriter = secondAssetWriter {
-                assetWriter.add(secondAssetWriterInput)
-                secondAssetWriterInput.expectsMediaDataInRealTime = true
-            }
-        } catch let e {
-            print(e.localizedDescription)
-        }
-    }
-    
-    func startFirstAssetWriter() {
-        currentAssetWriter = .First
-        guard let firstAssetWriter = firstAssetWriter else {
-            print("Error: asset writer is nil in \(#function)")
-            return
-        }
-        firstAssetWriter.startWriting()
-        firstAssetWriter.startSession(atSourceTime: kCMTimeZero)
-        print("asset writer has started")
-    }
-    
-    func startSecondAssetWriter() {
-        currentAssetWriter = .Second
-        guard let secondAssetWriter = secondAssetWriter else {
-            print("Error: asset writer is nil in \(#function)")
-            return
-        }
-        secondAssetWriter.startWriting()
-        secondAssetWriter.startSession(atSourceTime: kCMTimeZero)
-        print("asset writer has started")
-    }
-    
-    func cancelFirstAssetWriter() {
-        firstAssetWriter?.cancelWriting()
-    }
-    
-    func cancelSecondAssetWriter() {
-        secondAssetWriter?.cancelWriting()
-    }
-    
-    func saveFirstAssetWriter(completion: (() -> Void)?) {
-        firstAssetWriter?.finishWriting {
-            print("asset writer has finished in \(#function)")
-            if self.firstAssetWriter?.status == AVAssetWriterStatus.completed {
-                print("writing video is done in \(#function)")
-                if self.videoURLs.count > self.preVideoMaxCount - 1{
-                    self.videoURLs.removeFirst()
-                }
-                self.videoURLs.append(self.firstVideoURL)
-                // when snapped, save two videos from array
-                completion?()
-            } else if self.firstAssetWriter?.status == AVAssetWriterStatus.failed {
-                print("writing video failed in \(#function)")
-                if let error = self.firstAssetWriter?.error {
-                    print(error.localizedDescription)
-                }
-            }
-        }
-    }
-    
-    func saveSecondAssetWriter(completion: (() -> Void)?) {
-        secondAssetWriter?.finishWriting {
-            print("asset writer has finished in \(#function)")
-            if self.secondAssetWriter?.status == AVAssetWriterStatus.completed {
-                print("writing video is done in \(#function)")
-                if self.videoURLs.count > self.preVideoMaxCount - 1 {
-                    self.videoURLs.removeFirst()
-                }
-                self.videoURLs.append(self.secondVideoURL)
-                completion?()
-            } else if self.secondAssetWriter?.status == AVAssetWriterStatus.failed {
-                print("writing video failed in \(#function)")
-                if let error = self.secondAssetWriter?.error {
-                    print(error.localizedDescription)
-                }
-            }
-        }
+    // MARK: - Initial setups
+    init(frame: CGRect) {
+        self.frame = frame
+        //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
+        super.init()
+        setupLiveCameraGLKView()
+        setupGifGLKView()
+        setupOpenGL()
+        setupSession()
+        setupFirstAssetWriter()
+        setupSecondAssetWriter()
     }
     
     func setupLiveCameraGLKView() {
@@ -720,6 +320,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             session.sessionPreset = AVCaptureSessionPresetLow
         }
         
+//                On iOS, the only supported key is kCVPixelBufferPixelFormatTypeKey. Supported pixel formats are kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr8BiPlanarFullRange and kCVPixelFormatType_32BGRA.
         // setup video output setting
         let outputSettings: [AnyHashable : Any] = [kCVPixelBufferPixelFormatTypeKey as AnyHashable : Int(kCVPixelFormatType_32BGRA)]
         videoDataOutput.videoSettings = outputSettings
@@ -899,6 +500,383 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
+    // MARK: - Asset writer
+    enum AssetWriter {
+        case First
+        case Second
+        case Third
+    }
+    
+    var isPostRecording = false
+    var pixelBufferCountAtSnapping = 0
+    
+    var currentAssetWriter: AssetWriter = .First
+    var firstAssetWriter: AVAssetWriter?
+    var firstAssetWriterInput: AVAssetWriterInput!
+    var firstPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
+    var firstVideoURL: URL!
+    
+    var secondAssetWriter: AVAssetWriter?
+    var secondAssetWriterInput: AVAssetWriterInput!
+    var secondPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
+    var secondVideoURL: URL!
+    
+    var pixelBufferCount = 0
+    var pixelBufferMaxCount = 15
+    var preVideoMaxCount = 2
+    var videoURLs = [URL]()
+    
+    func setupFirstAssetWriter() {
+        var outputSettings: [String:Any] = [
+            AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
+            AVVideoHeightKey : Int(UIScreen.main.bounds.height) + 1,
+            AVVideoCodecKey : AVVideoCodecH264
+        ]
+        
+        if let settings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
+            outputSettings = settings
+        }
+        
+        firstAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
+        
+        firstPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: firstAssetWriterInput, sourcePixelBufferAttributes:
+            [ kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)])
+        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
+        firstVideoURL = videoURL
+        do {
+            firstAssetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
+            if let assetWriter = firstAssetWriter {
+                assetWriter.add(firstAssetWriterInput)
+                firstAssetWriterInput.expectsMediaDataInRealTime = true
+            }
+        } catch let e {
+            print(e.localizedDescription)
+        }
+    }
+    
+    func setupSecondAssetWriter() {
+        var outputSettings: [String:Any] = [
+            AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
+            AVVideoHeightKey : Int(UIScreen.main.bounds.height) + 1,
+            AVVideoCodecKey : AVVideoCodecH264
+        ]
+        
+        if let settings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
+            outputSettings = settings
+        }
+        
+        secondAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
+        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
+        secondVideoURL = videoURL
+        
+        secondPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: secondAssetWriterInput, sourcePixelBufferAttributes:
+            [ kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)])
+        
+        do {
+            secondAssetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
+            if let assetWriter = secondAssetWriter {
+                assetWriter.add(secondAssetWriterInput)
+                secondAssetWriterInput.expectsMediaDataInRealTime = true
+            }
+        } catch let e {
+            print(e.localizedDescription)
+        }
+    }
+    
+    func startFirstAssetWriter() {
+        currentAssetWriter = .First
+        guard let firstAssetWriter = firstAssetWriter else {
+            print("Error: asset writer is nil in \(#function)")
+            return
+        }
+        firstAssetWriter.startWriting()
+        firstAssetWriter.startSession(atSourceTime: kCMTimeZero)
+        print("asset writer has started")
+    }
+    
+    func startSecondAssetWriter() {
+        currentAssetWriter = .Second
+        guard let secondAssetWriter = secondAssetWriter else {
+            print("Error: asset writer is nil in \(#function)")
+            return
+        }
+        secondAssetWriter.startWriting()
+        secondAssetWriter.startSession(atSourceTime: kCMTimeZero)
+        print("asset writer has started")
+    }
+    
+    func cancelFirstAssetWriter() {
+        firstAssetWriter?.cancelWriting()
+    }
+    
+    func cancelSecondAssetWriter() {
+        secondAssetWriter?.cancelWriting()
+    }
+    
+    // TODO: make extension
+    func saveFirstAssetWriter(completion: (() -> Void)?) {
+        firstAssetWriter?.finishWriting {
+            print("asset writer has finished in \(#function)")
+            if self.firstAssetWriter?.status == AVAssetWriterStatus.completed {
+                print("writing video is done in \(#function)")
+                if self.videoURLs.count > self.preVideoMaxCount - 1{
+                    self.videoURLs.removeFirst()
+                }
+                self.videoURLs.append(self.firstVideoURL)
+                // when snapped, save two videos from array
+                completion?()
+            } else if self.firstAssetWriter?.status == AVAssetWriterStatus.failed {
+                print("writing video failed in \(#function)")
+                if let error = self.firstAssetWriter?.error {
+                    print(error.localizedDescription)
+                }
+            }
+        }
+    }
+    
+    // TODO: make extension
+    func saveSecondAssetWriter(completion: (() -> Void)?) {
+        secondAssetWriter?.finishWriting {
+            print("asset writer has finished in \(#function)")
+            if self.secondAssetWriter?.status == AVAssetWriterStatus.completed {
+                print("writing video is done in \(#function)")
+                if self.videoURLs.count > self.preVideoMaxCount - 1 {
+                    self.videoURLs.removeFirst()
+                }
+                self.videoURLs.append(self.secondVideoURL)
+                completion?()
+            } else if self.secondAssetWriter?.status == AVAssetWriterStatus.failed {
+                print("writing video failed in \(#function)")
+                if let error = self.secondAssetWriter?.error {
+                    print(error.localizedDescription)
+                }
+            }
+        }
+    }
+    
+    // snap
+    // look at stored array
+    // take the last video's time
+    // if it's more than 1 second, trim the last 1 second
+    // if it's less than 1 second, go to the previous video
+    // take 1 - (1 - lv) from the prev video
+    func getVideo() {
+        guard let firstVideoURL = videoURLs.first, let lastVideoURL = videoURLs.last else {
+            print("Error: url is nil in \(#function)")
+            return
+        }
+        
+        let firstVideoAsset = AVURLAsset(url: firstVideoURL)
+        let firstVideoTrack = firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
+        let firstVideoDuration = firstVideoTrack.timeRange.duration
+        let lastVideoAsset = AVURLAsset(url: lastVideoURL)
+        let lastVideoTrack = lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
+        let lastVideoDuration = lastVideoTrack.timeRange.duration
+        let maxVideoDuration = CMTimeMultiply(firstVideoDuration, 2)
+        
+        // duration to be trimmed from last video
+        let durationToBeTrimmed = CMTimeSubtract(maxVideoDuration, lastVideoDuration)
+        if durationToBeTrimmed > kCMTimeZero {
+            
+            let trimmingStartTime = CMTimeSubtract(firstVideoDuration, durationToBeTrimmed)
+            let mixComposition = AVMutableComposition()
+            let track = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
+            
+            // First video
+            let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, duration: durationToBeTrimmed)
+            do {
+                try track.insertTimeRange(timeRangeTobeTrimmed,
+                                          of: firstVideoTrack,
+                                          at: kCMTimeZero)
+            } catch let error {
+                print(error.localizedDescription)
+            }
+            
+            // Last video
+            do {
+                try track.insertTimeRange(CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration),
+                                          of: lastVideoTrack,
+                                          at: durationToBeTrimmed)
+            } catch let error {
+                print(error.localizedDescription)
+            }
+            
+            // Export
+            let finalVideoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
+            guard let exporter = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetHighestQuality) else {
+                print("Error: could not make an exporter in \(#function)")
+                return
+            }
+            exporter.outputURL = finalVideoURL
+            exporter.outputFileType = AVFileTypeMPEG4
+            exporter.shouldOptimizeForNetworkUse = false
+            
+            exporter.exportAsynchronously(completionHandler: {
+                self.exportDidFinish(session: exporter)
+            })
+        } else {
+            print("no need to trim from the first video")
+            getThumbnailFrom(videoURL: lastVideoURL, completion: { (imageURLs: [URL]) in
+                self.showGifWithGLKView(with: imageURLs)
+                self.resizedURLs = imageURLs
+            })
+            //            let urls = getThumbnailFrom(videoURL: lastVideoURL)
+            //            showGifWithGLKView(with: urls)
+            //            resizedURLs = urls
+        }
+    }
+    
+    func exportDidFinish(session: AVAssetExportSession) {
+        if session.status == AVAssetExportSessionStatus.completed {
+            if let outputURL = session.outputURL {
+                let outputAsset = AVURLAsset(url: outputURL)
+                getThumbnailFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
+                    self.showGifWithGLKView(with: imageURLs)
+                    self.resizedURLs = imageURLs
+                })
+                //                let urls = getThumbnailFrom(videoURL: outputURL)
+                //                showGifWithGLKView(with: urls)
+                //                resizedURLs = urls
+                print("output URL duration: \(outputAsset.duration)")
+                PHPhotoLibrary.requestAuthorization
+                    { (status) -> Void in
+                        switch (status) {
+                        case .authorized:
+                            PHPhotoLibrary.shared().performChanges({
+                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputURL)
+                            }, completionHandler: { (saved: Bool, error: Error?) in
+                                if saved {
+                                    print("saved video to camera roll in \(#function)")
+                                } else {
+                                    print("failed to save video to camera roll in \(#function)")
+                                    if let error = error {
+                                        print(error.localizedDescription)
+                                    }
+                                }
+                            })
+                        case .denied:
+                            print("Error: User denied")
+                        default:
+                            print("Error: Restricted")
+                        }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Get thumbnail image from video
+    func getThumbnailFrom(videoURL: URL, completion: (([URL]) -> Void)?) {
+        let asset = AVAsset(url: videoURL)
+        let assetImageGenerator = AVAssetImageGenerator(asset: asset)
+        assetImageGenerator.requestedTimeToleranceAfter = kCMTimeZero
+        assetImageGenerator.requestedTimeToleranceBefore = kCMTimeZero
+        
+        // let extractRate = 30 / currentLiveGifPreset.gifFPS // extract once in every three frames
+        // milisecond 1000 / 10. extract once in every 100 milisecond
+        // 10 / 1000
+        let track = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
+        let videoLength = track.timeRange.duration
+        //let baseTime = CMTimeMake(100, 1000)
+        let baseTime = CMTimeMake(60, 600)
+        var currentTime = baseTime
+        var images = [CGImage]()
+        var imageURLs = [URL]()
+        
+        var times = [CMTime]()
+        
+        while videoLength > currentTime {
+            times.append(currentTime)
+            currentTime = CMTimeAdd(currentTime, baseTime)
+        }
+        
+        var generationCount = 0
+        assetImageGenerator.generateCGImagesAsynchronously(forTimes: times as [NSValue]) { (
+            requestedTime: CMTime,
+            image: CGImage?,
+            actualTime: CMTime,
+            result: AVAssetImageGeneratorResult,
+            error: Error?) in
+            if result == AVAssetImageGeneratorResult.succeeded {
+                if let image = image {
+                    images.append(image)
+                    
+                }
+            } else {
+                print("could not generate CGImage")
+            }
+            generationCount += 1
+            
+            if generationCount == times.count {
+                for image in images {
+                    if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
+                        imageURLs.append(url)
+                        print(imageURLs)
+                    }
+                }
+                
+                // end
+                completion?(imageURLs)
+            }
+        }
+    }
+    
+    func getThumbnailFrom(videoURL: URL) -> [URL] {
+        let asset = AVAsset(url: videoURL)
+        let assetImageGenerator = AVAssetImageGenerator(asset: asset)
+        assetImageGenerator.requestedTimeToleranceBefore = kCMTimeZero
+        assetImageGenerator.requestedTimeToleranceAfter = kCMTimeZero
+        
+        // let extractRate = 30 / currentLiveGifPreset.gifFPS // extract once in every three frames
+        // milisecond 1000 / 10. extract once in every 100 milisecond
+        // 10 / 1000
+        let track = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
+        let videoLength = track.timeRange.duration
+        //let baseTime = CMTimeMake(100, 1000)
+        let baseTime = CMTimeMake(60, 600)
+        var currentTime = baseTime
+        var imageURLs = [URL]()
+        
+        var times = [CMTime]()
+        
+        while videoLength > currentTime {
+            times.append(currentTime)
+            currentTime = CMTimeAdd(currentTime, baseTime)
+        }
+        
+        assetImageGenerator.generateCGImagesAsynchronously(forTimes: times as [NSValue]) { (
+            requestedTime: CMTime,
+            image: CGImage?,
+            actualTime: CMTime,
+            result: AVAssetImageGeneratorResult,
+            error: Error?) in
+            
+            if let image = image {
+                if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
+                    imageURLs.append(url)
+                }
+            }
+        }
+        
+        while videoLength > currentTime {
+            // extract CGImage at current time
+            do {
+                let image = try assetImageGenerator.copyCGImage(at: currentTime, actualTime: nil)
+                // get url from CGImage
+                // append it to array
+                if let url = image.saveToDisk(cgImagePropertyOrientation: cgImageOrientation) {
+                    imageURLs.append(url)
+                }
+                
+            } catch let error {
+                print(error.localizedDescription)
+            }
+            // currentTime = baseTime + baseTime
+            currentTime = CMTimeAdd(currentTime, baseTime)
+            print("current time: \(currentTime)")
+        }
+        print("image url count: \(imageURLs.count)")
+        return imageURLs
+    }
     
     // MARK: - Camera Settings
     internal func toggleFlash() -> String {
