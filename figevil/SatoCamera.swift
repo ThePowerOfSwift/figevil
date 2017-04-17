@@ -534,18 +534,31 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             //outputSettings = settings
             print("AVVideoWidthKey: \(String(describing: recommendedSettings[AVVideoWidthKey]))")
             print("AVVideoHeightKey: \(String(describing: recommendedSettings[AVVideoHeightKey]))")
-            let width = recommendedSettings[AVVideoWidthKey]!
-            let height = recommendedSettings[AVVideoHeightKey]!
-
-            outputSettings = [
-                AVVideoWidthKey : width,
-                AVVideoHeightKey : width,
-                AVVideoCodecKey : AVVideoCodecH264,
-                AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
-            ]
             
-            pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : width,
-                                            kCVPixelBufferWidthKey as String: width]
+            if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
+                let imageLength = min(width, height)
+                outputSettings = [
+                    AVVideoWidthKey : imageLength,
+                    AVVideoHeightKey : imageLength,
+                    AVVideoCodecKey : AVVideoCodecH264,
+                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
+                ]
+                
+                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
+                                                kCVPixelBufferWidthKey as String: imageLength]
+            } else {
+                print("Error: failed to get width and height from recommended settings in \(#function)")
+                let imageLength = UIScreen.main.bounds.width
+                outputSettings = [
+                    AVVideoWidthKey : imageLength,
+                    AVVideoHeightKey : imageLength,
+                    AVVideoCodecKey : AVVideoCodecH264,
+                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
+                ]
+                
+                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
+                                                kCVPixelBufferWidthKey as String: imageLength]
+            }
 
         } else {
             outputSettings = [
@@ -590,18 +603,30 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             //outputSettings = settings
             print("AVVideoWidthKey: \(String(describing: recommendedSettings[AVVideoWidthKey]))")
             print("AVVideoHeightKey: \(String(describing: recommendedSettings[AVVideoHeightKey]))")
-            let width = recommendedSettings[AVVideoWidthKey]!
-            let height = recommendedSettings[AVVideoHeightKey]!
-            
-            outputSettings = [
-                AVVideoWidthKey : width,
-                AVVideoHeightKey : width,
-                AVVideoCodecKey : AVVideoCodecH264,
-                AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
-            ]
-            
-            pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : width,
-                                            kCVPixelBufferWidthKey as String: width]
+            if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
+                let imageLength = min(width, height)
+                outputSettings = [
+                    AVVideoWidthKey : imageLength,
+                    AVVideoHeightKey : imageLength,
+                    AVVideoCodecKey : AVVideoCodecH264,
+                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
+                ]
+                
+                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
+                                                kCVPixelBufferWidthKey as String: imageLength]
+            } else {
+                print("Error: failed to get width and height from recommended settings in \(#function)")
+                let imageLength = UIScreen.main.bounds.width
+                outputSettings = [
+                    AVVideoWidthKey : imageLength,
+                    AVVideoHeightKey : imageLength,
+                    AVVideoCodecKey : AVVideoCodecH264,
+                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
+                ]
+                
+                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
+                                                kCVPixelBufferWidthKey as String: imageLength]
+            }
             
         } else {
             outputSettings = [
