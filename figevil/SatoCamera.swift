@@ -523,7 +523,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var secondVideoURL: URL!
     
     var pixelBufferCount = 0
-    var pixelBufferMaxCount = 15
+    var pixelBufferMaxCount = 30
     var preVideoMaxCount = 2
     var videoURLs = [URL]()
     
@@ -531,9 +531,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         var outputSettings = [String:Any]()
         var pixelBufferAdaptorAttributes = [String:Any]()
         if let recommendedSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
-            //outputSettings = settings
-            print("AVVideoWidthKey: \(String(describing: recommendedSettings[AVVideoWidthKey]))")
-            print("AVVideoHeightKey: \(String(describing: recommendedSettings[AVVideoHeightKey]))")
             
             if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
                 let imageLength = min(width, height)
@@ -570,7 +567,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             
         }
         
-        
         firstAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
         
         firstPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: firstAssetWriterInput, sourcePixelBufferAttributes: pixelBufferAdaptorAttributes)
@@ -588,21 +584,10 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     func setupSecondAssetWriter() {
-//        var outputSettings: [String:Any] = [
-//            AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
-//            AVVideoHeightKey : Int(UIScreen.main.bounds.width) + 1,
-//            AVVideoCodecKey : AVVideoCodecH264
-//        ]
-//        
-//        if let settings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
-//            outputSettings = settings
-//        }
         var outputSettings = [String:Any]()
         var pixelBufferAdaptorAttributes = [String:Any]()
         if let recommendedSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
-            //outputSettings = settings
-            print("AVVideoWidthKey: \(String(describing: recommendedSettings[AVVideoWidthKey]))")
-            print("AVVideoHeightKey: \(String(describing: recommendedSettings[AVVideoHeightKey]))")
+    
             if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
                 let imageLength = min(width, height)
                 outputSettings = [
@@ -641,9 +626,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         secondAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
         let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
         secondVideoURL = videoURL
-        
-//        secondPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: secondAssetWriterInput, sourcePixelBufferAttributes:
-//            [ kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)])
 
         secondPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: secondAssetWriterInput, sourcePixelBufferAttributes: pixelBufferAdaptorAttributes)
         
