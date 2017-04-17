@@ -8,6 +8,7 @@
 
 import UIKit
 import AVFoundation
+import AVKit
 
 class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollectionViewControllerDatasource, BubbleMenuCollectionViewControllerDelegate, CameraInterfaceViewDelegate {
     
@@ -74,6 +75,15 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     var effectToolBubbleCVC: BubbleMenuCollectionViewController!
     /** Collection view for effect option selection */
     var effectOptionBubbleCVC: BubbleMenuCollectionViewController!
+    
+    func showAVPlayer(url: URL) {
+        let player = AVPlayer(url: url)
+        let playerViewController = AVPlayerViewController()
+        playerViewController.player = player
+        self.present(playerViewController, animated: true) { 
+            playerViewController.player!.play()
+        }
+    }
     
     // MARK: Lifecycle
     override func viewDidLoad() {
