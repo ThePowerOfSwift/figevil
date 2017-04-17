@@ -44,13 +44,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         return items
     }
 
-    /**
-     View that holds all control views and the active effect tool; always floating.
-     When an effect is active, the effect is moved to be above flashView (under control containers)
-     */
+    /// View that holds all control views and the active effect tool; always floating.
     @IBOutlet var controlView: CameraInterfaceView!
-    /** View that sits on the back of controlView to trap flash touches */
-    @IBOutlet weak var flashView: UIView!
 
     // MARK: Image Effects
     /** Tracks which effect tool is currently selected in effects: [UIView] */
@@ -158,10 +153,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         effectToolView.backgroundColor = UIColor.clear
         effectOptionView.backgroundColor = UIColor.clear
         
-        // Setup flashView to trap touches
-        let tap = UITapGestureRecognizer(target: self, action: #selector(tappedFlashView(_:)))
-        flashView.addGestureRecognizer(tap)
-
         // Setup collection views for menu and options
         setupEffectToolBubbles()
         setupEffectOptionBubbles()
@@ -225,12 +216,9 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         save()
     }
     
-    func didLiveGifStop() {
-        print("live gif stopped")
-    }
-
     // MARK: Camera controls
     
+    // TODO:
     func tappedFlashView(_ sender: UITapGestureRecognizer) {
         let touches = sender.value(forKey: "touches") as! [UITouch]
         satoCamera.tapToFocusAndExposure(touch: touches.first!)
@@ -293,6 +281,12 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     func toggleTorch() -> String {
         return satoCamera.toggleTorch()
+    }
+    
+    // MARK: SatoCameraOutput
+    
+    func didLiveGifStop() {
+        print("live gif stopped")
     }
     
     // MARK: Selection
