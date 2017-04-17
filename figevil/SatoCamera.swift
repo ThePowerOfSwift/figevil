@@ -212,7 +212,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutputSampleBufferMethodCallCount += 1
         
         var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        sourceImage = sourceImage.cropping(to: frame)
+        let extent = CGRect(origin: sourceImage.extent.origin, size: CGSize(width: sourceImage.extent.width, height: sourceImage.extent.width))
+        sourceImage = sourceImage.cropping(to: extent)
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
