@@ -23,6 +23,9 @@ class CameraInterfaceView: UIView {
  
     @IBOutlet weak var topToolbar: UIToolbar!
     @IBOutlet weak var bottomToolbar: UIToolbar!
+    @IBOutlet weak var primaryMenuView: UIView!
+    @IBOutlet weak var secondaryMenuView: UIView!
+    @IBOutlet weak var contentView: UIView!
     
     // Model
     /// State flag for capture or preview mode
@@ -33,6 +36,8 @@ class CameraInterfaceView: UIView {
     }
     
     weak var delegate: CameraInterfaceViewDelegate?
+    
+    // MARK: Interface items
     
     /// Items for top toolbar when in Capture mode
     var captureTopItems: [UIBarButtonItem] {
@@ -101,7 +106,7 @@ class CameraInterfaceView: UIView {
         // Add nib view to self
         addSubview(view)
 
-        // Setup bottom toolbar
+        // Setup bottom toolbar anchored around circleImage (snap button)
         let bottomBarHeight = circleImage.size.height + 20
         bottomToolbar.heightAnchor.constraint(equalToConstant: bottomBarHeight).isActive = true
         

@@ -12,9 +12,6 @@ import AVKit
 
 class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollectionViewControllerDatasource, BubbleMenuCollectionViewControllerDelegate, CameraInterfaceViewDelegate {
     
-    // TODO: temp var for effect option bottom constraint
-    var lastconstant: CGFloat = 0
-
     /** Model */
     var satoCamera: SatoCamera = SatoCamera.shared
 
@@ -61,11 +58,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     // MARK: Camera Controls & Tools
     // Tools
-    /** Container view for effect tools */
-    @IBOutlet var effectToolView: UIView!
-    /** Container view for effect options */
-    @IBOutlet var effectOptionView: UIView!
-    @IBOutlet weak var effectOptionViewBottomConstraint: NSLayoutConstraint!
     /** Collection view for effect tool selection */
     var effectToolBubbleCVC: BubbleMenuCollectionViewController!
     /** Collection view for effect option selection */
@@ -144,9 +136,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         // Add each effect
         for effect in effects {
             if let effect = effect as? UIView {
-                effect.frame = view.bounds
+                effect.frame = controlView.contentView.bounds
                 effect.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-                view.addSubview(effect)
+                
+                controlView.contentView.addSubview(effect)
             }
             if let effect = effect as? FilterImageEffect {
                 effect.delegate = satoCamera
@@ -158,10 +151,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     func setupControlView() {
         // CameraInterfaceViewDelegate
         controlView.delegate = self
-        
-        // Give menu transparent background
-        effectToolView.backgroundColor = UIColor.clear
-        effectOptionView.backgroundColor = UIColor.clear
         
         // Setup collection views for menu and options
         setupEffectToolBubbles()
@@ -175,21 +164,21 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         effectToolBubbleCVC.delegate = self
         
         addChildViewController(effectToolBubbleCVC)
-        effectToolView.addSubview(effectToolBubbleCVC.view)
-        effectToolBubbleCVC.view.frame = effectToolView.bounds
+        controlView.primaryMenuView.addSubview(effectToolBubbleCVC.view)
+        effectToolBubbleCVC.view.frame = controlView.primaryMenuView.bounds
         effectToolBubbleCVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         effectToolBubbleCVC.didMove(toParentViewController: self)
     }
     
     func setupEffectOptionBubbles() {
-        let circularLayout = CircularCollectionViewLayout()
-        effectOptionBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: circularLayout)
+        let layout = StraightCollectionViewLayout()
+        effectOptionBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: layout)
         effectOptionBubbleCVC.datasource = self
         effectOptionBubbleCVC.delegate = self
         
         addChildViewController(effectOptionBubbleCVC)
-        effectOptionView.addSubview(effectOptionBubbleCVC.view)
-        effectOptionBubbleCVC.view.frame = effectOptionView.bounds
+        controlView.secondaryMenuView.addSubview(effectOptionBubbleCVC.view)
+        effectOptionBubbleCVC.view.frame = controlView.secondaryMenuView.bounds
         effectOptionBubbleCVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         effectOptionBubbleCVC.didMove(toParentViewController: self)
     }
@@ -221,7 +210,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         toggleSelfie()
     }
     
-    // MARK: TODO
+    // TODO:
     @IBAction func tappedSave(_ sender: Any) {
         save()
     }
@@ -299,7 +288,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         print("live gif stopped")
     }
     
-    // MARK: Selection
+    // MARK: Bubble Selection
     
     /** Select the first tool.  Usually used during setup */
     func selectFirstEffect() {
@@ -321,12 +310,12 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         // Move selected effect view to fore
         // Remove last effect from control view
-        if lastSelectedEffect >= 0, let effect = effects[lastSelectedEffect] as? UIView {
-            view.insertSubview(effect, belowSubview: controlView)
-        }
+//        if lastSelectedEffect >= 0, let effect = effects[lastSelectedEffect] as? UIView {
+//            controlView.contentView.insertSubview(effect, at: 1)
+//        }
         // Bring selected effect view to back of control view
         if let effect = effects[selectedEffect] as? UIView {
-            controlView.insertSubview(effect, at: 1)
+            controlView.contentView.bringSubview(toFront: effect)
         }
         
         // Tell tool it's been selected
@@ -404,6 +393,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         NotificationCenter.default.removeObserver(self, name: .UIKeyboardWillHide, object: nil)
     }
     
+    var lastconstant: CGFloat = 0
+    @IBOutlet weak var effectOptionViewBottomConstraint: NSLayoutConstraint!
     /** Keyboard appearance notification.  Pushes content (option menu) up to keyboard top floating */
     func keyboardWillShow(notification: NSNotification) {
         
@@ -420,13 +411,13 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             }
             
             // Save the original position
-            lastconstant = effectOptionViewBottomConstraint.constant
+//            lastconstant = effectOptionViewBottomConstraint.constant
             // Enforce the new position above keyboard
-            effectOptionViewBottomConstraint.constant = keyboardFrame.height - (44 + 15)
+//            effectOptionViewBottomConstraint.constant = keyboardFrame.height - (44 + 15)
             // Animate the constraint changes
-            UIView.animate(withDuration: animationTime, animations: { 
-                self.view.layoutIfNeeded()
-            })
+//            UIView.animate(withDuration: animationTime, animations: { 
+//                self.view.layoutIfNeeded()
+//            })
         }
     }
     
@@ -442,11 +433,11 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             }
             
             // Return to original position
-            effectOptionViewBottomConstraint.constant = lastconstant
+//            effectOptionViewBottomConstraint.constant = lastconstant
             // Animate the constraint changes
-            UIView.animate(withDuration: animationTime, animations: {
-                self.view.layoutIfNeeded()
-            })
+//            UIView.animate(withDuration: animationTime, animations: {
+//                self.view.layoutIfNeeded()
+//            })
         }
     }
 }
