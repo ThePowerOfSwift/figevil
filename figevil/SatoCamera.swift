@@ -214,8 +214,17 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutputSampleBufferMethodCallCount += 1
         
         var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        let extent = CGRect(origin: sourceImage.extent.origin, size: CGSize(width: sourceImage.extent.width, height: sourceImage.extent.width))
+        print("source image extent: \(sourceImage.extent)")
+        let sourceHeight = sourceImage.extent.height
+        let newHeight = sourceImage.extent.width
+        let gap = sourceHeight - newHeight
+        let originY = gap / 2
+        let extent = CGRect(origin: CGPoint(x: sourceImage.extent.origin.x, y: originY), size: CGSize(width: sourceImage.extent.width, height: sourceImage.extent.width))
         sourceImage = sourceImage.cropping(to: extent)
+        print("new extent: \(extent)")
+//        let extent = CGRect(origin: CGPoint.zero, size: CGSize(width: sourceImage.extent.width, height: sourceImage.extent.width))
+//        sourceImage = sourceImage.cropping(to: extent)
+//        print("new extent: \(extent)")
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -552,13 +561,13 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     AVVideoWidthKey : imageLength,
                     AVVideoHeightKey : imageLength,
                     AVVideoCodecKey : AVVideoCodecH264,
-                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
+                    //AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
+                    AVVideoScalingModeKey : AVVideoScalingModeFit
                 ]
                 
                 pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
                                                 kCVPixelBufferWidthKey as String: imageLength]
             }
-            
         } else {
             outputSettings = [
                 AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
