@@ -254,6 +254,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     func getThumbnailFrom(videoURL: URL, completion: (([URL]) -> Void)?) {
         let asset = AVAsset(url: videoURL)
         let assetImageGenerator = AVAssetImageGenerator(asset: asset)
+        assetImageGenerator.requestedTimeToleranceAfter = kCMTimeZero
+        assetImageGenerator.requestedTimeToleranceBefore = kCMTimeZero
         
         // let extractRate = 30 / currentLiveGifPreset.gifFPS // extract once in every three frames
         // milisecond 1000 / 10. extract once in every 100 milisecond
@@ -263,6 +265,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         //let baseTime = CMTimeMake(100, 1000)
         let baseTime = CMTimeMake(60, 600)
         var currentTime = baseTime
+        var images = [CGImage]()
         var imageURLs = [URL]()
         
         var times = [CMTime]()
@@ -281,9 +284,13 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             error: Error?) in
             if result == AVAssetImageGeneratorResult.succeeded {
                 if let image = image {
-                    if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
-                        imageURLs.append(url)
-                    }
+                    print(image)
+                    images.append(image)
+//                    if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
+//                        imageURLs.append(url)
+//                        print(url)
+//                        print(image)
+//                    }
                 }
             } else {
                 print("could not generate CGImage")
@@ -291,6 +298,13 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             generationCount += 1
             
             if generationCount == times.count {
+                for image in images {
+                    if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
+                        imageURLs.append(url)
+                        print(imageURLs)
+                    }
+                }
+                
                 // end
                 completion?(imageURLs)
             }
@@ -398,7 +412,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var thirdVideoURL: URL!
 
     var pixelBufferCount = 0
-    var pixelBufferMaxCount = 15
+    var pixelBufferMaxCount = 30
     var preVideoMaxCount = 2
     var videoURLs = [URL]()
     
