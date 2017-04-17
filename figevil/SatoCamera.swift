@@ -261,7 +261,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         // 10 / 1000
         let track = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
         let videoLength = track.timeRange.duration
-        let baseTime = CMTimeMake(100, 1000)
+        //let baseTime = CMTimeMake(100, 1000)
+        let baseTime = CMTimeMake(60, 600)
         var currentTime = baseTime
         var imageURLs = [URL]()
         while videoLength > currentTime {
@@ -281,6 +282,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             currentTime = CMTimeAdd(currentTime, baseTime)
             print("current time: \(currentTime)")
         }
+        print("image url count: \(imageURLs.count)")
         return imageURLs
     }
     
@@ -308,7 +310,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var thirdVideoURL: URL!
 
     var pixelBufferCount = 0
-    var pixelBufferMaxCount = 60
+    var pixelBufferMaxCount = 15
     var preVideoMaxCount = 2
     var videoURLs = [URL]()
     
@@ -385,7 +387,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             if let outputURL = session.outputURL {
                 let outputAsset = AVURLAsset(url: outputURL)
                 let imageURLs = getThumbnailFrom(videoURL: outputURL)
-                showGifWithGLKView()
+                showGifWithGLKView(with: imageURLs)
                 //let vc = cameraOutput as! CameraViewController
                 //vc.showAVPlayer(url: outputURL)
                 print("output URL duration: \(outputAsset.duration)")
@@ -1104,9 +1106,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func showGifWithGLKView(with imageURLs: [URL]) {
         // make resized images from originals here
-
-
-        
         var ciImages = [CIImage]()
         for url in imageURLs {
             guard let sourceCIImage = url.cgImage?.ciImage else {
