@@ -19,6 +19,7 @@ enum Numbers {
     static let tiny: CGFloat = 0.001
 }
 
+
 /// Time Internals for animation
 enum AnimationTime {
     static let select = 0.25 / 2
