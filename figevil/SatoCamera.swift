@@ -156,107 +156,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         setupSecondAssetWriter()
     }
     
-    // snap
-    // look at stored array
-    // take the last video's time
-    // if it's more than 1 second, trim the last 1 second
-    // if it's less than 1 second, go to the previous video
-    // take 1 - (1 - lv) from the prev video
-    func getVideo() {
-        guard let firstVideoURL = videoURLs.first, let lastVideoURL = videoURLs.last else {
-            print("Error: url is nil in \(#function)")
-            return
-        }
-        
-        let firstVideoAsset = AVURLAsset(url: firstVideoURL)
-        let firstVideoTrack = firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
-        let firstVideoDuration = firstVideoTrack.timeRange.duration
-        let lastVideoAsset = AVURLAsset(url: lastVideoURL)
-        let lastVideoTrack = lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
-        let lastVideoDuration = lastVideoTrack.timeRange.duration
-        let maxVideoDuration = CMTimeMultiply(firstVideoDuration, 2)
-        
-        // duration to be trimmed from last video
-        let durationToBeTrimmed = CMTimeSubtract(maxVideoDuration, lastVideoDuration)
-        if durationToBeTrimmed > kCMTimeZero {
-
-            let trimmingStartTime = CMTimeSubtract(firstVideoDuration, durationToBeTrimmed)
-            let mixComposition = AVMutableComposition()
-            let track = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
-            
-            // First video
-            let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, duration: durationToBeTrimmed)
-            do {
-                try track.insertTimeRange(timeRangeTobeTrimmed,
-                                               of: firstVideoTrack,
-                                               at: kCMTimeZero)
-            } catch let error {
-                print(error.localizedDescription)
-            }
-
-            // Last video
-            do {
-                try track.insertTimeRange(CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration),
-                                              of: lastVideoTrack,
-                                              at: durationToBeTrimmed)
-            } catch let error {
-                print(error.localizedDescription)
-            }
-            
-            // Export
-            let finalVideoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
-            guard let exporter = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetHighestQuality) else {
-                print("Error: could not make an exporter in \(#function)")
-                return
-            }
-            exporter.outputURL = finalVideoURL
-            exporter.outputFileType = AVFileTypeMPEG4
-            exporter.shouldOptimizeForNetworkUse = false
-            
-            exporter.exportAsynchronously(completionHandler: { 
-                self.exportDidFinish(session: exporter)
-            })
-        } else {
-            // should be one
-            print("no need to trim from the first video")
-            let vc = cameraOutput as! CameraViewController
-            vc.showAVPlayer(url: lastVideoURL)
-        }
-    }
-
-    func exportDidFinish(session: AVAssetExportSession) {
-        if session.status == AVAssetExportSessionStatus.completed {
-            if let outputURL = session.outputURL {
-                let outputAsset = AVURLAsset(url: outputURL)
-                let vc = cameraOutput as! CameraViewController
-                vc.showAVPlayer(url: outputURL)
-                print("output URL duration: \(outputAsset.duration)")
-                    PHPhotoLibrary.requestAuthorization
-                        { (status) -> Void in
-                            switch (status) {
-                            case .authorized:
-                                PHPhotoLibrary.shared().performChanges({
-                                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputURL)
-                                }, completionHandler: { (saved: Bool, error: Error?) in
-                                    if saved {
-                                        print("saved video to camera roll in \(#function)")
-                                    } else {
-                                        print("failed to save video to camera roll in \(#function)")
-                                        if let error = error {
-                                            print(error.localizedDescription)
-                                        }
-                                    }
-                                })
-                            case .denied:
-                                print("Error: User denied")
-                            default:
-                                print("Error: Restricted")
-                            }
-                    }
-            }
-        }
-    }
-
     var isPostRecording = false
     var pixelBufferCountAtSnapping = 0
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
@@ -351,6 +250,40 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         liveCameraGLKView.display()
     }
     
+    // MARK: - Get thumbnail image from video
+    
+    func getThumbnailFrom(videoURL: URL) -> [URL] {
+        let asset = AVAsset(url: videoURL)
+        let assetImageGenerator = AVAssetImageGenerator(asset: asset)
+        
+        // let extractRate = 30 / currentLiveGifPreset.gifFPS // extract once in every three frames
+        // milisecond 1000 / 10. extract once in every 100 milisecond
+        // 10 / 1000
+        let track = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
+        let videoLength = track.timeRange.duration
+        let baseTime = CMTimeMake(100, 1000)
+        var currentTime = baseTime
+        var imageURLs = [URL]()
+        while videoLength > currentTime {
+            // extract CGImage at current time
+            do {
+                let image = try assetImageGenerator.copyCGImage(at: currentTime, actualTime: nil)
+                // get url from CGImage
+                // append it to array
+                if let url = image.saveToDisk(cgImagePropertyOrientation: cgImageOrientation) {
+                    imageURLs.append(url)
+                }
+                
+            } catch let error {
+                print(error.localizedDescription)
+            }
+            // currentTime = baseTime + baseTime
+            currentTime = CMTimeAdd(currentTime, baseTime)
+            print("current time: \(currentTime)")
+        }
+        return imageURLs
+    }
+    
     // MARK: - Asset writer
     enum AssetWriter {
         case First
@@ -378,6 +311,109 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var pixelBufferMaxCount = 60
     var preVideoMaxCount = 2
     var videoURLs = [URL]()
+    
+    // snap
+    // look at stored array
+    // take the last video's time
+    // if it's more than 1 second, trim the last 1 second
+    // if it's less than 1 second, go to the previous video
+    // take 1 - (1 - lv) from the prev video
+    func getVideo() {
+        guard let firstVideoURL = videoURLs.first, let lastVideoURL = videoURLs.last else {
+            print("Error: url is nil in \(#function)")
+            return
+        }
+        
+        let firstVideoAsset = AVURLAsset(url: firstVideoURL)
+        let firstVideoTrack = firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
+        let firstVideoDuration = firstVideoTrack.timeRange.duration
+        let lastVideoAsset = AVURLAsset(url: lastVideoURL)
+        let lastVideoTrack = lastVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
+        let lastVideoDuration = lastVideoTrack.timeRange.duration
+        let maxVideoDuration = CMTimeMultiply(firstVideoDuration, 2)
+        
+        // duration to be trimmed from last video
+        let durationToBeTrimmed = CMTimeSubtract(maxVideoDuration, lastVideoDuration)
+        if durationToBeTrimmed > kCMTimeZero {
+            
+            let trimmingStartTime = CMTimeSubtract(firstVideoDuration, durationToBeTrimmed)
+            let mixComposition = AVMutableComposition()
+            let track = mixComposition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: kCMPersistentTrackID_Invalid)
+            
+            // First video
+            let timeRangeTobeTrimmed = CMTimeRange(start: trimmingStartTime, duration: durationToBeTrimmed)
+            do {
+                try track.insertTimeRange(timeRangeTobeTrimmed,
+                                          of: firstVideoTrack,
+                                          at: kCMTimeZero)
+            } catch let error {
+                print(error.localizedDescription)
+            }
+            
+            // Last video
+            do {
+                try track.insertTimeRange(CMTimeRange(start: kCMTimeZero, duration: lastVideoDuration),
+                                          of: lastVideoTrack,
+                                          at: durationToBeTrimmed)
+            } catch let error {
+                print(error.localizedDescription)
+            }
+            
+            // Export
+            let finalVideoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
+            guard let exporter = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetHighestQuality) else {
+                print("Error: could not make an exporter in \(#function)")
+                return
+            }
+            exporter.outputURL = finalVideoURL
+            exporter.outputFileType = AVFileTypeMPEG4
+            exporter.shouldOptimizeForNetworkUse = false
+            
+            exporter.exportAsynchronously(completionHandler: {
+                self.exportDidFinish(session: exporter)
+            })
+        } else {
+            // should be one
+            print("no need to trim from the first video")
+            let vc = cameraOutput as! CameraViewController
+            vc.showAVPlayer(url: lastVideoURL)
+        }
+    }
+    
+    func exportDidFinish(session: AVAssetExportSession) {
+        if session.status == AVAssetExportSessionStatus.completed {
+            if let outputURL = session.outputURL {
+                let outputAsset = AVURLAsset(url: outputURL)
+                let imageURLs = getThumbnailFrom(videoURL: outputURL)
+                showGifWithGLKView()
+                //let vc = cameraOutput as! CameraViewController
+                //vc.showAVPlayer(url: outputURL)
+                print("output URL duration: \(outputAsset.duration)")
+                PHPhotoLibrary.requestAuthorization
+                    { (status) -> Void in
+                        switch (status) {
+                        case .authorized:
+                            PHPhotoLibrary.shared().performChanges({
+                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputURL)
+                            }, completionHandler: { (saved: Bool, error: Error?) in
+                                if saved {
+                                    print("saved video to camera roll in \(#function)")
+                                } else {
+                                    print("failed to save video to camera roll in \(#function)")
+                                    if let error = error {
+                                        print(error.localizedDescription)
+                                    }
+                                }
+                            })
+                        case .denied:
+                            print("Error: User denied")
+                        default:
+                            print("Error: Restricted")
+                        }
+                }
+            }
+        }
+    }
     
     func setupFirstAssetWriter() {
         var outputSettings: [String:Any] = [
@@ -1054,6 +1090,55 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                         if let outputImage = filter.outputImage {
                             self.gifCIContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
 
+                        }
+                    } else {
+                        self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                    }
+                    
+                    self.gifGLKView.display()
+                    usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
+                }
+            }
+        }
+    }
+    
+    func showGifWithGLKView(with imageURLs: [URL]) {
+        // make resized images from originals here
+
+
+        
+        var ciImages = [CIImage]()
+        for url in imageURLs {
+            guard let sourceCIImage = url.cgImage?.ciImage else {
+                print("Error: cgImage is nil in \(#function)")
+                return
+            }
+            ciImages.append(sourceCIImage)
+        }
+        
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
+            self.gifGLKView.bindDrawable()
+            
+            if self.gifEaglContext != EAGLContext.current() {
+                EAGLContext.setCurrent(self.gifEaglContext)
+            }
+            
+            self.setupOpenGL()
+            while !self.session.isRunning {
+                if self.session.isRunning {
+                    break
+                }
+                
+                self.setupOpenGL()
+                for image in ciImages {
+                    if self.session.isRunning {
+                        break
+                    }
+                    if let filter = self.currentFilter.filter {
+                        filter.setValue(image, forKey: kCIInputImageKey)
+                        if let outputImage = filter.outputImage {
+                            self.gifCIContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                            
                         }
                     } else {
                         self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
