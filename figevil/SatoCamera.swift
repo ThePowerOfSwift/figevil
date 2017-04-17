@@ -161,6 +161,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
 
         if didOutputSampleBufferMethodCallCount == 0 {
+            setupFirstAssetWriter()
             startFirstAssetWriter()
         }
         
@@ -412,7 +413,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var thirdVideoURL: URL!
 
     var pixelBufferCount = 0
-    var pixelBufferMaxCount = 30
+    var pixelBufferMaxCount = 15
     var preVideoMaxCount = 2
     var videoURLs = [URL]()
     
@@ -477,10 +478,10 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 self.exportDidFinish(session: exporter)
             })
         } else {
-            // should be one
             print("no need to trim from the first video")
-            let vc = cameraOutput as! CameraViewController
-            vc.showAVPlayer(url: lastVideoURL)
+            getThumbnailFrom(videoURL: lastVideoURL, completion: { (imageURLs: [URL]) in
+                self.showGifWithGLKView(with: imageURLs)
+            })
         }
     }
     
@@ -488,12 +489,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         if session.status == AVAssetExportSessionStatus.completed {
             if let outputURL = session.outputURL {
                 let outputAsset = AVURLAsset(url: outputURL)
-//                let imageURLs = getThumbnailFrom(videoURL: outputURL, completion: nil)
                 getThumbnailFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
                     self.showGifWithGLKView(with: imageURLs)
                 })
-//                let vc = cameraOutput as! CameraViewController
-//                vc.showAVPlayer(url: outputURL)
                 print("output URL duration: \(outputAsset.duration)")
                 PHPhotoLibrary.requestAuthorization
                     { (status) -> Void in
@@ -601,15 +599,11 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     func cancelFirstAssetWriter() {
-        firstAssetWriter?.finishWriting {
-            print("first asset writer canceled")
-        }
+        firstAssetWriter?.cancelWriting()
     }
     
     func cancelSecondAssetWriter() {
-        secondAssetWriter?.finishWriting {
-            print("second asset writer canceled")
-        }
+        secondAssetWriter?.cancelWriting()
     }
     
     func saveFirstAssetWriter(completion: (() -> Void)?) {
