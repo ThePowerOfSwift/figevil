@@ -540,7 +540,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             outputSettings = [
                 AVVideoWidthKey : width,
                 AVVideoHeightKey : width,
-                AVVideoCodecKey : AVVideoCodecH264
+                AVVideoCodecKey : AVVideoCodecH264,
+                AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
             ]
             
             pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : width,
@@ -595,7 +596,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             outputSettings = [
                 AVVideoWidthKey : width,
                 AVVideoHeightKey : width,
-                AVVideoCodecKey : AVVideoCodecH264
+                AVVideoCodecKey : AVVideoCodecH264,
+                AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
             ]
             
             pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : width,
