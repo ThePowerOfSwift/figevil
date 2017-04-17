@@ -147,12 +147,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
         if didOutputSampleBufferMethodCallCount == 0 {
-//            setupFirstAssetWriter()
-//            startFirstAssetWriter()
-//            setupAssetWriter(assetWriter: firstAssetWriter,
-//                             input: firstAssetWriterInput,
-//                             pixelBufferAdaptor: firstPixelBufferAdaptor,
-//                             url: firstVideoURL)
             setupAssetWriter(assetWriterID: .First)
             startFirstAssetWriter()
         }
@@ -800,6 +794,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         
+        print("first video URL: \(firstVideoURL)")
+        print("last video URL: \(lastVideoURL)")
+        
         let firstVideoAsset = AVURLAsset(url: firstVideoURL)
         let firstVideoTrack = firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
         let firstVideoDuration = firstVideoTrack.timeRange.duration
@@ -921,6 +918,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         while videoLength > currentTime {
             times.append(currentTime)
             currentTime = CMTimeAdd(currentTime, baseTime)
+            print("current time: \(currentTime)")
         }
         
         var generationCount = 0
@@ -1049,7 +1047,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         if !session.isRunning {
             print("Error: camera failed to run.")
         }
-        //startAssetWriter()
     }
     
     internal func stop() {
@@ -1070,6 +1067,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         isPostRecording = false
         cancelFirstAssetWriter()
         cancelSecondAssetWriter()
+        videoURLs.removeAll()
+        pixelBufferCount = 0
         start()
     }
 
@@ -1304,7 +1303,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     } else {
                         self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
                     }
-                    print("image extent: \(image.extent)")
                     self.gifGLKView.display()
                     usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
                 }
@@ -1314,6 +1312,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func showGifWithGLKView(with imageURLs: [URL]) {
         // make resized images from originals here
+        cameraOutput?.gifOutputView?.isHidden = false
+        cameraOutput?.sampleBufferView?.isHidden = true
         var ciImages = [CIImage]()
         for url in imageURLs {
             guard let sourceCIImage = url.cgImage?.ciImage else {
@@ -1350,7 +1350,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     } else {
                         self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
                     }
-                    print("image extent: \(image.extent)")
+
                     self.gifGLKView.display()
                     usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
                 }
