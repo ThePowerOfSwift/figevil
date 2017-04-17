@@ -9,78 +9,10 @@
 import UIKit
 import AVFoundation
 
-class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollectionViewControllerDatasource, BubbleMenuCollectionViewControllerDelegate {
+class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollectionViewControllerDatasource, BubbleMenuCollectionViewControllerDelegate, CameraInterfaceViewDelegate {
     
-    // MARK: Snap Testing
     // TODO: temp var for effect option bottom constraint
     var lastconstant: CGFloat = 0
-    
-    func setupTest() {
-        print("setup test")
-    }
-    
-    @IBOutlet var snapButton: UIButton!
-    
-    func setupSnapButton() {
-        snapButton.addTarget(self, action: #selector(snapLiveGif(_:)), for: UIControlEvents.touchUpInside)
-        
-        let longpress = UILongPressGestureRecognizer(target: self, action: #selector(record(_:)))
-        snapButton.addGestureRecognizer(longpress)
-        
-        if let image = UIImage(named: "circle.png") {
-            let templateImage = image.withRenderingMode(.alwaysTemplate)
-            snapButton.setImage(templateImage, for: .normal)
-            snapButton.tintColor = UIColor.white
-        }
-        
-    }
-    
-    /** Snap live gif. */
-    func snapLiveGif(_ sender: UIControlEvents) {
-        satoCamera.snapLiveGif()
-        snapButton.tintColor = UIColor.red
-    }
-    
-    func didLiveGifStop() {
-        snapButton.tintColor = UIColor.white
-    }
-    
-    func record(_ sender: UILongPressGestureRecognizer) {
-        //print("record")
-        
-        if sender.state == UIGestureRecognizerState.began {
-            print("begin")
-            satoCamera.startRecordingGif()
-        } else if sender.state == UIGestureRecognizerState.ended {
-            print("end")
-            satoCamera.stopRecordingGif()
-        }
-    }
-    
-    @IBOutlet weak var cancelButton: UIButton!
-    @IBAction func tappedCancel(_ sender: Any) {
-        cancel()
-    }
-    
-    @IBOutlet weak var saveButton: UIButton!
-    @IBAction func tappedSave(_ sender: Any) {
-        save()
-    }
-    
-    @IBOutlet weak var shareButton: UIButton!
-    @IBAction func tappedShare(_ sender: Any) {
-        share()
-    }
-    
-    @IBOutlet weak var selfieButton: UIButton!
-    @IBAction func tappedSelfie(_ sender: Any) {
-        toggleSelfie()
-    }
-    
-    @IBOutlet weak var flashButton: UIButton!
-    @IBAction func tappedFlash(_ sender: Any) {
-        toggleTorch()
-    }
 
     /** Model */
     var satoCamera: SatoCamera = SatoCamera.shared
@@ -116,7 +48,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
      View that holds all control views and the active effect tool; always floating.
      When an effect is active, the effect is moved to be above flashView (under control containers)
      */
-    @IBOutlet var controlView: UIView!
+    @IBOutlet var controlView: CameraInterfaceView!
     /** View that sits on the back of controlView to trap flash touches */
     @IBOutlet weak var flashView: UIView!
 
@@ -151,8 +83,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         setupSatoCamera()
         setupControlView()
         setupEffects()
-        setupSnapButton()
-        setupTest()
         
         // Finalize setup
         view.bringSubview(toFront: controlView)
@@ -181,6 +111,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     deinit {
+    }
+    
+    override var prefersStatusBarHidden: Bool {
+        return true
     }
     
     // MARK: Setups
@@ -217,8 +151,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     func setupControlView() {
-        // Give control view transparent background
-        controlView.backgroundColor = UIColor.clear
+        // CameraInterfaceViewDelegate
+        controlView.delegate = self
         
         // Give menu transparent background
         effectToolView.backgroundColor = UIColor.clear
@@ -259,6 +193,42 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         effectOptionBubbleCVC.didMove(toParentViewController: self)
     }
     
+    // MARK: CameraInterfaceViewDelegate
+    
+    func tappedCapture(_ cameraInterfaceView: CameraInterfaceView) {
+        satoCamera.snapLiveGif()
+        controlView.toggleInterface()
+    }
+    
+    func tappedFlash(_ cameraInterfaceView: CameraInterfaceView) {
+        controlView.update(with: toggleTorch())
+    }
+    
+    func tappedLoad(_ cameraInterfaceView: CameraInterfaceView) {
+        // MARK: TODO
+    }
+    
+    func tappedCancel(_ cameraInterfaceView: CameraInterfaceView) {
+        cancel()
+    }
+    
+    func tappedShare(_ cameraInterfaceView: CameraInterfaceView) {
+        share()
+    }
+    
+    func tappedSelfie (_ cameraInterfaceView: CameraInterfaceView) {
+        toggleSelfie()
+    }
+    
+    // MARK: TODO
+    @IBAction func tappedSave(_ sender: Any) {
+        save()
+    }
+    
+    func didLiveGifStop() {
+        print("live gif stopped")
+    }
+
     // MARK: Camera controls
     
     func tappedFlashView(_ sender: UITapGestureRecognizer) {
@@ -268,7 +238,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 
     func cancel() {
         satoCamera.reset()
-        
+        controlView.reset()
         for effect in effects {
             if let effect = effect as? CameraViewBubbleMenu {
                 effect.reset()
@@ -321,10 +291,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         satoCamera.toggleCamera()
     }
     
-    func toggleTorch() {
-        let state = satoCamera.toggleTorch()
-        flashButton.setTitle(state, for: .normal)
-        print(state)
+    func toggleTorch() -> String {
+        return satoCamera.toggleTorch()
     }
     
     // MARK: Selection

@@ -17,6 +17,9 @@
 		78239A001E85E0A800207B56 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782399DF1E847C2B00207B56 /* Globals.swift */; };
 		7825A8C71E9597DC0091DCF7 /* FTECameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7825A8C61E9597DC0091DCF7 /* FTECameraViewController.swift */; };
 		782BB2621E7C7F5000EFD135 /* BbgL7x3.gif in Resources */ = {isa = PBXBuildFile; fileRef = 782BB2611E7C7F5000EFD135 /* BbgL7x3.gif */; };
+		7847FF581EA4663400DAD910 /* CameraInterfaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7847FF551EA4663400DAD910 /* CameraInterfaceView.swift */; };
+		7847FF591EA4663400DAD910 /* CameraInterfaceView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7847FF561EA4663400DAD910 /* CameraInterfaceView.xib */; };
+		7847FF5A1EA4663400DAD910 /* CameraInterfaceAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7847FF571EA4663400DAD910 /* CameraInterfaceAssets.xcassets */; };
 		78487AFB1EA0A7EA00C80C55 /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78487AFA1EA0A7EA00C80C55 /* Lottie.framework */; };
 		78487AFC1EA0A7EA00C80C55 /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 78487AFA1EA0A7EA00C80C55 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		784E849D1E96E86B0099AF45 /* settings icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 784E84971E96E86B0099AF45 /* settings icon.png */; };
@@ -132,6 +135,9 @@
 		78239A021E85E45000207B56 /* MeKeyboard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MeKeyboard.entitlements; sourceTree = "<group>"; };
 		7825A8C61E9597DC0091DCF7 /* FTECameraViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTECameraViewController.swift; sourceTree = "<group>"; };
 		782BB2611E7C7F5000EFD135 /* BbgL7x3.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = BbgL7x3.gif; sourceTree = "<group>"; };
+		7847FF551EA4663400DAD910 /* CameraInterfaceView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraInterfaceView.swift; sourceTree = "<group>"; };
+		7847FF561EA4663400DAD910 /* CameraInterfaceView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = CameraInterfaceView.xib; sourceTree = "<group>"; };
+		7847FF571EA4663400DAD910 /* CameraInterfaceAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = CameraInterfaceAssets.xcassets; sourceTree = "<group>"; };
 		78487AFA1EA0A7EA00C80C55 /* Lottie.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Lottie.framework; sourceTree = "<group>"; };
 		784E84971E96E86B0099AF45 /* settings icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "settings icon.png"; sourceTree = "<group>"; };
 		784E84981E96E86B0099AF45 /* keyboard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = keyboard.png; sourceTree = "<group>"; };
@@ -286,6 +292,16 @@
 			name = Effects;
 			sourceTree = "<group>";
 		};
+		7847FF5B1EA4663C00DAD910 /* Interface */ = {
+			isa = PBXGroup;
+			children = (
+				7847FF551EA4663400DAD910 /* CameraInterfaceView.swift */,
+				7847FF561EA4663400DAD910 /* CameraInterfaceView.xib */,
+				7847FF571EA4663400DAD910 /* CameraInterfaceAssets.xcassets */,
+			);
+			name = Interface;
+			sourceTree = "<group>";
+		};
 		7854B9D01E64F98300591255 = {
 			isa = PBXGroup;
 			children = (
@@ -414,6 +430,7 @@
 				E335FE7F1E70F19500A5BAD2 /* Camera Extentions */,
 				7854B9F41E64FD7D00591255 /* Camera.storyboard */,
 				7854B9F51E64FD7D00591255 /* CameraViewController.swift */,
+				7847FF5B1EA4663C00DAD910 /* Interface */,
 			);
 			name = Camera;
 			sourceTree = "<group>";
@@ -529,6 +546,7 @@
 			files = (
 				784E84A81E96EC540099AF45 /* selfie.gif in Resources */,
 				78091B7A1E9466A700722B4D /* Stickers in Resources */,
+				7847FF5A1EA4663400DAD910 /* CameraInterfaceAssets.xcassets in Resources */,
 				7854B9E71E64F98300591255 /* LaunchScreen.storyboard in Resources */,
 				7854B9EF1E64F9B600591255 /* GoogleService-Info.plist in Resources */,
 				7857A0301E6504EC00660B68 /* montgomery.jpg in Resources */,
@@ -556,6 +574,7 @@
 				E3BF4D291E95CD86005346E0 /* ice_cream_cone.png in Resources */,
 				78B5DD1D1E675EC500192135 /* back.png in Resources */,
 				78B5DD1B1E675EC500192135 /* filter.png in Resources */,
+				7847FF591EA4663400DAD910 /* CameraInterfaceView.xib in Resources */,
 				7854BA001E64FD7D00591255 /* Camera.storyboard in Resources */,
 				784E849F1E96E86B0099AF45 /* keyboards.png in Resources */,
 			);
@@ -673,6 +692,7 @@
 				7854BA0E1E65005600591255 /* Index.swift in Sources */,
 				7854BA021E64FD7D00591255 /* Color.swift in Sources */,
 				7854BA071E64FD7D00591255 /* DrawImageEffectView.swift in Sources */,
+				7847FF581EA4663400DAD910 /* CameraInterfaceView.swift in Sources */,
 				7854BA061E64FD7D00591255 /* Filter.swift in Sources */,
 				7854B9DD1E64F98300591255 /* AppDelegate.swift in Sources */,
 				782399E61E848C1000207B56 /* FirstTimeExperienceViewController.swift in Sources */,
