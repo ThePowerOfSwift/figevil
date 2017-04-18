@@ -846,6 +846,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             })
         } else {
             print("no need to trim from the first video")
+            resultVideoURL = lastVideoURL
             getThumbnailFrom(videoURL: lastVideoURL, completion: { (imageURLs: [URL]) in
                 self.resizedURLs = imageURLs
                 self.showGifWithGLKView(with: imageURLs)
@@ -856,9 +857,11 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
+    var resultVideoURL: URL!
     func exportDidFinish(session: AVAssetExportSession) {
         if session.status == AVAssetExportSessionStatus.completed {
             if let outputURL = session.outputURL {
+                resultVideoURL = outputURL
                 let outputAsset = AVURLAsset(url: outputURL)
                 getThumbnailFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
                     self.resizedURLs = imageURLs
@@ -1121,7 +1124,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         let messageURL = URL.messageURL(path: path)
         let originalURL = URL.originalURL(path: path)
         
-        let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL)
+        let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL, video: resultVideoURL)
         
         if thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: thumbnailURL) {
             print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
@@ -1402,6 +1405,7 @@ struct SavedURLs {
     var thumbnail: URL
     var message: URL
     var original: URL
+    var video: URL?
 }
 
 /** Gif preset. */
