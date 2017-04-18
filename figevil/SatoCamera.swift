@@ -718,7 +718,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         firstAssetWriter.startWriting()
         firstAssetWriter.startSession(atSourceTime: kCMTimeZero)
-        print("asset writer has started")
+        //print("asset writer has started")
     }
     
     func startSecondAssetWriter() {
@@ -729,7 +729,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         secondAssetWriter.startWriting()
         secondAssetWriter.startSession(atSourceTime: kCMTimeZero)
-        print("asset writer has started")
+        //print("asset writer has started")
     }
     
     func cancelFirstAssetWriter() {
@@ -743,9 +743,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // TODO: make extension
     func saveFirstAssetWriter(completion: (() -> Void)?) {
         firstAssetWriter?.finishWriting {
-            print("asset writer has finished in \(#function)")
+            //print("asset writer has finished in \(#function)")
             if self.firstAssetWriter?.status == AVAssetWriterStatus.completed {
-                print("writing video is done in \(#function)")
+                //print("writing video is done in \(#function)")
                 if self.videoURLs.count > self.preVideoMaxCount - 1{
                     self.videoURLs.removeFirst()
                 }
@@ -753,7 +753,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 // when snapped, save two videos from array
                 completion?()
             } else if self.firstAssetWriter?.status == AVAssetWriterStatus.failed {
-                print("writing video failed in \(#function)")
+                //print("writing video failed in \(#function)")
                 if let error = self.firstAssetWriter?.error {
                     print(error.localizedDescription)
                 }
@@ -764,16 +764,16 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // TODO: make extension
     func saveSecondAssetWriter(completion: (() -> Void)?) {
         secondAssetWriter?.finishWriting {
-            print("asset writer has finished in \(#function)")
+            //print("asset writer has finished in \(#function)")
             if self.secondAssetWriter?.status == AVAssetWriterStatus.completed {
-                print("writing video is done in \(#function)")
+                //print("writing video is done in \(#function)")
                 if self.videoURLs.count > self.preVideoMaxCount - 1 {
                     self.videoURLs.removeFirst()
                 }
                 self.videoURLs.append(self.secondVideoURL)
                 completion?()
             } else if self.secondAssetWriter?.status == AVAssetWriterStatus.failed {
-                print("writing video failed in \(#function)")
+                //print("writing video failed in \(#function)")
                 if let error = self.secondAssetWriter?.error {
                     print(error.localizedDescription)
                 }
@@ -917,7 +917,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         while videoLength > currentTime {
             times.append(currentTime)
             currentTime = CMTimeAdd(currentTime, baseTime)
-            print("current time: \(currentTime)")
         }
         
         var generationCount = 0
@@ -1002,7 +1001,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
             // currentTime = baseTime + baseTime
             currentTime = CMTimeAdd(currentTime, baseTime)
-            print("current time: \(currentTime)")
         }
         print("image url count: \(imageURLs.count)")
         return imageURLs
@@ -1339,7 +1337,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
                 
                 self.setupOpenGL()
-                print("CIImage count: \(ciImages.count)")
+                //print("CIImage count: \(ciImages.count)")
                 for image in ciImages {
                     if self.session.isRunning {
                         break
