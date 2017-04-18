@@ -233,7 +233,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
         liveCameraGLKView.display()
     }
-
+    
     // MARK: - Initial setups
     init(frame: CGRect) {
         self.frame = frame
@@ -847,8 +847,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         } else {
             print("no need to trim from the first video")
             getThumbnailFrom(videoURL: lastVideoURL, completion: { (imageURLs: [URL]) in
-                self.showGifWithGLKView(with: imageURLs)
                 self.resizedURLs = imageURLs
+                self.showGifWithGLKView(with: imageURLs)
             })
             //            let urls = getThumbnailFrom(videoURL: lastVideoURL)
             //            showGifWithGLKView(with: urls)
@@ -861,8 +861,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             if let outputURL = session.outputURL {
                 let outputAsset = AVURLAsset(url: outputURL)
                 getThumbnailFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
-                    self.showGifWithGLKView(with: imageURLs)
                     self.resizedURLs = imageURLs
+                    self.showGifWithGLKView(with: imageURLs)
                 })
                 //                let urls = getThumbnailFrom(videoURL: outputURL)
                 //                showGifWithGLKView(with: urls)
@@ -1068,6 +1068,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         cancelSecondAssetWriter()
         videoURLs.removeAll()
         pixelBufferCount = 0
+        pixelBufferCountAtSnapping = 0
         start()
     }
 
@@ -1321,8 +1322,10 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
             ciImages.append(sourceCIImage)
         }
-        
-        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
+        cameraOutput?.gifOutputView?.isHidden = false
+
+        //DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInteractive).async { [unowned self] in
             self.gifGLKView.bindDrawable()
             
             if self.gifEaglContext != EAGLContext.current() {
@@ -1336,6 +1339,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
                 
                 self.setupOpenGL()
+                print("CIImage count: \(ciImages.count)")
                 for image in ciImages {
                     if self.session.isRunning {
                         break
