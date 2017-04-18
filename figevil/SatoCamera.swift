@@ -214,17 +214,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutputSampleBufferMethodCallCount += 1
         
         var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        print("source image extent: \(sourceImage.extent)")
-        let sourceHeight = sourceImage.extent.height
-        let newHeight = sourceImage.extent.width
-        let gap = sourceHeight - newHeight
-        let originY = gap / 2
-        let extent = CGRect(origin: CGPoint(x: sourceImage.extent.origin.x, y: originY), size: CGSize(width: sourceImage.extent.width, height: sourceImage.extent.width))
-        sourceImage = sourceImage.cropping(to: extent)
-        print("new extent: \(extent)")
-//        let extent = CGRect(origin: CGPoint.zero, size: CGSize(width: sourceImage.extent.width, height: sourceImage.extent.width))
-//        sourceImage = sourceImage.cropping(to: extent)
-//        print("new extent: \(extent)")
+        sourceImage = sourceImage.adjustedExtentForGLKView()
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -243,7 +233,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
         liveCameraGLKView.display()
     }
-    
+
     // MARK: - Initial setups
     init(frame: CGRect) {
         self.frame = frame
@@ -1617,6 +1607,18 @@ enum CGImagePropertyOrientation: Int {
     case LandscapeRight = 6
     /** set Left, Bottom to CGImage when image taken in landscape left device orientation. */
     case LandscapeLeft = 8
+}
+
+extension CIImage {
+    /** Crop center square from rectangle shaped CIImage*/
+    func adjustedExtentForGLKView() -> CIImage {
+        let sourceHeight = self.extent.height
+        let newHeight = self.extent.width
+        let gap = sourceHeight - newHeight
+        let originY = gap / 2
+        let extent = CGRect(origin: CGPoint(x: self.extent.origin.x, y: originY), size: CGSize(width: self.extent.width, height: self.extent.width))
+        return self.cropping(to: extent)
+    }
 }
 
 extension CGImage {
