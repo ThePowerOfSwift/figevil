@@ -147,7 +147,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
         if didOutputSampleBufferMethodCallCount == 0 {
-            setupFirstAssetWriter()
+            setupAssetWriter(assetWriterID: .First)
             startFirstAssetWriter()
         }
         
@@ -180,11 +180,13 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             if pixelBufferCount == pixelBufferMaxCount {
                 if currentAssetWriter == .First {
                     saveFirstAssetWriter(completion: nil)
-                    setupSecondAssetWriter()
+                    //setupSecondAssetWriter()
+                    setupAssetWriter(assetWriterID: .Second)
                     startSecondAssetWriter()
                 } else if currentAssetWriter == .Second {
                     saveSecondAssetWriter(completion: nil)
-                    setupFirstAssetWriter()
+                    //setupFirstAssetWriter()
+                    setupAssetWriter(assetWriterID: .First)
                     startFirstAssetWriter()
                 }
                 pixelBufferCount = 0
@@ -212,8 +214,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutputSampleBufferMethodCallCount += 1
         
         var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        let extent = CGRect(origin: sourceImage.extent.origin, size: CGSize(width: sourceImage.extent.width, height: sourceImage.extent.width))
-        sourceImage = sourceImage.cropping(to: extent)
+        sourceImage = sourceImage.adjustedExtentForGLKView()
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -242,8 +243,10 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         setupGifGLKView()
         setupOpenGL()
         setupSession()
-        setupFirstAssetWriter()
-        setupSecondAssetWriter()
+//        setupFirstAssetWriter()
+//        setupSecondAssetWriter()
+        setupAssetWriter(assetWriterID: .First)
+        setupAssetWriter(assetWriterID: .Second)
     }
     
     func setupLiveCameraGLKView() {
@@ -255,11 +258,10 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         self.liveCameraEaglContext = liveCameraEaglContext
         liveCameraGLKView = GLKView(frame: frame, context: liveCameraEaglContext)
         liveCameraGLKView.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
-        liveCameraGLKView.frame = frame
         liveCameraGLKView.bindDrawable()
         liveCameraGLKViewBounds = CGRect.zero
-        liveCameraGLKViewBounds.size.width = CGFloat(liveCameraGLKView.drawableWidth) // 1334 pixels
-        liveCameraGLKViewBounds.size.height = CGFloat(liveCameraGLKView.drawableHeight) // 749 pixels
+        liveCameraGLKViewBounds.size.width = CGFloat(liveCameraGLKView.drawableWidth)
+        liveCameraGLKViewBounds.size.height = CGFloat(liveCameraGLKView.drawableHeight)
         liveCameraCIContext = CIContext(eaglContext: liveCameraEaglContext)
         liveCameraGLKView.delegate = self
     }
@@ -272,7 +274,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         self.gifEaglContext = gifEaglContext
         gifGLKView = GLKView(frame: frame, context: gifEaglContext)
         gifGLKView.enableSetNeedsDisplay = false
-        gifGLKView.frame = frame
         gifGLKView.bindDrawable()
         gifGLKViewPreviewViewBounds = CGRect.zero
         gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
@@ -502,16 +503,15 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     // MARK: - Asset writer
-    enum AssetWriter {
+    enum AssetWriterID {
         case First
         case Second
-        case Third
     }
     
     var isPostRecording = false
     var pixelBufferCountAtSnapping = 0
     
-    var currentAssetWriter: AssetWriter = .First
+    var currentAssetWriter: AssetWriterID = .First
     var firstAssetWriter: AVAssetWriter?
     var firstAssetWriterInput: AVAssetWriterInput!
     var firstPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
@@ -526,6 +526,76 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var pixelBufferMaxCount = 30
     var preVideoMaxCount = 2
     var videoURLs = [URL]()
+    
+    func setupAssetWriter(assetWriterID: AssetWriterID) {
+
+        var outputSettings = [String:Any]()
+        var pixelBufferAdaptorAttributes = [String:Any]()
+        if let recommendedSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
+            
+            if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
+                let imageLength = min(width, height)
+                outputSettings = [
+                    AVVideoWidthKey : imageLength,
+                    AVVideoHeightKey : imageLength,
+                    AVVideoCodecKey : AVVideoCodecH264,
+                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
+                ]
+                
+                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
+                                                kCVPixelBufferWidthKey as String: imageLength]
+            } else {
+                print("Error: failed to get width and height from recommended settings in \(#function)")
+                let imageLength = UIScreen.main.bounds.width
+                outputSettings = [
+                    AVVideoWidthKey : imageLength,
+                    AVVideoHeightKey : imageLength,
+                    AVVideoCodecKey : AVVideoCodecH264,
+                    //AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
+                    AVVideoScalingModeKey : AVVideoScalingModeFit
+                ]
+                
+                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
+                                                kCVPixelBufferWidthKey as String: imageLength]
+            }
+        } else {
+            outputSettings = [
+                AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
+                AVVideoHeightKey : Int(UIScreen.main.bounds.width) + 1,
+                AVVideoCodecKey : AVVideoCodecH264
+            ]
+            pixelBufferAdaptorAttributes = [kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)]
+            
+        }
+        
+        let input = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
+        
+        let pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input, sourcePixelBufferAttributes: pixelBufferAdaptorAttributes)
+        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
+        do {
+            let assetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
+            assetWriter.add(input)
+            input.expectsMediaDataInRealTime = true
+            
+            switch assetWriterID {
+            case .First:
+                firstAssetWriter = assetWriter
+                firstPixelBufferAdaptor = pixelBufferAdaptor
+                firstAssetWriterInput = input
+                firstVideoURL = videoURL
+            case .Second:
+                secondAssetWriter = assetWriter
+                secondPixelBufferAdaptor = pixelBufferAdaptor
+                secondAssetWriterInput = input
+                secondVideoURL = videoURL
+            }
+            
+        } catch let e {
+            print(e.localizedDescription)
+        }
+        
+
+    }
     
     func setupFirstAssetWriter() {
         var outputSettings = [String:Any]()
@@ -648,7 +718,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         firstAssetWriter.startWriting()
         firstAssetWriter.startSession(atSourceTime: kCMTimeZero)
-        print("asset writer has started")
+        //print("asset writer has started")
     }
     
     func startSecondAssetWriter() {
@@ -659,7 +729,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         secondAssetWriter.startWriting()
         secondAssetWriter.startSession(atSourceTime: kCMTimeZero)
-        print("asset writer has started")
+        //print("asset writer has started")
     }
     
     func cancelFirstAssetWriter() {
@@ -673,9 +743,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // TODO: make extension
     func saveFirstAssetWriter(completion: (() -> Void)?) {
         firstAssetWriter?.finishWriting {
-            print("asset writer has finished in \(#function)")
+            //print("asset writer has finished in \(#function)")
             if self.firstAssetWriter?.status == AVAssetWriterStatus.completed {
-                print("writing video is done in \(#function)")
+                //print("writing video is done in \(#function)")
                 if self.videoURLs.count > self.preVideoMaxCount - 1{
                     self.videoURLs.removeFirst()
                 }
@@ -683,7 +753,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 // when snapped, save two videos from array
                 completion?()
             } else if self.firstAssetWriter?.status == AVAssetWriterStatus.failed {
-                print("writing video failed in \(#function)")
+                //print("writing video failed in \(#function)")
                 if let error = self.firstAssetWriter?.error {
                     print(error.localizedDescription)
                 }
@@ -694,16 +764,16 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // TODO: make extension
     func saveSecondAssetWriter(completion: (() -> Void)?) {
         secondAssetWriter?.finishWriting {
-            print("asset writer has finished in \(#function)")
+            //print("asset writer has finished in \(#function)")
             if self.secondAssetWriter?.status == AVAssetWriterStatus.completed {
-                print("writing video is done in \(#function)")
+                //print("writing video is done in \(#function)")
                 if self.videoURLs.count > self.preVideoMaxCount - 1 {
                     self.videoURLs.removeFirst()
                 }
                 self.videoURLs.append(self.secondVideoURL)
                 completion?()
             } else if self.secondAssetWriter?.status == AVAssetWriterStatus.failed {
-                print("writing video failed in \(#function)")
+                //print("writing video failed in \(#function)")
                 if let error = self.secondAssetWriter?.error {
                     print(error.localizedDescription)
                 }
@@ -722,6 +792,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             print("Error: url is nil in \(#function)")
             return
         }
+        
+        print("first video URL: \(firstVideoURL)")
+        print("last video URL: \(lastVideoURL)")
         
         let firstVideoAsset = AVURLAsset(url: firstVideoURL)
         let firstVideoTrack = firstVideoAsset.tracks(withMediaType: AVMediaTypeVideo)[0]
@@ -774,8 +847,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         } else {
             print("no need to trim from the first video")
             getThumbnailFrom(videoURL: lastVideoURL, completion: { (imageURLs: [URL]) in
-                self.showGifWithGLKView(with: imageURLs)
                 self.resizedURLs = imageURLs
+                self.showGifWithGLKView(with: imageURLs)
             })
             //            let urls = getThumbnailFrom(videoURL: lastVideoURL)
             //            showGifWithGLKView(with: urls)
@@ -788,8 +861,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             if let outputURL = session.outputURL {
                 let outputAsset = AVURLAsset(url: outputURL)
                 getThumbnailFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
-                    self.showGifWithGLKView(with: imageURLs)
                     self.resizedURLs = imageURLs
+                    self.showGifWithGLKView(with: imageURLs)
                 })
                 //                let urls = getThumbnailFrom(videoURL: outputURL)
                 //                showGifWithGLKView(with: urls)
@@ -928,7 +1001,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
             // currentTime = baseTime + baseTime
             currentTime = CMTimeAdd(currentTime, baseTime)
-            print("current time: \(currentTime)")
         }
         print("image url count: \(imageURLs.count)")
         return imageURLs
@@ -972,7 +1044,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         if !session.isRunning {
             print("Error: camera failed to run.")
         }
-        //startAssetWriter()
     }
     
     internal func stop() {
@@ -993,6 +1064,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         isPostRecording = false
         cancelFirstAssetWriter()
         cancelSecondAssetWriter()
+        videoURLs.removeAll()
+        pixelBufferCount = 0
+        pixelBufferCountAtSnapping = 0
         start()
     }
 
@@ -1227,7 +1301,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     } else {
                         self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
                     }
-                    print("image extent: \(image.extent)")
                     self.gifGLKView.display()
                     usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
                 }
@@ -1237,6 +1310,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func showGifWithGLKView(with imageURLs: [URL]) {
         // make resized images from originals here
+        cameraOutput?.gifOutputView?.isHidden = false
+        cameraOutput?.sampleBufferView?.isHidden = true
         var ciImages = [CIImage]()
         for url in imageURLs {
             guard let sourceCIImage = url.cgImage?.ciImage else {
@@ -1245,8 +1320,10 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
             ciImages.append(sourceCIImage)
         }
-        
-        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
+        cameraOutput?.gifOutputView?.isHidden = false
+
+        //DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInteractive).async { [unowned self] in
             self.gifGLKView.bindDrawable()
             
             if self.gifEaglContext != EAGLContext.current() {
@@ -1260,6 +1337,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
                 
                 self.setupOpenGL()
+                //print("CIImage count: \(ciImages.count)")
                 for image in ciImages {
                     if self.session.isRunning {
                         break
@@ -1273,7 +1351,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     } else {
                         self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
                     }
-                    print("image extent: \(image.extent)")
+
                     self.gifGLKView.display()
                     usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
                 }
@@ -1531,6 +1609,18 @@ enum CGImagePropertyOrientation: Int {
     case LandscapeRight = 6
     /** set Left, Bottom to CGImage when image taken in landscape left device orientation. */
     case LandscapeLeft = 8
+}
+
+extension CIImage {
+    /** Crop center square from rectangle shaped CIImage*/
+    func adjustedExtentForGLKView() -> CIImage {
+        let sourceHeight = self.extent.height
+        let newHeight = self.extent.width
+        let gap = sourceHeight - newHeight
+        let originY = gap / 2
+        let extent = CGRect(origin: CGPoint(x: self.extent.origin.x, y: originY), size: CGSize(width: self.extent.width, height: self.extent.width))
+        return self.cropping(to: extent)
+    }
 }
 
 extension CGImage {
