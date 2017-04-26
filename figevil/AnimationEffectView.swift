@@ -12,16 +12,12 @@ import AVFoundation
 
 private let animationExtension = "json"
 
-class AnimationEffectView: UIView, CameraViewBubbleMenu {
+class AnimationEffectView: UIView, CameraEffect {
 
     /** Model */
     var stickerURLs: [URL] = []
     let animationView = AnimationView()
     
-    // MARK: CameraViewBubbleMenu
-    var menuContent: [BubbleMenuCollectionViewCellContent] = []
-    var iconContent = BubbleMenuCollectionViewCellContent(image: UIImage(named: "text.png")!, label: "Sticker")
-
     // MARK: Lifecycle
     
     override init(frame: CGRect) {
@@ -36,7 +32,6 @@ class AnimationEffectView: UIView, CameraViewBubbleMenu {
     
     func setup() {
         setupAnimationView()
-        setupBubbleMenuContent()
     }
     
     func setupAnimationView() {
@@ -45,37 +40,39 @@ class AnimationEffectView: UIView, CameraViewBubbleMenu {
         addSubview(animationView)
     }
     
-    func setupBubbleMenuContent() {
+    // MARK: CameraEffect
+
+    var primaryMenu: [BubbleMenuCollectionViewCellContent] {
         guard let directory = UserGenerated.stickerDirectoryURL else {
             print("Error: Directory for user generated gifs cannot be found")
-            return
+            return []
         }
-
+        
         // Reset model
-        menuContent = []
-
+        var menu: [BubbleMenuCollectionViewCellContent] = []
+        
         // Get gif contents and load to datasource
         do {
             // Get gif files in application container that end
             stickerURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter { $0.pathExtension == animationExtension }
         } catch {
             print("Error: Cannot get contents of sticker directory \(error.localizedDescription)")
-            return
+            return []
         }
-
+        
         // TODO: need thumbnails?
         for url in stickerURLs {
             let image = UIImage()
             
             let filename = url.lastPathComponent.components(separatedBy: ".").first
-            menuContent.append(BubbleMenuCollectionViewCellContent(image: image, label: filename!))
+            menu.append(BubbleMenuCollectionViewCellContent(image: image, label: filename!))
         }
+
+        return menu
     }
     
-    // MARK: CameraViewBubbleMenu
-    
-    func menu(_ sender: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
-        animationView.addAnimation(stickerURLs[indexPath.row])
+    func didSelectPrimaryMenuItem(_ atIndex: Int) {
+        animationView.addAnimation(stickerURLs[atIndex])
     }
     
     func reset() {

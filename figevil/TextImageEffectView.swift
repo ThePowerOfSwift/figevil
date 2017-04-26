@@ -8,15 +8,10 @@
 
 import UIKit
 
-class TextImageEffectView: UIView, CameraViewBubbleMenu {
+class TextImageEffectView: UIView, CameraEffect {
 
     /** Model */
     var textView = TextView()
-    
-    // MARK: CameraViewBubbleMenu variables
-    var menuContent: [BubbleMenuCollectionViewCellContent] = []
-    var iconContent = BubbleMenuCollectionViewCellContent(image: UIImage(named: "text.png")!, label: "Text")
-    var showsMenuContentOnKeyboard: Bool = true
     
     // MARK: Lifecycle
     
@@ -32,7 +27,6 @@ class TextImageEffectView: UIView, CameraViewBubbleMenu {
     
     func setup() {
         setupTextView()
-        setupBubbleMenuContent()
     }
     
     func setupTextView() {
@@ -41,7 +35,17 @@ class TextImageEffectView: UIView, CameraViewBubbleMenu {
         addSubview(textView)
     }
     
-    func setupBubbleMenuContent() {
+    // MARK: CameraEffect
+    
+    var iconImage: UIImage {
+        return #imageLiteral(resourceName: "text")
+    }
+    var label: String {
+        return "Text"
+    }
+
+    var primaryMenu: [BubbleMenuCollectionViewCellContent] {
+        var menu: [BubbleMenuCollectionViewCellContent] = []
         // Create color images and bubble contents for each color in list
         let rect = CGRect(x: 0, y: 0, width: 1, height: 1)
         for color in Color.list() {
@@ -63,17 +67,19 @@ class TextImageEffectView: UIView, CameraViewBubbleMenu {
             UIGraphicsEndImageContext()
             
             let bubble = BubbleMenuCollectionViewCellContent(image: colorImage, label: color.name)
-            menuContent.append(bubble)
+            menu.append(bubble)
         }
+        
+        return menu
     }
     
-    // MARK: CameraViewBubbleMenu
-    
-    func menu(_ sender: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
-        textView.color = Color.list()[indexPath.row].uiColor
+    var showsMenuContentOnKeyboard: Bool = true
+        
+    func didSelectPrimaryMenuItem(_ atIndex: Int) {
+        textView.color = Color.list()[atIndex].uiColor
     }
     
-    func didSelect(_ sender: CameraViewBubbleMenu) {
+    func isSelected() {
         textView.addTextfield()
     }
     

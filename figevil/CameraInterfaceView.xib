@@ -12,9 +12,8 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="CameraInterfaceView" customModule="figevil" customModuleProvider="target">
             <connections>
                 <outlet property="bottomToolbar" destination="oAz-fb-G56" id="agh-Nf-LPv"/>
-                <outlet property="contentView" destination="kb2-bg-7gK" id="dID-wz-bQb"/>
+                <outlet property="contentView" destination="kb2-bg-7gK" id="gZm-bk-aqN"/>
                 <outlet property="primaryMenuView" destination="ZiH-cj-6JQ" id="hYi-Mb-CsP"/>
-                <outlet property="secondaryMenuView" destination="aJu-g5-qnC" id="LQN-1o-1aw"/>
                 <outlet property="topToolbar" destination="6bc-C9-LEg" id="eBX-Ch-gGo"/>
             </connections>
         </placeholder>
@@ -38,16 +37,8 @@
                         <constraint firstAttribute="height" constant="70" id="NS9-bJ-6NB"/>
                     </constraints>
                 </view>
-                <view alpha="0.69999999999999996" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="aJu-g5-qnC">
-                    <rect key="frame" x="0.0" y="483" width="375" height="70"/>
-                    <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                    <constraints>
-                        <constraint firstAttribute="height" constant="70" id="AHo-xk-qcy"/>
-                    </constraints>
-                </view>
-                <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kb2-bg-7gK">
-                    <rect key="frame" x="0.0" y="44" width="375" height="377"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kb2-bg-7gK">
+                    <rect key="frame" x="0.0" y="44" width="375" height="509"/>
                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                 </view>
             </subviews>
@@ -56,14 +47,15 @@
                 <constraint firstItem="6bc-C9-LEg" firstAttribute="top" secondItem="16v-Uw-NE6" secondAttribute="top" id="CHF-d4-qKy"/>
                 <constraint firstAttribute="trailing" secondItem="oAz-fb-G56" secondAttribute="trailing" id="Dim-cL-NVX"/>
                 <constraint firstItem="oAz-fb-G56" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="HDo-tC-Hvq"/>
+                <constraint firstItem="kb2-bg-7gK" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="IVY-tT-JPH"/>
+                <constraint firstAttribute="trailing" secondItem="kb2-bg-7gK" secondAttribute="trailing" id="Jwc-ah-not"/>
                 <constraint firstAttribute="trailing" secondItem="ZiH-cj-6JQ" secondAttribute="trailing" id="LLn-19-Ul2"/>
-                <constraint firstAttribute="trailing" secondItem="aJu-g5-qnC" secondAttribute="trailing" id="Nbc-6i-jSe"/>
                 <constraint firstItem="6bc-C9-LEg" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="Nj7-Mb-2Pd"/>
-                <constraint firstItem="aJu-g5-qnC" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="Pua-vB-rRo"/>
                 <constraint firstAttribute="bottom" secondItem="oAz-fb-G56" secondAttribute="bottom" id="Qk6-Od-XUA"/>
+                <constraint firstItem="ZiH-cj-6JQ" firstAttribute="top" secondItem="kb2-bg-7gK" secondAttribute="bottom" id="W99-Ty-8fB"/>
                 <constraint firstAttribute="trailing" secondItem="6bc-C9-LEg" secondAttribute="trailing" id="lbx-Vo-PAg"/>
                 <constraint firstItem="oAz-fb-G56" firstAttribute="top" secondItem="ZiH-cj-6JQ" secondAttribute="bottom" id="n0l-zf-a92"/>
-                <constraint firstItem="ZiH-cj-6JQ" firstAttribute="top" secondItem="aJu-g5-qnC" secondAttribute="bottom" id="qyf-BB-KWK"/>
+                <constraint firstItem="kb2-bg-7gK" firstAttribute="top" secondItem="6bc-C9-LEg" secondAttribute="bottom" id="pT5-M3-yYK"/>
             </constraints>
             <nil key="simulatedStatusBarMetrics"/>
             <point key="canvasLocation" x="48.5" y="296.5"/>

@@ -8,15 +8,11 @@
 
 import UIKit
 
-class DrawImageEffectView: UIView, CameraViewBubbleMenu {
+class DrawImageEffectView: UIView, CameraEffect {
     
     /** Model */
     var drawView = DrawView()
     
-    // MARK: CameraViewBubbleMenu
-    var menuContent: [BubbleMenuCollectionViewCellContent] = []
-    var iconContent = BubbleMenuCollectionViewCellContent(image: UIImage(named: "paintbrush.png")!, label: "Draw")
-
     // MARK: Lifecycle
     
     override init(frame: CGRect) {
@@ -31,7 +27,6 @@ class DrawImageEffectView: UIView, CameraViewBubbleMenu {
     
     func setup() {
         setupDrawView()
-        setupBubbleMenuContent()
     }
     
     func setupDrawView() {
@@ -40,7 +35,10 @@ class DrawImageEffectView: UIView, CameraViewBubbleMenu {
         addSubview(drawView)
     }
     
-    func setupBubbleMenuContent() {
+    // MARK: CameraEffect
+    
+    var primaryMenu: [BubbleMenuCollectionViewCellContent] {
+        var menu: [BubbleMenuCollectionViewCellContent] = []
         // Create color images and bubble contents for each color in list
         let rect = CGRect(x: 0, y: 0, width: 1, height: 1)
         for color in Color.list() {
@@ -62,16 +60,15 @@ class DrawImageEffectView: UIView, CameraViewBubbleMenu {
             UIGraphicsEndImageContext()
             
             let bubble = BubbleMenuCollectionViewCellContent(image: colorImage, label: color.name)
-            menuContent.append(bubble)
+            menu.append(bubble)
         }
+        return menu
     }
     
-    // MARK: CameraViewBubbleMenu
-    
-    func menu(_ sender: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
-        drawView.color = Color.list()[indexPath.row].uiColor
+    func didSelectPrimaryMenuItem(_ atIndex: Int) {
+        drawView.color = Color.list()[atIndex].uiColor
     }
-    
+        
     func reset() {
         drawView.reset()
     }

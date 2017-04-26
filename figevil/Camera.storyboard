@@ -17,43 +17,11 @@
                         <viewControllerLayoutGuide type="top" id="DZY-Vk-aar"/>
                         <viewControllerLayoutGuide type="bottom" id="baq-Af-xjh"/>
                     </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="wkO-nL-iAc">
+                    <view key="view" contentMode="scaleToFill" id="wkO-nL-iAc" customClass="CameraInterfaceView" customModule="figevil" customModuleProvider="target">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MWL-Oi-NMW">
-                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                            </view>
-                            <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pTx-8A-oMA">
-                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                            </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6v3-5B-uh9" customClass="CameraInterfaceView" customModule="figevil" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                            </view>
-                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                        <constraints>
-                            <constraint firstItem="baq-Af-xjh" firstAttribute="top" secondItem="pTx-8A-oMA" secondAttribute="bottom" id="4Ip-Aj-ygF"/>
-                            <constraint firstAttribute="trailing" secondItem="MWL-Oi-NMW" secondAttribute="trailing" id="5fX-0I-dxV"/>
-                            <constraint firstAttribute="trailing" secondItem="6v3-5B-uh9" secondAttribute="trailing" id="8ft-BR-v3E"/>
-                            <constraint firstItem="6v3-5B-uh9" firstAttribute="top" secondItem="wkO-nL-iAc" secondAttribute="top" id="Bo3-Vr-iH0"/>
-                            <constraint firstItem="MWL-Oi-NMW" firstAttribute="leading" secondItem="wkO-nL-iAc" secondAttribute="leading" id="Pfy-yG-WWO"/>
-                            <constraint firstItem="6v3-5B-uh9" firstAttribute="leading" secondItem="wkO-nL-iAc" secondAttribute="leading" id="Y61-Hx-fnh"/>
-                            <constraint firstAttribute="trailing" secondItem="pTx-8A-oMA" secondAttribute="trailing" id="f74-U7-HM9"/>
-                            <constraint firstItem="pTx-8A-oMA" firstAttribute="leading" secondItem="wkO-nL-iAc" secondAttribute="leading" id="fBH-0P-9LL"/>
-                            <constraint firstItem="baq-Af-xjh" firstAttribute="top" secondItem="6v3-5B-uh9" secondAttribute="bottom" id="fbQ-nj-mNX"/>
-                            <constraint firstItem="baq-Af-xjh" firstAttribute="top" secondItem="MWL-Oi-NMW" secondAttribute="bottom" id="fuL-HK-1PS"/>
-                            <constraint firstItem="pTx-8A-oMA" firstAttribute="top" secondItem="wkO-nL-iAc" secondAttribute="top" id="lND-Fc-lp3"/>
-                            <constraint firstItem="MWL-Oi-NMW" firstAttribute="top" secondItem="wkO-nL-iAc" secondAttribute="top" id="ohr-DE-qIT"/>
-                        </constraints>
                     </view>
-                    <connections>
-                        <outlet property="controlView" destination="6v3-5B-uh9" id="XlP-YX-N0d"/>
-                        <outlet property="outputImageContainerView" destination="pTx-8A-oMA" id="ohA-O7-rYx"/>
-                        <outlet property="sampleBufferContainerView" destination="MWL-Oi-NMW" id="wQI-ga-qKX"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="rj6-Y3-fcH" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

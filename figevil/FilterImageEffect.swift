@@ -8,30 +8,22 @@
 
 import UIKit
 
-class FilterImageEffect: NSObject, CameraViewBubbleMenu {
+class FilterImageEffect: NSObject, CameraEffect {
+    weak var delegate: FilterImageEffectDelegate?
 
-    // MARK: CameraViewBubbleMenu variables
+    // MARK: CameraEffect
 
-    var menuContent: [BubbleMenuCollectionViewCellContent] = []
-    var iconContent = BubbleMenuCollectionViewCellContent(image: UIImage(named: "filter.png")!, label: "Filter")
-    var delegate: FilterImageEffectDelegate?
-    
-    override init() {
-        super.init()
-        setupBubbleMenuContent()
-    }
-    
-    func setupBubbleMenuContent() {
+    var primaryMenu: [BubbleMenuCollectionViewCellContent] {
+        var menu: [BubbleMenuCollectionViewCellContent] = []
         for filter in Filter.shared.list {
             let bubble = BubbleMenuCollectionViewCellContent(image: filter.iconImage, label: filter.name)
-            menuContent.append(bubble)
+            menu.append(bubble)
         }
+        return menu
     }
-
-    // MARK: CameraViewBubbleMenu
     
-    func menu(_ sender: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
-        let filter = Filter.shared.list[indexPath.row]
+    func didSelectPrimaryMenuItem(_ atIndex: Int) {
+        let filter = Filter.shared.list[atIndex]
         delegate?.didSelectFilter(self, filter: filter)
     }
     
@@ -40,6 +32,6 @@ class FilterImageEffect: NSObject, CameraViewBubbleMenu {
     }
 }
 
-protocol FilterImageEffectDelegate {
+protocol FilterImageEffectDelegate: class {
     func didSelectFilter(_ sender: FilterImageEffect, filter: Filter?)
 }

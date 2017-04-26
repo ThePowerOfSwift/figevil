@@ -8,24 +8,16 @@
 
 import UIKit
 
-protocol CameraInterfaceViewDelegate: class {
-    func tappedCapture(_ cameraInterfaceView: CameraInterfaceView)
-    func tappedFlash(_ cameraInterfaceView: CameraInterfaceView)
-    func tappedLoad(_ cameraInterfaceView: CameraInterfaceView)
-    func tappedCancel(_ cameraInterfaceView: CameraInterfaceView)
-    func tappedShare(_ cameraInterfaceView: CameraInterfaceView)
-    func tappedSelfie(_ cameraInterfaceView: CameraInterfaceView)
-}
-
 class CameraInterfaceView: UIView {
 
     static let name = "CameraInterfaceView"
  
     @IBOutlet weak var topToolbar: UIToolbar!
     @IBOutlet weak var bottomToolbar: UIToolbar!
-    @IBOutlet weak var primaryMenuView: UIView!
-    @IBOutlet weak var secondaryMenuView: UIView!
+    /// Tracks resizing height of bottom toolbar
+    private var bottomToolbarHeightAnchor: NSLayoutConstraint?
     @IBOutlet weak var contentView: UIView!
+    @IBOutlet weak var primaryMenuView: UIView!
     
     // Model
     /// State flag for capture or preview mode
@@ -37,54 +29,17 @@ class CameraInterfaceView: UIView {
     
     weak var delegate: CameraInterfaceViewDelegate?
     
-    // MARK: Interface items
+    // MARK: Interface variables
     
     /// Items for top toolbar when in Capture mode
-    var captureTopItems: [UIBarButtonItem] {
-        let liveBarButtonItem = UIBarButtonItem(title: "LIVE", style: .plain, target: nil, action: nil)
-        let yellow = UIColor(displayP3Red: 248/255, green: 211/255, blue: 76/255, alpha: 1.0)
-        liveBarButtonItem.setTitleTextAttributes([NSForegroundColorAttributeName: yellow], for: .normal)
-        liveBarButtonItem.isEnabled = false
-        
-        // TODO: Implement download
-        let downloadButton = UIBarButtonItem(image: #imageLiteral(resourceName: "downloads"), style: .plain, target: self, action: #selector(tappedLoad(_:)))
-        downloadButton.isEnabled = false
-        
-        return [UIBarButtonItem(image: #imageLiteral(resourceName: "flash"), style: .plain, target: self, action: #selector(tappedFlash(_:))),
-                UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                liveBarButtonItem,
-                UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                downloadButton]
-    }
-    
+    var captureTopItems: [UIBarButtonItem] = []
     /// Items for top toolbar when in Preview mode
-    var previewTopItems: [UIBarButtonItem] {
-        return [UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(tappedCancel(_:))),
-                UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(tappedShare(_:)))]
-    }
-    
-    private let circleImage = #imageLiteral(resourceName: "circle")
-    var circleBarButton: UIBarButtonItem {
-        return UIBarButtonItem(image: circleImage, style: .plain, target: self, action: #selector(tappedCapture(_:)))
-    }
-    
+    var previewTopItems: [UIBarButtonItem] = []
     /// Items for bottom toolbar when in Capture mode
-    var captureBottomItems: [UIBarButtonItem] {
-        return [UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
-                UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                circleBarButton,
-                UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                UIBarButtonItem(image: #imageLiteral(resourceName: "selfie"), style: .plain, target: self, action: #selector(tappedSelfie(_:)))]
-    }
-    
+    var captureBottomItems: [UIBarButtonItem] = []
     /// Items for bottom toolbar when in Preview mode
-    var previewBottomItems: [UIBarButtonItem] {
-        return [UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                circleBarButton,
-                UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)]
-    }
-    
+    var previewBottomItems: [UIBarButtonItem] = []
+
     // MARK: Lifecycle
     
     required init?(coder aDecoder: NSCoder) {
@@ -105,28 +60,32 @@ class CameraInterfaceView: UIView {
         view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         // Add nib view to self
         addSubview(view)
-
-        // Setup bottom toolbar anchored around circleImage (snap button)
-        let bottomBarHeight = circleImage.size.height + 20
-        bottomToolbar.heightAnchor.constraint(equalToConstant: bottomBarHeight).isActive = true
         
         // Sync contents
         isCapture = true
     }
     
     // MARK: Methods
+    
     /// Trigger 'redraw' of interface toolbars
     func updateInterface() {
+        // Repopulate top toolbar
         let topItems = isCapture ? captureTopItems : previewTopItems
         topToolbar.setItems(topItems, animated: false)
         topToolbar.tintColor = UIColor.white
-        
+
+        // Resize bottom toolbar
+        if let delegate = delegate {
+            bottomToolbarHeightAnchor = bottomToolbar.heightAnchor.constraint(equalToConstant: delegate.bottomToolbarCaptureHeight)
+        }
+        bottomToolbarHeightAnchor?.isActive = isCapture
+        // Repopulate bottom toolbar
         let bottomItems = isCapture ? captureBottomItems : previewBottomItems
         bottomToolbar.setItems(bottomItems, animated: false)
         bottomToolbar.tintColor = UIColor.white
     }
     
-    /// Toggle interface mode
+    /// Toggle interface mode: Capture vs. Preview
     func toggleInterface() {
         isCapture = !isCapture
     }
@@ -141,30 +100,9 @@ class CameraInterfaceView: UIView {
         // TODO: Flash status across screen
         print("status: \(status)")
     }
-    
-    // MARK: CameraInterfaceViewDelegate
-
-    func tappedCapture(_ sender: Any) {
-        delegate?.tappedCapture(self)
-    }
-
-    func tappedFlash(_ sender: Any) {
-        delegate?.tappedFlash(self)
-    }
-    
-    func tappedLoad(_ sender: Any) {
-        delegate?.tappedLoad(self)
-    }
-    
-    func tappedCancel(_ sender: Any) {
-        delegate?.tappedCancel(self)
-    }
-    
-    func tappedShare(_ sender: Any) {
-        delegate?.tappedShare(self)
-    }
-    
-    func tappedSelfie(_ sender: Any) {
-        delegate?.tappedSelfie(self)
-    }
 }
+
+protocol CameraInterfaceViewDelegate: class {
+    var bottomToolbarCaptureHeight: CGFloat {get}
+}
+

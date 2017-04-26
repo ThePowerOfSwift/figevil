@@ -15,85 +15,37 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     /** Model */
     var satoCamera: SatoCamera = SatoCamera.shared
 
-    @IBOutlet var sampleBufferContainerView: UIView!
-    @IBOutlet var outputImageContainerView: UIView!
+    var interfaceView: CameraInterfaceView {
+        return view as! CameraInterfaceView
+    }
     
     // MARK: SatoCameraOutput
+    // TODO: roll views into one
     // Must always be behind all other views
     var sampleBufferView: UIView? = UIView()
     // Must always be on top of sampleBuffer
     var gifOutputView: UIView? = UIView()
-    /** Collected items that should be rendered. */
-    var renderItems: [UIImage] {
-        var items = [UIImage]()
-        
-        if let drawImageEffectView = effects[1] as? DrawImageEffectView {
-            if let drawImage = drawImageEffectView.drawView.image {
-                items.append(drawImage)
-            }
-        }
-        // TODO: Why are we using embedded ImageViews?
-        if let textImageEffectView = effects[2] as? TextImageEffectView {
-            textImageEffectView.textView.render()
-            if let textImage = textImageEffectView.textView.imageView.image {
-                items.append(textImage)
-            }
-        }
-        return items
-    }
 
-    /// View that holds all control views and the active effect tool; always floating.
-    @IBOutlet var controlView: CameraInterfaceView!
-
-    // MARK: Image Effects
-    /** Tracks which effect tool is currently selected in effects: [UIView] */
-    var lastSelectedEffect = -1
-    var selectedEffect = -1
-    
-    /** All the effects to be loaded */
-    var effects: [AnyObject] = [FilterImageEffect(),
-                                DrawImageEffectView(),
-                                TextImageEffectView(),
-                                AnimationEffectView()]
-    
-    // MARK: Camera Controls & Tools
-    // Tools
-    /** Collection view for effect tool selection */
-    var effectToolBubbleCVC: BubbleMenuCollectionViewController!
-    /** Collection view for effect option selection */
-    var effectOptionBubbleCVC: BubbleMenuCollectionViewController!
-    
-    func showAVPlayer(url: URL) {
-        let player = AVPlayer(url: url)
-        let playerViewController = AVPlayerViewController()
-        playerViewController.player = player
-        self.present(playerViewController, animated: true) { 
-            playerViewController.player!.play()
-        }
-    }
     
     // MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
-        setupSatoCamera()
-        setupControlView()
-        setupEffects()
-        
-        // Finalize setup
-        view.bringSubview(toFront: controlView)
-        // Must manually select first effect
-        //selectFirstEffect()
+        if !debugCameraOff {
+            setupSatoCamera()
+        }
+        setupInterfaceView()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // TODO:         Clients invoke -startRunning to start the flow of data from inputs to outputs connected to the AVCaptureSession instance. This call blocks until the session object has completely started up or failed. A failure to start running is reported through the AVCaptureSessionRuntimeErrorNotification mechanism.
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.satoCamera.start()
         }
+        
         setupKeyboardObserver()
-
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -114,107 +66,205 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         return true
     }
     
-    // MARK: Setups
+    // MARK: SatoCamera
+    
     func setupSatoCamera() {
-        
-        if let sampleBufferView = sampleBufferView {
-            sampleBufferView.frame = sampleBufferContainerView.bounds
-            sampleBufferView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            sampleBufferContainerView.addSubview(sampleBufferView)
+        for view in [sampleBufferView!, gifOutputView!] {
+            view.frame = interfaceView.bounds
+            view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            interfaceView.contentView.addSubview(view)
         }
-
-        if let gifOutputView = gifOutputView {
-            gifOutputView.frame = outputImageContainerView.bounds
-            gifOutputView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            outputImageContainerView.addSubview(gifOutputView)
-        }
-
         satoCamera.cameraOutput = self
     }
+    
+    // MARK: InterfaceView
+
+    enum interfaceAction {
+        case capture, flash, load, cancel, share, selfie, save
+    }
+    
+    func tappedInterface(_ sender: UIBarButtonItem) {
+        if let action = barButtonMap[sender] as? interfaceAction {
+            switch action {
+            case .capture:
+                satoCamera.snapLiveGif()
+                interfaceView.toggleInterface()
+            case .flash:
+                interfaceView.update(with: toggleTorch())
+            case .load:
+                // TODO:
+                break
+            case .cancel:
+                cancel()
+            case .share:
+                share()
+            case .selfie:
+                toggleSelfie()
+            case .save:
+                save()
+            default:
+                break
+            }
+        }
+    }
+    
+    var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
+    
+    private let circleImage = #imageLiteral(resourceName: "circle")
+    
+    func setupInterfaceView() {
+        // CameraInterfaceViewDelegate
+        interfaceView.delegate = self
+
+        let liveBarButtonItem = UIBarButtonItem(title: "LIVE", style: .plain, target: nil, action: nil)
+        let yellow = UIColor(displayP3Red: 248/255, green: 211/255, blue: 76/255, alpha: 1.0)
+        liveBarButtonItem.setTitleTextAttributes([NSForegroundColorAttributeName: yellow], for: .normal)
+        liveBarButtonItem.isEnabled = false
+        
+        let downloadButton = UIBarButtonItem(image: #imageLiteral(resourceName: "downloads"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
+        barButtonMap[downloadButton] = interfaceAction.load as AnyObject
+        // TODO: Implement download
+        downloadButton.isEnabled = false
+        
+        let flashButton = UIBarButtonItem(image: #imageLiteral(resourceName: "flash"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
+        barButtonMap[flashButton] = interfaceAction.flash as AnyObject
+        
+        interfaceView.captureTopItems = [flashButton,
+                UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                liveBarButtonItem,
+                UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                downloadButton]
+        
+        let cancelButton = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(tappedInterface(_:)))
+        barButtonMap[cancelButton] = interfaceAction.cancel as AnyObject
+        let shareButton = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(tappedInterface(_:)))
+        barButtonMap[shareButton] = interfaceAction.share as AnyObject
+        
+        let filterEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "filter"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
+        filterEffectButton.tag = 0
+        barButtonMap[filterEffectButton] = 0 as AnyObject
+        
+        let circleBarButton = UIBarButtonItem(image: circleImage, style: .plain, target: self, action: #selector(tappedInterface(_:)))
+        barButtonMap[circleBarButton] = interfaceAction.capture as AnyObject
+        
+        let selfieBarButton = UIBarButtonItem(image: #imageLiteral(resourceName: "selfie"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
+        barButtonMap[selfieBarButton] = interfaceAction.selfie as AnyObject
+        
+        /// Items for bottom toolbar when in Capture mode
+        interfaceView.captureBottomItems = [filterEffectButton,
+                                            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                            circleBarButton,
+                                            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                            selfieBarButton]
+
+        
+        interfaceView.previewTopItems = [cancelButton,
+                                        UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                        shareButton]
+        
+        let stickerEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "sticker"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
+        stickerEffectButton.tag = 1
+        barButtonMap[stickerEffectButton] = 1 as AnyObject
+        let textEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "text.png"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
+        textEffectButton.tag = 2
+        barButtonMap[textEffectButton] = 2 as AnyObject
+        let drawEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "draw"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
+        drawEffectButton.tag = 3
+        barButtonMap[drawEffectButton] = 3 as AnyObject
+        let saveButton = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(tappedInterface(_:)))
+        barButtonMap[saveButton] = interfaceAction.save as AnyObject
+        
+        interfaceView.previewBottomItems = [filterEffectButton,
+                                            stickerEffectButton,
+                                            textEffectButton,
+                                            drawEffectButton,
+                                            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                            saveButton]
+
+        interfaceView.updateInterface()
+        
+        setupEffects()
+        // Setup collection views for menu and options
+        setupMenuBubbles()
+    }
+    
+    var menuBubbleCVC: BubbleMenuCollectionViewController?
+    func setupMenuBubbles() {
+        let layout = StraightCollectionViewLayout()
+        menuBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: layout)
+        menuBubbleCVC!.datasource = self
+        menuBubbleCVC!.delegate = self
+        
+        addChildViewController(menuBubbleCVC!)
+        interfaceView.primaryMenuView.addSubview(menuBubbleCVC!.view)
+        menuBubbleCVC!.view.frame = interfaceView.primaryMenuView.bounds
+        menuBubbleCVC!.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        menuBubbleCVC!.didMove(toParentViewController: self)
+    }
+    
+    // MARK: BubbleMenuCollectionViewControllerDatasource
+    
+    func bubbleMenuContent(for bubbleMenuCollectionViewController: BubbleMenuCollectionViewController) -> [BubbleMenuCollectionViewCellContent] {
+        return effects.count > 0 ? effects[selectedEffectIndex].primaryMenu ?? [] : []
+    }
+    
+    // MARK: BubbleMenuCollectionViewControllerDelegate
+    func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
+        if effects.count > 0 {
+            effects[selectedEffectIndex].didSelectPrimaryMenuItem?(indexPath.row)
+        }
+    }
+    
+    // MARK: Effects
+    
+    /// Tracks which effect tool is currently selected and activates newly selected effect
+    var selectedEffectIndex = 0 {
+        didSet {
+            if effects.count > 0 {
+                // Change effect
+                effects[selectedEffectIndex].isSelected?()
+                // Bring to front
+                if let effect = effects[selectedEffectIndex] as? UIView {
+                    interfaceView.contentView.bringSubview(toFront: effect)
+                }
+                // Load menu
+                menuBubbleCVC?.collectionView?.reloadData()
+            }
+        }
+    }
+
+    var effects: [CameraEffect] = [FilterImageEffect(),
+                                AnimationEffectView(),
+                                TextImageEffectView(),
+                                DrawImageEffectView()]
     
     func setupEffects() {
         // Add each effect
         for effect in effects {
             if let effect = effect as? UIView {
-                effect.frame = controlView.contentView.bounds
+                effect.frame = interfaceView.contentView.bounds
                 effect.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-                
-                controlView.contentView.addSubview(effect)
+                interfaceView.contentView.addSubview(effect)
             }
             if let effect = effect as? FilterImageEffect {
                 effect.delegate = satoCamera
             }
         }
-        selectFirstEffect()
     }
     
-    func setupControlView() {
-        // CameraInterfaceViewDelegate
-        controlView.delegate = self
-        
-        // Setup collection views for menu and options
-        setupEffectToolBubbles()
-        setupEffectOptionBubbles()
+    func tappedEffect(_ sender: UIBarButtonItem) {
+        let index = sender.tag
+        if selectedEffectIndex != index {
+            selectedEffectIndex = index
+        }
     }
-    
-    func setupEffectToolBubbles() {
-        let layout = StraightCollectionViewLayout()
-        effectToolBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: layout)
-        effectToolBubbleCVC.datasource = self
-        effectToolBubbleCVC.delegate = self
-        
-        addChildViewController(effectToolBubbleCVC)
-        controlView.primaryMenuView.addSubview(effectToolBubbleCVC.view)
-        effectToolBubbleCVC.view.frame = controlView.primaryMenuView.bounds
-        effectToolBubbleCVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        effectToolBubbleCVC.didMove(toParentViewController: self)
-    }
-    
-    func setupEffectOptionBubbles() {
-        let layout = StraightCollectionViewLayout()
-        effectOptionBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: layout)
-        effectOptionBubbleCVC.datasource = self
-        effectOptionBubbleCVC.delegate = self
-        
-        addChildViewController(effectOptionBubbleCVC)
-        controlView.secondaryMenuView.addSubview(effectOptionBubbleCVC.view)
-        effectOptionBubbleCVC.view.frame = controlView.secondaryMenuView.bounds
-        effectOptionBubbleCVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        effectOptionBubbleCVC.didMove(toParentViewController: self)
-    }
-    
+
     // MARK: CameraInterfaceViewDelegate
     
-    func tappedCapture(_ cameraInterfaceView: CameraInterfaceView) {
-        satoCamera.snapLiveGif()
-        controlView.toggleInterface()
+    var bottomToolbarCaptureHeight: CGFloat {
+        return circleImage.size.height + 10
     }
-    
-    func tappedFlash(_ cameraInterfaceView: CameraInterfaceView) {
-        controlView.update(with: toggleTorch())
-    }
-    
-    func tappedLoad(_ cameraInterfaceView: CameraInterfaceView) {
-        // MARK: TODO
-    }
-    
-    func tappedCancel(_ cameraInterfaceView: CameraInterfaceView) {
-        cancel()
-    }
-    
-    func tappedShare(_ cameraInterfaceView: CameraInterfaceView) {
-        share()
-    }
-    
-    func tappedSelfie (_ cameraInterfaceView: CameraInterfaceView) {
-        toggleSelfie()
-    }
-    
-    // TODO:
-    @IBAction func tappedSave(_ sender: Any) {
-        save()
-    }
-    
+
     // MARK: Camera controls
     
     // TODO:
@@ -225,55 +275,56 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 
     func cancel() {
         satoCamera.reset()
-        controlView.reset()
-        for effect in effects {
-            if let effect = effect as? CameraViewBubbleMenu {
-                effect.reset()
-            }
-        }
+        interfaceView.reset()
     }
     
     func save() {
-        satoCamera.save(renderItems: renderItems) { (saved: Bool, savedUrl: SavedURLs?, fileSize: String?) in
-            if saved {
-                if let fileSize = fileSize {
-                    let alertController = UIAlertController(title: "Original gif is saved", message: fileSize, preferredStyle: .alert)
-                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-                    alertController.addAction(okAction)
-                    self.present(alertController, animated: true, completion: nil)
+        satoCamera.save(renderItems: nil) { (success, savedURLs, filesize) in
+            DispatchQueue.main.async {
+                // render animation into movie
+                let originalMovURL = savedURLs?.video
+                let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("result.m4v")
+
+                if let animationEffectView = self.effects[1] as? AnimationEffectView {
+                    animationEffectView.animationView.overlayAnimationsToVideo(at: originalMovURL!, outputURL: outputURL, completion: {
+                        DispatchQueue.main.async {
+                            // test result
+                            let player = AVPlayer(url: outputURL)
+                            let playerViewController = AVPlayerViewController()
+                            playerViewController.player = player
+                            self.present(playerViewController, animated: true) {
+                                playerViewController.player!.play()
+                            }
+                        }
+                        // get frames from movie
+                        
+                        // apply other effects
+                        
+                    })
                 }
-            } else {
-                print("Error: Failed to save gif to camera roll")
             }
         }
+        
         cancel()
     }
     
-    /** Saves gif and open share sheet. */
+    // TODO:
+    /// Saves gif and open share sheet
     func share() {
-        satoCamera.share(renderItems: renderItems) { (saved: Bool, savedUrl: URL?) in
-            if saved {
-                guard let savedUrl = savedUrl else {
-                    print("Error: Cannot get saved url of rendered camera object")
-                    return
-                }
-                
-                DispatchQueue.main.async {
-                    do {
-                        let gifData = try Data(contentsOf: savedUrl)
-                        let activityItems: [Any] = [gifData as Any]
-                        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-                        self.present(activityViewController, animated: true, completion: nil)
-                    } catch {
-                        print("Error: cannot get data of GIF \(savedUrl.path)")
-                    }
-                }
-            } else {
-                print("Error: Failed to save gif before sharing in \(#function)")
-            }
-        }
+        /*
+        // Save to location
+        var savedURL: URL =
+        // Share
+        do {
+            let gifData = try Data(contentsOf: savedUrl)
+            let activityItems: [Any] = [gifData as Any]
+            let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+            self.present(activityViewController, animated: true, completion: nil)
+        } catch {
+            print("Error: cannot get data of GIF \(savedUrl.path)")
+        }*/
     }
-    
+
     func toggleSelfie() {
         satoCamera.toggleCamera()
     }
@@ -288,99 +339,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         print("live gif stopped")
     }
     
-    // MARK: Bubble Selection
-    
-    /** Select the first tool.  Usually used during setup */
-    func selectFirstEffect() {
-        let indexPath = IndexPath(item: 0, section: 0)
-        // Show selection
-        effectToolBubbleCVC.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: .left)
-        // Trigger selection action
-        effectToolBubbleCVC.delegate?.bubbleMenuCollectionViewController(effectToolBubbleCVC, didSelectItemAt: indexPath)
-    }
-    
-    /** Activates a selected effect and moves other effects to background */
-    func didSelectEffect(at indexPath: IndexPath) {
-        
-        // If it's the same selection, do nothing
-        if selectedEffect != indexPath.item {
-            lastSelectedEffect = selectedEffect
-            selectedEffect = indexPath.item
-        }
-        
-        // Move selected effect view to fore
-        // Remove last effect from control view
-//        if lastSelectedEffect >= 0, let effect = effects[lastSelectedEffect] as? UIView {
-//            controlView.contentView.insertSubview(effect, at: 1)
-//        }
-        // Bring selected effect view to back of control view
-        if let effect = effects[selectedEffect] as? UIView {
-            controlView.contentView.bringSubview(toFront: effect)
-        }
-        
-        // Tell tool it's been selected
-        if let effect = effects[selectedEffect] as? CameraViewBubbleMenu {
-            effect.didSelect?(effect)
-        }
-        
-        loadToolOptions()
-    }
-     
-    func loadToolOptions() {
-        //effectOptionBubbleCVC.collectionView?.collectionViewLayout.invalidateLayout()
-        effectOptionBubbleCVC.collectionView?.reloadData()
-    }
-    
-    // MARK: BubbleMenuCollectionViewControllerDatasource
-    
-    /** 
-     Returns the contents for the applicable bubble menu collection view controller.
-     */
-    func bubbleMenuContent(for bubbleMenuCollectionViewController: BubbleMenuCollectionViewController) -> [BubbleMenuCollectionViewCellContent] {
-        // Check which collection is asking for content, the tool menu or the options menu
-        if (bubbleMenuCollectionViewController == effectToolBubbleCVC) {
-            // Get the icons for all the effects
-            var iconBubbleContents: [BubbleMenuCollectionViewCellContent] = []
-            for effect in effects {
-                if let effect = effect as? CameraViewBubbleMenu {
-                    iconBubbleContents.append(effect.iconContent)
-                }
-            }
-            return iconBubbleContents
-        } else if (bubbleMenuCollectionViewController == effectOptionBubbleCVC) {
-            // Return the options for the selected effect
-            
-            // selectedEffect is -1 causing crash
-            if selectedEffect >= 0 {
-                if let effect = effects[selectedEffect] as? CameraViewBubbleMenu {
-                    return effect.menuContent
-                }
-            }
-        }
-        
-        print("Error: BubbleMenu CVC not recognized; cannot provide menu content")
-        return []
-    }
-    
-    // MARK: BubbleMenuCollectionViewControllerDelegate
-
-    func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController,
-                                            didSelectItemAt indexPath: IndexPath) {
-        // Check which collection view recieved the selection
-        // Selection made on tools menu
-        if (bubbleMenuCollectionViewController == effectToolBubbleCVC) {
-            didSelectEffect(at: indexPath)
-        }
-        // Selection made on options menu
-        else if (bubbleMenuCollectionViewController == effectOptionBubbleCVC) {
-            if selectedEffect >= 0 {
-                if let effect = effects[selectedEffect] as? CameraViewBubbleMenu {
-                    effect.menu(bubbleMenuCollectionViewController, didSelectItemAt: indexPath)
-                }
-            }
-        }
-    }
-        
     // MARK: Keyboard
     
     func setupKeyboardObserver() {
@@ -399,16 +357,16 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     func keyboardWillShow(notification: NSNotification) {
         
         // See if menu should be pushed with keyboard
-        if let showMenu = (effects[selectedEffect] as? CameraViewBubbleMenu)?.showsMenuContentOnKeyboard, showMenu {
+//        if let showMenu = (effects[selectedEffect] as? CameraEffect)?.showsPrimaryMenuOnKeyboard, showMenu {
             // Get keyboard animation information
-            guard let keyboardFrame = notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? CGRect else {
-                print("Error: Cannot retrieve Keyboard frame from keyboard notification")
-                return
-            }
-            guard let animationTime = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? Double else {
-                print("Error: Cannot retrieve animation duration from keyboard notification")
-                return
-            }
+//            guard let keyboardFrame = notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? CGRect else {
+//                print("Error: Cannot retrieve Keyboard frame from keyboard notification")
+//                return
+//            }
+//            guard let animationTime = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? Double else {
+//                print("Error: Cannot retrieve animation duration from keyboard notification")
+//                return
+//            }
             
             // Save the original position
 //            lastconstant = effectOptionViewBottomConstraint.constant
@@ -418,19 +376,19 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 //            UIView.animate(withDuration: animationTime, animations: { 
 //                self.view.layoutIfNeeded()
 //            })
-        }
+//        }
     }
     
     /** Keyboard appearance notification.  Pushes content (option menu) back to original position when no keyboard is shown */
     func keyboardWillHide(notification: NSNotification) {
         
         // See if menu should be pushed with keyboard
-        if let showMenu = (effects[selectedEffect] as? CameraViewBubbleMenu)?.showsMenuContentOnKeyboard, showMenu {
+//        if let showMenu = (effects[selectedEffect] as? CameraEffect)?.showsPrimaryMenuOnKeyboard, showMenu {
             // Get keyboard animation information
-            guard let animationTime = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? Double else {
-                print("Error: Cannot retrienve animation duration from keyboard notification")
-                return
-            }
+//            guard let animationTime = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? Double else {
+//                print("Error: Cannot retrienve animation duration from keyboard notification")
+//                return
+//            }
             
             // Return to original position
 //            effectOptionViewBottomConstraint.constant = lastconstant
@@ -438,22 +396,24 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 //            UIView.animate(withDuration: animationTime, animations: {
 //                self.view.layoutIfNeeded()
 //            })
-        }
+//        }
     }
 }
 
-@objc protocol CameraViewBubbleMenu {
-    /** Contents of the bubble menu */
-    var menuContent: [BubbleMenuCollectionViewCellContent] { get }
-    /** The icon image of the datasource */
-    var iconContent: BubbleMenuCollectionViewCellContent { get }
-    /** Flag on whether to show menu content when keyboard appears onscreen */
-    @objc optional var showsMenuContentOnKeyboard: Bool { get }
-    
-    /** Resets to receiver's state */
+@objc protocol CameraEffect {
+    /// The button of the Effect
+//    var iconImage: UIImage? { get }
+    /// The label of the Effect
+//    var label: String? { get }
+    /// Tells the receiver it was selected
+    @objc optional func isSelected()
+    /// Reset the reciever to initial state
     func reset()
-    /** Called to tell the reciever that an option item was selected */
-    func menu(_ sender: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath)
-    /** Called to tell the reciever it was selected */
-    @objc optional func didSelect(_ sender: CameraViewBubbleMenu)
+
+    /// Contents of the effect's configuration menu
+    @objc optional var primaryMenu: [BubbleMenuCollectionViewCellContent] { get }
+    /// Flag to show menu content at the top of keyboard
+    @objc optional var showsPrimaryMenuOnKeyboard: Bool { get }
+    /// Tells the reciever that a menu item was selected
+    @objc optional func didSelectPrimaryMenuItem(_ atIndex: Int)
 }
