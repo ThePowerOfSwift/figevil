@@ -10,7 +10,7 @@ import UIKit
 import AVFoundation
 import AVKit
 
-class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollectionViewControllerDatasource, BubbleMenuCollectionViewControllerDelegate, CameraInterfaceViewDelegate {
+class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollectionViewControllerDatasource, BubbleMenuCollectionViewControllerDelegate {
     
     /** Model */
     var satoCamera: SatoCamera = SatoCamera.shared
@@ -102,20 +102,20 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 toggleSelfie()
             case .save:
                 save()
-            default:
-                break
             }
         }
     }
     
-    var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
-    
-    private let circleImage = #imageLiteral(resourceName: "circle")
-    
     func setupInterfaceView() {
-        // CameraInterfaceViewDelegate
-        interfaceView.delegate = self
-
+        setupBarButton()
+        
+        setupEffects()
+        // Setup collection views for menu and options
+        setupMenuBubbles()
+    }
+    
+    var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
+    func setupBarButton() {
         let liveBarButtonItem = UIBarButtonItem(title: "LIVE", style: .plain, target: nil, action: nil)
         let yellow = UIColor(displayP3Red: 248/255, green: 211/255, blue: 76/255, alpha: 1.0)
         liveBarButtonItem.setTitleTextAttributes([NSForegroundColorAttributeName: yellow], for: .normal)
@@ -130,10 +130,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         barButtonMap[flashButton] = interfaceAction.flash as AnyObject
         
         interfaceView.captureTopItems = [flashButton,
-                UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                liveBarButtonItem,
-                UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                downloadButton]
+                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                         liveBarButtonItem,
+                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                         downloadButton]
         
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[cancelButton] = interfaceAction.cancel as AnyObject
@@ -143,9 +143,11 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         let filterEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "filter"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
         filterEffectButton.tag = 0
         barButtonMap[filterEffectButton] = 0 as AnyObject
-        
+
+        let circleImage = #imageLiteral(resourceName: "circle")
         let circleBarButton = UIBarButtonItem(image: circleImage, style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[circleBarButton] = interfaceAction.capture as AnyObject
+        interfaceView.bottomToolbarCaptureHeight = circleImage.size.height + 10
         
         let selfieBarButton = UIBarButtonItem(image: #imageLiteral(resourceName: "selfie"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[selfieBarButton] = interfaceAction.selfie as AnyObject
@@ -156,11 +158,11 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                                             circleBarButton,
                                             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                                             selfieBarButton]
-
+        
         
         interfaceView.previewTopItems = [cancelButton,
-                                        UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                                        shareButton]
+                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                         shareButton]
         
         let stickerEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "sticker"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
         stickerEffectButton.tag = 1
@@ -180,12 +182,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                                             drawEffectButton,
                                             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                                             saveButton]
-
-        interfaceView.updateInterface()
         
-        setupEffects()
-        // Setup collection views for menu and options
-        setupMenuBubbles()
+        interfaceView.updateInterface()
     }
     
     var menuBubbleCVC: BubbleMenuCollectionViewController?
@@ -258,13 +256,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             selectedEffectIndex = index
         }
     }
-
-    // MARK: CameraInterfaceViewDelegate
     
-    var bottomToolbarCaptureHeight: CGFloat {
-        return circleImage.size.height + 10
-    }
-
     // MARK: Camera controls
     
     // TODO:

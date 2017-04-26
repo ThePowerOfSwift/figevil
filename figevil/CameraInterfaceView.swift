@@ -16,6 +16,12 @@ class CameraInterfaceView: UIView {
     @IBOutlet weak var bottomToolbar: UIToolbar!
     /// Tracks resizing height of bottom toolbar
     private var bottomToolbarHeightAnchor: NSLayoutConstraint?
+    var bottomToolbarCaptureHeight: CGFloat = 0 {
+        didSet {
+            bottomToolbarHeightAnchor = bottomToolbar.heightAnchor.constraint(equalToConstant: bottomToolbarCaptureHeight)
+            bottomToolbarHeightAnchor?.isActive = true
+        }
+    }
     @IBOutlet weak var contentView: UIView!
     @IBOutlet weak var primaryMenuView: UIView!
     
@@ -26,8 +32,6 @@ class CameraInterfaceView: UIView {
             updateInterface()
         }
     }
-    
-    weak var delegate: CameraInterfaceViewDelegate?
     
     // MARK: Interface variables
     
@@ -75,9 +79,6 @@ class CameraInterfaceView: UIView {
         topToolbar.tintColor = UIColor.white
 
         // Resize bottom toolbar
-        if let delegate = delegate {
-            bottomToolbarHeightAnchor = bottomToolbar.heightAnchor.constraint(equalToConstant: delegate.bottomToolbarCaptureHeight)
-        }
         bottomToolbarHeightAnchor?.isActive = isCapture
         // Repopulate bottom toolbar
         let bottomItems = isCapture ? captureBottomItems : previewBottomItems
@@ -100,9 +101,5 @@ class CameraInterfaceView: UIView {
         // TODO: Flash status across screen
         print("status: \(status)")
     }
-}
-
-protocol CameraInterfaceViewDelegate: class {
-    var bottomToolbarCaptureHeight: CGFloat {get}
 }
 
