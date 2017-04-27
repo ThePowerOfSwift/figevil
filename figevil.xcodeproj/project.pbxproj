@@ -56,14 +56,6 @@
 		78843BCA1EA1546B000F740D /* DrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78843BC91EA1546B000F740D /* DrawView.swift */; };
 		789134471E9E8CB2008E004C /* AnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 789134461E9E8CB2008E004C /* AnimationView.swift */; };
 		789717601E941ECE00D89CB3 /* AnimationEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7897175F1E941ECE00D89CB3 /* AnimationEffectView.swift */; };
-		78B5DD181E675EC500192135 /* camera.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD101E675EC500192135 /* camera.png */; };
-		78B5DD191E675EC500192135 /* paintbrush.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD111E675EC500192135 /* paintbrush.png */; };
-		78B5DD1A1E675EC500192135 /* text.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD121E675EC500192135 /* text.png */; };
-		78B5DD1B1E675EC500192135 /* filter.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD131E675EC500192135 /* filter.png */; };
-		78B5DD1C1E675EC500192135 /* checkmark.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD141E675EC500192135 /* checkmark.png */; };
-		78B5DD1D1E675EC500192135 /* back.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD151E675EC500192135 /* back.png */; };
-		78B5DD1E1E675EC500192135 /* flash.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD161E675EC500192135 /* flash.png */; };
-		78B5DD1F1E675EC500192135 /* circle.png in Resources */ = {isa = PBXBuildFile; fileRef = 78B5DD171E675EC500192135 /* circle.png */; };
 		78BEF4371E89E4F100047212 /* GifCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BEF4341E89E4F100047212 /* GifCollectionViewCell.swift */; };
 		78BEF4391E89E4F100047212 /* GifCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 78BEF4351E89E4F100047212 /* GifCollectionViewCell.xib */; };
 		78BEF43B1E89E4F100047212 /* GifCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BEF4361E89E4F100047212 /* GifCollectionViewController.swift */; };
@@ -201,14 +193,6 @@
 		78843BC91EA1546B000F740D /* DrawView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawView.swift; sourceTree = "<group>"; };
 		789134461E9E8CB2008E004C /* AnimationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimationView.swift; sourceTree = "<group>"; };
 		7897175F1E941ECE00D89CB3 /* AnimationEffectView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimationEffectView.swift; sourceTree = "<group>"; };
-		78B5DD101E675EC500192135 /* camera.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = camera.png; sourceTree = "<group>"; };
-		78B5DD111E675EC500192135 /* paintbrush.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = paintbrush.png; sourceTree = "<group>"; };
-		78B5DD121E675EC500192135 /* text.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = text.png; sourceTree = "<group>"; };
-		78B5DD131E675EC500192135 /* filter.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = filter.png; sourceTree = "<group>"; };
-		78B5DD141E675EC500192135 /* checkmark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = checkmark.png; sourceTree = "<group>"; };
-		78B5DD151E675EC500192135 /* back.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = back.png; sourceTree = "<group>"; };
-		78B5DD161E675EC500192135 /* flash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = flash.png; sourceTree = "<group>"; };
-		78B5DD171E675EC500192135 /* circle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = circle.png; sourceTree = "<group>"; };
 		78BEF4341E89E4F100047212 /* GifCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GifCollectionViewCell.swift; sourceTree = "<group>"; };
 		78BEF4351E89E4F100047212 /* GifCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GifCollectionViewCell.xib; sourceTree = "<group>"; };
 		78BEF4361E89E4F100047212 /* GifCollectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GifCollectionViewController.swift; sourceTree = "<group>"; };
@@ -284,10 +268,11 @@
 			children = (
 				782399DF1E847C2B00207B56 /* Globals.swift */,
 				7854B9DC1E64F98300591255 /* AppDelegate.swift */,
-				7854B9EE1E64F9B600591255 /* GoogleService-Info.plist */,
-				7854B9E81E64F98300591255 /* Info.plist */,
 				7854B9E31E64F98300591255 /* Assets.xcassets */,
 				7854B9E51E64F98300591255 /* LaunchScreen.storyboard */,
+				7854B9EE1E64F9B600591255 /* GoogleService-Info.plist */,
+				7854B9E81E64F98300591255 /* Info.plist */,
+				78239A011E85E24300207B56 /* figevil.entitlements */,
 			);
 			name = Shared;
 			sourceTree = "<group>";
@@ -353,7 +338,6 @@
 		7854B9DB1E64F98300591255 /* figevil */ = {
 			isa = PBXGroup;
 			children = (
-				78239A011E85E24300207B56 /* figevil.entitlements */,
 				782BB2631E7C7FD300EFD135 /* Shared */,
 				E37ADCB71E96FE3B0037C084 /* Camera */,
 				782BB2641E7C7FEE00EFD135 /* Effects */,
@@ -370,14 +354,6 @@
 			isa = PBXGroup;
 			children = (
 				78C999EA1E972ABF00224BDF /* fte settings */,
-				78B5DD101E675EC500192135 /* camera.png */,
-				78B5DD111E675EC500192135 /* paintbrush.png */,
-				78B5DD121E675EC500192135 /* text.png */,
-				78B5DD131E675EC500192135 /* filter.png */,
-				78B5DD141E675EC500192135 /* checkmark.png */,
-				78B5DD151E675EC500192135 /* back.png */,
-				78B5DD161E675EC500192135 /* flash.png */,
-				78B5DD171E675EC500192135 /* circle.png */,
 				7857A02B1E6504EC00660B68 /* chinatown.jpg */,
 				7857A02C1E6504EC00660B68 /* golden_gate_bridge.jpg */,
 				7857A02D1E6504EC00660B68 /* montgomery.jpg */,
@@ -608,29 +584,21 @@
 				7854B9E71E64F98300591255 /* LaunchScreen.storyboard in Resources */,
 				7854B9EF1E64F9B600591255 /* GoogleService-Info.plist in Resources */,
 				7857A0301E6504EC00660B68 /* montgomery.jpg in Resources */,
-				78B5DD1C1E675EC500192135 /* checkmark.png in Resources */,
 				7857A02F1E6504EC00660B68 /* golden_gate_bridge.jpg in Resources */,
-				78B5DD191E675EC500192135 /* paintbrush.png in Resources */,
 				E3BF4D251E95BAD0005346E0 /* icecream.png in Resources */,
 				782399E21E8489C200207B56 /* FirstTimeExperience.storyboard in Resources */,
 				784E84A41E96E9400099AF45 /* general.png in Resources */,
-				78B5DD181E675EC500192135 /* camera.png in Resources */,
 				7854BA0B1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib in Resources */,
 				784E84A01E96E86B0099AF45 /* add new keyboard.png in Resources */,
 				784E84A11E96E86B0099AF45 /* figevil keyboard.png in Resources */,
 				7854B9E41E64F98300591255 /* Assets.xcassets in Resources */,
 				78BEF4391E89E4F100047212 /* GifCollectionViewCell.xib in Resources */,
-				78B5DD1F1E675EC500192135 /* circle.png in Resources */,
-				78B5DD1A1E675EC500192135 /* text.png in Resources */,
-				78B5DD1E1E675EC500192135 /* flash.png in Resources */,
 				784E84A61E96EA860099AF45 /* full access.png in Resources */,
 				784E849D1E96E86B0099AF45 /* settings icon.png in Resources */,
 				7857A02E1E6504EC00660B68 /* chinatown.jpg in Resources */,
 				784E84A21E96E86B0099AF45 /* figevil enable.png in Resources */,
 				784E849E1E96E86B0099AF45 /* keyboard.png in Resources */,
 				E3BF4D291E95CD86005346E0 /* ice_cream_cone.png in Resources */,
-				78B5DD1D1E675EC500192135 /* back.png in Resources */,
-				78B5DD1B1E675EC500192135 /* filter.png in Resources */,
 				7847FF591EA4663400DAD910 /* CameraInterfaceView.xib in Resources */,
 				7854BA001E64FD7D00591255 /* Camera.storyboard in Resources */,
 				784E849F1E96E86B0099AF45 /* keyboards.png in Resources */,

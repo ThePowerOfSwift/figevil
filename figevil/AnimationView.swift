@@ -125,58 +125,5 @@ class AnimationView: UIView {
             view.transform = view.transform.scaledBy(x: scale, y: scale)
             sender.scale = 1.0
         }
-    }
-    
-    // MARK: Rendering
-    func overlayAnimationsToVideo(at url: URL, outputURL: URL, completion: (()->())?) {
-        let urlAsset = AVURLAsset(url: url)
-        // Setup video composition to overlay animations and export
-        let videoComposition = AVMutableVideoComposition(propertiesOf: urlAsset)
-        let renderRect = CGRect(origin: CGPoint.zero, size: videoComposition.renderSize)
-        
-        // Make animation layer to superimpose on video
-        let animationLayer = CALayer()
-        animationLayer.frame = frame
-        if animationLayer.contentsAreFlipped() {
-            animationLayer.isGeometryFlipped = true
-        }
-        
-        // Set video layer as "backing" layer (to be overlaid on)
-        let videoLayer = CALayer()
-        videoLayer.frame = frame
-        animationLayer.addSublayer(videoLayer)
-        
-        // Make a sublayer for each animation
-        for animationView in animationViews {
-            animationLayer.addSublayer(animationView.layer)
-        }
-        
-        // Scale entire animation layer to fit the video
-        // Calculate scale for mapping between onscreen and physical video
-        let scaleX = renderRect.size.width / frame.width
-        let scaleY = renderRect.size.height / frame.height
-        animationLayer.setAffineTransform(CGAffineTransform(scaleX: scaleX, y: scaleY))
-        // Reposition the animation layer to overlay correctly over video
-        animationLayer.frame.origin = CGPoint(x: 0, y: 0)
-
-        // Apply animation to video composition
-        videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: animationLayer)
-        
-        // Export video with animation overlay
-        guard let exporter = AVAssetExportSession(asset: urlAsset, presetName: AVAssetExportPresetHighestQuality) else {
-            print("Error: failed to initialize exporter")
-            return
-        }
-        exporter.videoComposition = videoComposition
-        exporter.outputFileType = AVFileTypeQuickTimeMovie
-        try? FileManager.default.removeItem(at: outputURL)
-        exporter.outputURL = outputURL
-        exporter.exportAsynchronously {
-            print("AVExporter Status: \(exporter.status.hashValue)")
-            if let errorMessage = exporter.error?.localizedDescription {
-                print("AVExport Errors: \(errorMessage)")
-            }
-            completion?()
-        }
-    }
+    }    
 }

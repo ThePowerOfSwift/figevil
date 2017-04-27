@@ -116,11 +116,14 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
     func setupBarButton() {
+        // Interface status
         let liveBarButtonItem = UIBarButtonItem(title: "LIVE", style: .plain, target: nil, action: nil)
         let yellow = UIColor(displayP3Red: 248/255, green: 211/255, blue: 76/255, alpha: 1.0)
         liveBarButtonItem.setTitleTextAttributes([NSForegroundColorAttributeName: yellow], for: .normal)
         liveBarButtonItem.isEnabled = false
-        
+
+        // Camera actions
+
         let downloadButton = UIBarButtonItem(image: #imageLiteral(resourceName: "downloads"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[downloadButton] = interfaceAction.load as AnyObject
         // TODO: Implement download
@@ -129,53 +132,57 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         let flashButton = UIBarButtonItem(image: #imageLiteral(resourceName: "flash"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[flashButton] = interfaceAction.flash as AnyObject
         
-        interfaceView.captureTopItems = [flashButton,
-                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                                         liveBarButtonItem,
-                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                                         downloadButton]
-        
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[cancelButton] = interfaceAction.cancel as AnyObject
+        
         let shareButton = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[shareButton] = interfaceAction.share as AnyObject
         
-        let filterEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "filter"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
-        filterEffectButton.tag = 0
-        barButtonMap[filterEffectButton] = 0 as AnyObject
-
         let circleImage = #imageLiteral(resourceName: "circle")
         let circleBarButton = UIBarButtonItem(image: circleImage, style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[circleBarButton] = interfaceAction.capture as AnyObject
+        // Set toolbar height when circle visible
         interfaceView.bottomToolbarHeight = circleImage.size.height + 10
         
         let selfieBarButton = UIBarButtonItem(image: #imageLiteral(resourceName: "selfie"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[selfieBarButton] = interfaceAction.selfie as AnyObject
         
-        /// Items for bottom toolbar when in Capture mode
+        let saveButton = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(tappedInterface(_:)))
+        barButtonMap[saveButton] = interfaceAction.save as AnyObject
+
+        // Camera Effects
+        
+        let filterEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "filter"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
+        filterEffectButton.tag = 0
+        barButtonMap[filterEffectButton] = 0 as AnyObject
+
+        let stickerEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "sticker"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
+        stickerEffectButton.tag = 1
+        barButtonMap[stickerEffectButton] = 1 as AnyObject
+        
+        let textEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "text.png"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
+        textEffectButton.tag = 2
+        barButtonMap[textEffectButton] = 2 as AnyObject
+        
+        let drawEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "draw"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
+        drawEffectButton.tag = 3
+        barButtonMap[drawEffectButton] = 3 as AnyObject
+        
+        // Set toolbar items
+        
+        interfaceView.captureTopItems = [flashButton,
+                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                         liveBarButtonItem,
+                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                         downloadButton]
+        interfaceView.previewTopItems = [cancelButton,
+                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                         shareButton]
         interfaceView.captureBottomItems = [filterEffectButton,
                                             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                                             circleBarButton,
                                             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                                             selfieBarButton]
-        
-        
-        interfaceView.previewTopItems = [cancelButton,
-                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                                         shareButton]
-        
-        let stickerEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "sticker"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
-        stickerEffectButton.tag = 1
-        barButtonMap[stickerEffectButton] = 1 as AnyObject
-        let textEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "text.png"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
-        textEffectButton.tag = 2
-        barButtonMap[textEffectButton] = 2 as AnyObject
-        let drawEffectButton = UIBarButtonItem(image: #imageLiteral(resourceName: "draw"), style: .plain, target: self, action: #selector(tappedEffect(_:)))
-        drawEffectButton.tag = 3
-        barButtonMap[drawEffectButton] = 3 as AnyObject
-        let saveButton = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(tappedInterface(_:)))
-        barButtonMap[saveButton] = interfaceAction.save as AnyObject
-        
         interfaceView.previewBottomItems = [filterEffectButton,
                                             stickerEffectButton,
                                             textEffectButton,
@@ -183,6 +190,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                                             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                                             saveButton]
         
+        // Update the interface
         interfaceView.updateInterface()
     }
     
@@ -277,29 +285,93 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 let originalMovURL = savedURLs?.video
                 let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("result.m4v")
 
-                if let animationEffectView = self.effects[1] as? AnimationEffectView {
-                    animationEffectView.animationView.overlayAnimationsToVideo(at: originalMovURL!, outputURL: outputURL, completion: {
-                        DispatchQueue.main.async {
-                            // test result
-                            let player = AVPlayer(url: outputURL)
-                            let playerViewController = AVPlayerViewController()
-                            playerViewController.player = player
-                            self.present(playerViewController, animated: true) {
-                                playerViewController.player!.play()
-                            }
+                // Accumulate overlay views to apply to video
+                let animationEffectView = self.effects[1] as! AnimationEffectView
+                let textEffectView = self.effects[2] as! TextImageEffectView
+                let drawEffectView = self.effects[3] as! DrawImageEffectView
+                let views: [UIView] = [animationEffectView.animationView, textEffectView.textView, drawEffectView.drawView]
+
+                self.overlayViews(views, toVideo: originalMovURL!, outputURL: outputURL, completion: {
+                    
+                    DispatchQueue.main.async {
+                        // test result
+                        let player = AVPlayer(url: outputURL)
+                        let playerViewController = AVPlayerViewController()
+                        playerViewController.player = player
+                        self.present(playerViewController, animated: true) {
+                            playerViewController.player!.play()
                         }
-                        // get frames from movie
-                        
-                        // apply other effects
-                        
-                    })
-                }
+                    }
+                    // get frames from movie
+                    
+                    // apply other effects
+                    
+                })
+                
             }
         }
         
         cancel()
     }
     
+    // MARK: Rendering
+    func overlayViews(_ views: [UIView], toVideo url: URL, outputURL: URL, completion: (()->())?) {
+        let urlAsset = AVURLAsset(url: url)
+        // Setup video composition to overlay animations and export
+        let videoComposition = AVMutableVideoComposition(propertiesOf: urlAsset)
+        let renderRect = CGRect(origin: CGPoint.zero, size: videoComposition.renderSize)
+        print("videocomp render size: \(renderRect)")
+        
+        let animationLayerFrame = views.first!.frame
+        
+        // Make animation layer to superimpose on video
+        let animationLayer = CALayer()
+        animationLayer.frame = animationLayerFrame
+        if animationLayer.contentsAreFlipped() {
+            animationLayer.isGeometryFlipped = true
+        }
+        
+        // Set video layer as "backing" layer (to be overlaid on)
+        let videoLayer = CALayer()
+        videoLayer.frame = animationLayerFrame
+        animationLayer.addSublayer(videoLayer)
+        print("videolayer frame size: \(videoLayer.frame)")
+
+        // Make a sublayer for each animation
+        for overlayView in views {
+            animationLayer.addSublayer(overlayView.layer)
+        }
+        
+        // Scale entire animation layer to fit the video
+        // Calculate scale for mapping between onscreen and physical video
+        let scaleX = renderRect.size.width / animationLayerFrame.width
+        let scaleY = renderRect.size.height / animationLayerFrame.height
+        animationLayer.setAffineTransform(CGAffineTransform(scaleX: scaleX, y: scaleY))
+        print("scaled applied x, y: \(scaleX, scaleY)")
+        // Reposition the animation layer to overlay correctly over video
+        animationLayer.frame.origin = CGPoint(x: 0, y: 0)
+        
+        // Apply animation to video composition
+        videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: animationLayer)
+        
+        // Export video with animation overlay
+        guard let exporter = AVAssetExportSession(asset: urlAsset, presetName: AVAssetExportPresetHighestQuality) else {
+            print("Error: failed to initialize exporter")
+            return
+        }
+        exporter.videoComposition = videoComposition
+        exporter.outputFileType = AVFileTypeQuickTimeMovie
+        try? FileManager.default.removeItem(at: outputURL)
+        exporter.outputURL = outputURL
+        exporter.exportAsynchronously {
+            print("AVExporter Status: \(exporter.status.hashValue)")
+            if let errorMessage = exporter.error?.localizedDescription {
+                print("AVExport Errors: \(errorMessage)")
+            }
+            completion?()
+        }
+    }
+
     // TODO:
     /// Saves gif and open share sheet
     func share() {
@@ -390,10 +462,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 }
 
 @objc protocol CameraEffect {
-    /// The button of the Effect
-//    var iconImage: UIImage? { get }
-    /// The label of the Effect
-//    var label: String? { get }
     /// Tells the receiver it was selected
     @objc optional func isSelected()
     /// Reset the reciever to initial state
