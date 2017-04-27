@@ -37,13 +37,6 @@ class TextImageEffectView: UIView, CameraEffect {
     
     // MARK: CameraEffect
     
-    var iconImage: UIImage {
-        return #imageLiteral(resourceName: "text")
-    }
-    var label: String {
-        return "Text"
-    }
-
     var primaryMenu: [BubbleMenuCollectionViewCellContent] {
         var menu: [BubbleMenuCollectionViewCellContent] = []
         // Create color images and bubble contents for each color in list
@@ -73,7 +66,7 @@ class TextImageEffectView: UIView, CameraEffect {
         return menu
     }
     
-    var showsMenuContentOnKeyboard: Bool = true
+    var showsPrimaryMenuOnKeyboard: Bool = true
         
     func didSelectPrimaryMenuItem(_ atIndex: Int) {
         textView.color = Color.list()[atIndex].uiColor

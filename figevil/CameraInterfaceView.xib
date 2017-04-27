@@ -14,6 +14,7 @@
                 <outlet property="bottomToolbar" destination="oAz-fb-G56" id="agh-Nf-LPv"/>
                 <outlet property="contentView" destination="kb2-bg-7gK" id="gZm-bk-aqN"/>
                 <outlet property="primaryMenuView" destination="ZiH-cj-6JQ" id="hYi-Mb-CsP"/>
+                <outlet property="primaryMenuViewBottomConstraint" destination="n0l-zf-a92" id="M5q-cF-Qor"/>
                 <outlet property="topToolbar" destination="6bc-C9-LEg" id="eBX-Ch-gGo"/>
             </connections>
         </placeholder>

@@ -9,7 +9,7 @@
 import UIKit
 
 let debug: Bool = false
-let debugCameraOff: Bool = true
+let debugCameraOff: Bool = false
 
 enum Sizes {
     static let minimumTappable = CGSize(width: 44.0, height: 44.0)

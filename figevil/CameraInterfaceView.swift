@@ -16,14 +16,15 @@ class CameraInterfaceView: UIView {
     @IBOutlet weak var bottomToolbar: UIToolbar!
     /// Tracks resizing height of bottom toolbar
     private var bottomToolbarHeightAnchor: NSLayoutConstraint?
-    var bottomToolbarCaptureHeight: CGFloat = 0 {
+    var bottomToolbarHeight: CGFloat = 0 {
         didSet {
-            bottomToolbarHeightAnchor = bottomToolbar.heightAnchor.constraint(equalToConstant: bottomToolbarCaptureHeight)
+            bottomToolbarHeightAnchor = bottomToolbar.heightAnchor.constraint(equalToConstant: bottomToolbarHeight)
             bottomToolbarHeightAnchor?.isActive = true
         }
     }
     @IBOutlet weak var contentView: UIView!
     @IBOutlet weak var primaryMenuView: UIView!
+    @IBOutlet weak var primaryMenuViewBottomConstraint: NSLayoutConstraint!
     
     // Model
     /// State flag for capture or preview mode

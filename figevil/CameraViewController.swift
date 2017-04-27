@@ -147,7 +147,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         let circleImage = #imageLiteral(resourceName: "circle")
         let circleBarButton = UIBarButtonItem(image: circleImage, style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[circleBarButton] = interfaceAction.capture as AnyObject
-        interfaceView.bottomToolbarCaptureHeight = circleImage.size.height + 10
+        interfaceView.bottomToolbarHeight = circleImage.size.height + 10
         
         let selfieBarButton = UIBarButtonItem(image: #imageLiteral(resourceName: "selfie"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[selfieBarButton] = interfaceAction.selfie as AnyObject
@@ -343,52 +343,49 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         NotificationCenter.default.removeObserver(self, name: .UIKeyboardWillHide, object: nil)
     }
     
-    var lastconstant: CGFloat = 0
-    @IBOutlet weak var effectOptionViewBottomConstraint: NSLayoutConstraint!
     /** Keyboard appearance notification.  Pushes content (option menu) up to keyboard top floating */
     func keyboardWillShow(notification: NSNotification) {
         
         // See if menu should be pushed with keyboard
-//        if let showMenu = (effects[selectedEffect] as? CameraEffect)?.showsPrimaryMenuOnKeyboard, showMenu {
+        if let _ = effects[selectedEffectIndex].showsPrimaryMenuOnKeyboard {
             // Get keyboard animation information
-//            guard let keyboardFrame = notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? CGRect else {
-//                print("Error: Cannot retrieve Keyboard frame from keyboard notification")
-//                return
-//            }
-//            guard let animationTime = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? Double else {
-//                print("Error: Cannot retrieve animation duration from keyboard notification")
-//                return
-//            }
-            
-            // Save the original position
-//            lastconstant = effectOptionViewBottomConstraint.constant
-            // Enforce the new position above keyboard
-//            effectOptionViewBottomConstraint.constant = keyboardFrame.height - (44 + 15)
-            // Animate the constraint changes
-//            UIView.animate(withDuration: animationTime, animations: { 
-//                self.view.layoutIfNeeded()
-//            })
-//        }
+            guard let keyboardFrame = notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? CGRect else {
+                print("Error: Cannot retrieve Keyboard frame from keyboard notification")
+                return
+            }
+            guard let animationTime = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? Double else {
+                print("Error: Cannot retrieve animation duration from keyboard notification")
+                return
+            }
+
+            if interfaceView.primaryMenuView.frame.minY < keyboardFrame.maxY {
+                let height = keyboardFrame.height - interfaceView.bottomToolbar.frame.height
+                interfaceView.primaryMenuViewBottomConstraint.constant = height
+
+                UIView.animate(withDuration: animationTime, animations: {
+                    self.view.layoutIfNeeded()
+                })
+            }
+        }
     }
     
     /** Keyboard appearance notification.  Pushes content (option menu) back to original position when no keyboard is shown */
     func keyboardWillHide(notification: NSNotification) {
         
         // See if menu should be pushed with keyboard
-//        if let showMenu = (effects[selectedEffect] as? CameraEffect)?.showsPrimaryMenuOnKeyboard, showMenu {
+        if let _ = effects[selectedEffectIndex].showsPrimaryMenuOnKeyboard {
             // Get keyboard animation information
-//            guard let animationTime = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? Double else {
-//                print("Error: Cannot retrienve animation duration from keyboard notification")
-//                return
-//            }
+            guard let animationTime = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? Double else {
+                print("Error: Cannot retrienve animation duration from keyboard notification")
+                return
+            }
             
-            // Return to original position
-//            effectOptionViewBottomConstraint.constant = lastconstant
-            // Animate the constraint changes
-//            UIView.animate(withDuration: animationTime, animations: {
-//                self.view.layoutIfNeeded()
-//            })
-//        }
+            interfaceView.primaryMenuViewBottomConstraint.constant = 0
+
+            UIView.animate(withDuration: animationTime, animations: {
+                self.view.layoutIfNeeded()
+            })
+        }
     }
 }
 
