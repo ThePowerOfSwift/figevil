@@ -369,8 +369,14 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             completion?()
         }
         
-        while exporter.status == .exporting || exporter.status == .waiting{
-            print("session progress: \(exporter.progress * 100)")
+        // Progress tracking
+        var lastProgress: Float = 0
+        while exporter.status == .exporting || exporter.status == .waiting {
+            let currentProgress = exporter.progress * 100
+            if currentProgress != lastProgress {
+                print("session progress: \(currentProgress)")
+                lastProgress = currentProgress
+            }
             _ = group.wait(timeout: DispatchTime.init(uptimeNanoseconds: 500 * NSEC_PER_SEC))
         }
 
