@@ -137,6 +137,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         let shareButton = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[shareButton] = interfaceAction.share as AnyObject
+        // TODO:
+        shareButton.isEnabled = false
         
         let circleImage = #imageLiteral(resourceName: "circle")
         let circleBarButton = UIBarButtonItem(image: circleImage, style: .plain, target: self, action: #selector(tappedInterface(_:)))
@@ -280,98 +282,29 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     func save() {
         satoCamera.save(renderItems: nil) { (success, savedURLs, filesize) in
-            DispatchQueue.main.async {
-                // render animation into movie
-                let originalMovURL = savedURLs?.video
-                let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("result.m4v")
+            // render animation into movie
+            let originalMovURL = savedURLs?.video
+            let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("result.m4v")
 
-                // Accumulate overlay views to apply to video
-                let animationEffectView = self.effects[1] as! AnimationEffectView
-                let textEffectView = self.effects[2] as! TextImageEffectView
-                let drawEffectView = self.effects[3] as! DrawImageEffectView
-                let views: [UIView] = [animationEffectView.animationView, textEffectView.textView, drawEffectView.drawView]
-
-                self.overlayViews(views, toVideo: originalMovURL!, outputURL: outputURL, completion: {
-                    
-                    DispatchQueue.main.async {
-                        // test result
-                        let player = AVPlayer(url: outputURL)
-                        let playerViewController = AVPlayerViewController()
-                        playerViewController.player = player
-                        self.present(playerViewController, animated: true) {
-                            playerViewController.player!.play()
-                        }
+            self.render(originalMovURL!, outputURL: outputURL) {
+                DispatchQueue.main.async {
+                    // test result
+                    let player = AVPlayer(url: outputURL)
+                    let playerViewController = AVPlayerViewController()
+                    playerViewController.player = player
+                    self.present(playerViewController, animated: true) {
+                        playerViewController.player!.play()
                     }
-                    // get frames from movie
-                    
-                    // apply other effects
-                    
-                })
+                }
+                // get frames from movie
+                
+                // apply other effects
                 
             }
         }
-        
         cancel()
     }
     
-    // MARK: Rendering
-    func overlayViews(_ views: [UIView], toVideo url: URL, outputURL: URL, completion: (()->())?) {
-        let urlAsset = AVURLAsset(url: url)
-        // Setup video composition to overlay animations and export
-        let videoComposition = AVMutableVideoComposition(propertiesOf: urlAsset)
-        let renderRect = CGRect(origin: CGPoint.zero, size: videoComposition.renderSize)
-        print("videocomp render size: \(renderRect)")
-        
-        let animationLayerFrame = views.first!.frame
-        
-        // Make animation layer to superimpose on video
-        let animationLayer = CALayer()
-        animationLayer.frame = animationLayerFrame
-        if animationLayer.contentsAreFlipped() {
-            animationLayer.isGeometryFlipped = true
-        }
-        
-        // Set video layer as "backing" layer (to be overlaid on)
-        let videoLayer = CALayer()
-        videoLayer.frame = animationLayerFrame
-        animationLayer.addSublayer(videoLayer)
-        print("videolayer frame size: \(videoLayer.frame)")
-
-        // Make a sublayer for each animation
-        for overlayView in views {
-            animationLayer.addSublayer(overlayView.layer)
-        }
-        
-        // Scale entire animation layer to fit the video
-        // Calculate scale for mapping between onscreen and physical video
-        let scaleX = renderRect.size.width / animationLayerFrame.width
-        let scaleY = renderRect.size.height / animationLayerFrame.height
-        animationLayer.setAffineTransform(CGAffineTransform(scaleX: scaleX, y: scaleY))
-        print("scaled applied x, y: \(scaleX, scaleY)")
-        // Reposition the animation layer to overlay correctly over video
-        animationLayer.frame.origin = CGPoint(x: 0, y: 0)
-        
-        // Apply animation to video composition
-        videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: animationLayer)
-        
-        // Export video with animation overlay
-        guard let exporter = AVAssetExportSession(asset: urlAsset, presetName: AVAssetExportPresetHighestQuality) else {
-            print("Error: failed to initialize exporter")
-            return
-        }
-        exporter.videoComposition = videoComposition
-        exporter.outputFileType = AVFileTypeQuickTimeMovie
-        try? FileManager.default.removeItem(at: outputURL)
-        exporter.outputURL = outputURL
-        exporter.exportAsynchronously {
-            print("AVExporter Status: \(exporter.status.hashValue)")
-            if let errorMessage = exporter.error?.localizedDescription {
-                print("AVExport Errors: \(errorMessage)")
-            }
-            completion?()
-        }
-    }
-
     // TODO:
     /// Saves gif and open share sheet
     func share() {
@@ -397,6 +330,111 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         return satoCamera.toggleTorch()
     }
     
+    // MARK: Rendering
+    
+    func render(_ videoURL: URL, outputURL: URL, completion: (()->())?) {
+        // TODO: get current filter
+        let filter = CIFilter(name: "CISepiaTone")!
+
+        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.m4v")
+        applyFilter(filter, toVideo: videoURL, outputURL: tempURL) {
+            self.overlayEffectsToVideo(tempURL, outputURL: outputURL) {
+                completion?()
+            }
+        }
+    }
+    
+    func applyFilter(_ filter: CIFilter, toVideo url: URL, outputURL: URL, completion: (()->())?) {
+        let urlAsset = AVURLAsset(url: url)
+
+        // Setup video composition to overlay animations and export
+        let videoComposition = AVMutableVideoComposition(asset: urlAsset) { (request) in
+            // Clamp to avoid blurring transparent pixels at the image edges
+            filter.setValue(request.sourceImage, forKey: kCIInputImageKey)
+            let output = filter.outputImage!
+            
+            // Provide the filter output to the composition
+            request.finish(with: output, context: nil)
+        }
+
+        // Export video with animation overlay
+        guard let exporter = AVAssetExportSession(asset: urlAsset, presetName: AVAssetExportPresetHighestQuality) else {
+            print("Error: failed to initialize exporter to render filters")
+            return
+        }
+        exporter.videoComposition = videoComposition
+        exporter.outputFileType = AVFileTypeQuickTimeMovie
+        try? FileManager.default.removeItem(at: outputURL)
+        exporter.outputURL = outputURL
+        exporter.exportAsynchronously {
+            print("AVExporter Status: \(exporter.status.hashValue)")
+            if let errorMessage = exporter.error?.localizedDescription {
+                print("AVExport Error: \(errorMessage)")
+            }
+            completion?()
+        }
+    }
+    
+    func overlayEffectsToVideo(_ url: URL, outputURL: URL, completion: (()->())?) {
+        // Accumulate overlay views to apply to video
+        let animationEffectView = self.effects[1] as! AnimationEffectView
+        let textEffectView = self.effects[2] as! TextImageEffectView
+        let drawEffectView = self.effects[3] as! DrawImageEffectView
+        let views: [UIView] = [animationEffectView.animationView, textEffectView.textView, drawEffectView.drawView]
+        
+        // Prep to overlay effects
+        let urlAsset = AVURLAsset(url: url)
+        let videoComposition = AVMutableVideoComposition(propertiesOf: urlAsset)
+        let renderRect = CGRect(origin: CGPoint.zero, size: videoComposition.renderSize)
+        let animationLayerFrame = views.first!.frame
+        
+        // Make animation layer to superimpose on video
+        let animationLayer = CALayer()
+        animationLayer.frame = animationLayerFrame
+        if animationLayer.contentsAreFlipped() {
+            animationLayer.isGeometryFlipped = true
+        }
+        
+        // Set video layer as "backing" layer (to be overlaid on)
+        let videoLayer = CALayer()
+        videoLayer.frame = animationLayerFrame
+        animationLayer.addSublayer(videoLayer)
+        
+        // Make a sublayer for each animation
+        for overlayView in views {
+            animationLayer.addSublayer(overlayView.layer)
+        }
+        
+        // Scale entire animation layer to fit the video
+        // Calculate scale for mapping between onscreen and physical video
+        let scaleX = renderRect.size.width / animationLayerFrame.width
+        let scaleY = renderRect.size.height / animationLayerFrame.height
+        animationLayer.setAffineTransform(CGAffineTransform(scaleX: scaleX, y: scaleY))
+        
+        // Reposition the animation layer to overlay correctly over video
+        animationLayer.frame.origin = CGPoint(x: 0, y: 0)
+        
+        // Apply animation to video composition
+        videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: animationLayer)
+        
+        // Export video with animation overlay
+        guard let exporter = AVAssetExportSession(asset: urlAsset, presetName: AVAssetExportPresetHighestQuality) else {
+            print("Error: failed to initialize exporter to render effects")
+            return
+        }
+        exporter.videoComposition = videoComposition
+        exporter.outputFileType = AVFileTypeQuickTimeMovie
+        try? FileManager.default.removeItem(at: outputURL)
+        exporter.outputURL = outputURL
+        exporter.exportAsynchronously {
+            print("AVExporter Status: \(exporter.status.hashValue)")
+            if let errorMessage = exporter.error?.localizedDescription {
+                print("AVExport Error: \(errorMessage)")
+            }
+            completion?()
+        }
+    }
+
     // MARK: SatoCameraOutput
     
     func didLiveGifStop() {

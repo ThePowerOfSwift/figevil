@@ -14,12 +14,7 @@ class FilterImageEffect: NSObject, CameraEffect {
     // MARK: CameraEffect
 
     var primaryMenu: [BubbleMenuCollectionViewCellContent] {
-        var menu: [BubbleMenuCollectionViewCellContent] = []
-        for filter in Filter.shared.list {
-            let bubble = BubbleMenuCollectionViewCellContent(image: filter.iconImage, label: filter.name)
-            menu.append(bubble)
-        }
-        return menu
+        return Filter.shared.list.map({ BubbleMenuCollectionViewCellContent(image: $0.iconImage, label: $0.name) })
     }
     
     func didSelectPrimaryMenuItem(_ atIndex: Int) {
@@ -28,7 +23,7 @@ class FilterImageEffect: NSObject, CameraEffect {
     }
     
     func reset() {
-        
+        didSelectPrimaryMenuItem(0)
     }
 }
 
