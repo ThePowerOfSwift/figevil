@@ -847,7 +847,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         } else {
             print("no need to trim from the first video")
             resultVideoURL = lastVideoURL
-            getThumbnailFrom(videoURL: lastVideoURL, completion: { (imageURLs: [URL]) in
+            generateThumbnailImagesFrom(videoURL: lastVideoURL, completion: { (imageURLs: [URL]) in
                 self.resizedURLs = imageURLs
                 self.showGifWithGLKView(with: imageURLs)
             })
@@ -863,7 +863,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             if let outputURL = session.outputURL {
                 resultVideoURL = outputURL
                 let outputAsset = AVURLAsset(url: outputURL)
-                getThumbnailFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
+                generateThumbnailImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
                     self.resizedURLs = imageURLs
                     self.showGifWithGLKView(with: imageURLs)
                 })
@@ -898,7 +898,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     // MARK: - Get thumbnail image from video
-    func getThumbnailFrom(videoURL: URL, completion: (([URL]) -> Void)?) {
+    func generateThumbnailImagesFrom(videoURL: URL, completion: (([URL]) -> Void)?) {
         let asset = AVAsset(url: videoURL)
         let assetImageGenerator = AVAssetImageGenerator(asset: asset)
         assetImageGenerator.requestedTimeToleranceAfter = kCMTimeZero
@@ -952,7 +952,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    func getThumbnailFrom(videoURL: URL) -> [URL] {
+    func generateThumbnailImageFrom(videoURL: URL) -> [URL] {
         let asset = AVAsset(url: videoURL)
         let assetImageGenerator = AVAssetImageGenerator(asset: asset)
         assetImageGenerator.requestedTimeToleranceBefore = kCMTimeZero
@@ -1126,19 +1126,19 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         
         let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL, video: resultVideoURL)
         
-        if thumbnailURLs.createGif(frameDelay: 0.5, destinationURL: thumbnailURL) {
+        if thumbnailURLs.makeGifFile(frameDelay: 0.5, destinationURL: thumbnailURL) {
             print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
         } else {
             print("Error: thumbnail gif URL failed to save in \(#function)")
         }
         
-        if messageURLs.createGif(frameDelay: 0.5, destinationURL: messageURL) {
+        if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: messageURL) {
             print("message gif URL filesize: \(messageURL.filesize!)")
         } else {
             print("Error: message gif URL failed to save in \(#function)")
         }
         
-        if renderedURLs.createGif(frameDelay: 0.5, destinationURL: originalURL) {
+        if renderedURLs.makeGifFile(frameDelay: 0.5, destinationURL: originalURL) {
             print("original gif URL filesize: \(originalURL.filesize!)")
             PHPhotoLibrary.requestAuthorization
                 { (status) -> Void in
@@ -1182,7 +1182,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
         let url = URL(fileURLWithPath: path)
         
-        let success = messageURLs.createGif(frameDelay: 0.5, destinationURL: url)
+        let success = messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: url)
         
         if success {
             print("gif is saved to \(url). Filesize is \(String(describing: url.filesize!))")
@@ -1237,7 +1237,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         
         resizedURLs = resizedTempURLs
         
-        if let gifImageView = makeGif(urls: resizedTempURLs, filter: currentFilter.filter, animationDuration: currentLiveGifPreset.gifDuration) {
+        if let gifImageView = makeAnimatedImageView(urls: resizedTempURLs, filter: currentFilter.filter, animationDuration: currentLiveGifPreset.gifDuration) {
             if let cameraOutput = cameraOutput {
                 if let outputImageView = cameraOutput.gifOutputView {
                     outputImageView.isHidden = false
@@ -1363,7 +1363,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
 
     /** Make a gif image view from urls. */
-    func makeGif(urls: [URL], filter: CIFilter?, animationDuration: TimeInterval) -> UIImageView? {
+    func makeAnimatedImageView(urls: [URL], filter: CIFilter?, animationDuration: TimeInterval) -> UIImageView? {
         
         filteredUIImages.removeAll()
         let ciContext = CIContext() // Reuse this context.
@@ -1556,6 +1556,7 @@ extension URL {
         return url
     }
     
+    /** Takes UUID for path. */
     static func messageURL(path: String) -> URL {
         var url: URL
         if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
@@ -1723,7 +1724,7 @@ extension CMSampleBuffer {
 }
 
 extension Sequence where Iterator.Element == URL {
-    func createGif(loopCount: Int = 0, frameDelay: Double, destinationURL: URL) -> Bool {
+    func makeGifFile(loopCount: Int = 0, frameDelay: Double, destinationURL: URL) -> Bool {
         let imageURLs = self as! [URL]
         // Data check
         if imageURLs.count <= 0 {

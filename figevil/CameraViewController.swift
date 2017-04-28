@@ -9,6 +9,8 @@
 import UIKit
 import AVFoundation
 import AVKit
+import Photos
+import MobileCoreServices
 
 class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollectionViewControllerDatasource, BubbleMenuCollectionViewControllerDelegate {
     
@@ -285,9 +287,37 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             // render animation into movie
             let originalMovURL = savedURLs?.video
             let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("result.m4v")
-
+            
             self.render(originalMovURL!, outputURL: outputURL) {
                 DispatchQueue.main.async {
+                    
+                    self.satoCamera.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (urls: [URL]) in
+                        let gifFileURL = URL.messageURL(path: UUID().uuidString)
+                        if urls.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
+                            PHPhotoLibrary.requestAuthorization
+                                { (status) -> Void in
+                                    switch (status)
+                                    {
+                                    case .authorized:
+                                        PHPhotoLibrary.shared().performChanges({
+                                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifFileURL)
+                                        }, completionHandler: { (saved: Bool, error: Error?) in
+                                            if saved {
+                                            } else {
+                                                print("Error: did not save gif")
+                                            }
+                                        })
+                                    case .denied:
+                                        print("Error: User denied")
+                                    default:
+                                        print("Error: Restricted")
+                                    }
+                            }
+                        } else {
+                            print("Error: Faild to make gif file.")
+                        }
+                    })
+                    
                     // test result
                     let player = AVPlayer(url: outputURL)
                     let playerViewController = AVPlayerViewController()
