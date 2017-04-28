@@ -344,6 +344,38 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         }
     }
     
+    /// Export video composition
+    func export(_ asset: AVAsset, with videoComposition:AVVideoComposition, to: URL, completion: (()->())?) {
+        
+        // TODO: if satoCamera.isRunning
+        satoCamera.stop()  // Without this line a Mach error is thrown with multi thread conflict w/ camera access
+        
+        guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
+            print("Error: failed to initialize exporter to render filters")
+            return
+        }
+        exporter.videoComposition = videoComposition
+        exporter.outputFileType = AVFileTypeQuickTimeMovie
+        try? FileManager.default.removeItem(at: to)
+        exporter.outputURL = to
+        
+        let group = DispatchGroup()
+        group.enter()
+        exporter.exportAsynchronously {
+            group.leave()
+            if let errorMessage = exporter.error?.localizedDescription {
+                print("AVExport Error: \(errorMessage)")
+            }
+            completion?()
+        }
+        
+        while exporter.status == .exporting || exporter.status == .waiting{
+            print("session progress: \(exporter.progress * 100)")
+            _ = group.wait(timeout: DispatchTime.init(uptimeNanoseconds: 500 * NSEC_PER_SEC))
+        }
+
+    }
+    
     func applyFilter(_ filter: CIFilter, toVideo url: URL, outputURL: URL, completion: (()->())?) {
         let urlAsset = AVURLAsset(url: url)
 
@@ -357,22 +389,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             request.finish(with: output, context: nil)
         }
 
-        // Export video with animation overlay
-        guard let exporter = AVAssetExportSession(asset: urlAsset, presetName: AVAssetExportPresetHighestQuality) else {
-            print("Error: failed to initialize exporter to render filters")
-            return
-        }
-        exporter.videoComposition = videoComposition
-        exporter.outputFileType = AVFileTypeQuickTimeMovie
-        try? FileManager.default.removeItem(at: outputURL)
-        exporter.outputURL = outputURL
-        exporter.exportAsynchronously {
-            print("AVExporter Status: \(exporter.status.hashValue)")
-            if let errorMessage = exporter.error?.localizedDescription {
-                print("AVExport Error: \(errorMessage)")
-            }
-            completion?()
-        }
+        // Export video with filter
+        export(urlAsset, with: videoComposition, to: outputURL, completion: completion)
     }
     
     func overlayEffectsToVideo(_ url: URL, outputURL: URL, completion: (()->())?) {
@@ -386,6 +404,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         let urlAsset = AVURLAsset(url: url)
         let videoComposition = AVMutableVideoComposition(propertiesOf: urlAsset)
         let renderRect = CGRect(origin: CGPoint.zero, size: videoComposition.renderSize)
+        // Sizes the animation and video layers- must be the same aspect ratio as AVAsset
         let animationLayerFrame = views.first!.frame
         
         // Make animation layer to superimpose on video
@@ -417,22 +436,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         // Apply animation to video composition
         videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: animationLayer)
         
-        // Export video with animation overlay
-        guard let exporter = AVAssetExportSession(asset: urlAsset, presetName: AVAssetExportPresetHighestQuality) else {
-            print("Error: failed to initialize exporter to render effects")
-            return
-        }
-        exporter.videoComposition = videoComposition
-        exporter.outputFileType = AVFileTypeQuickTimeMovie
-        try? FileManager.default.removeItem(at: outputURL)
-        exporter.outputURL = outputURL
-        exporter.exportAsynchronously {
-            print("AVExporter Status: \(exporter.status.hashValue)")
-            if let errorMessage = exporter.error?.localizedDescription {
-                print("AVExport Error: \(errorMessage)")
-            }
-            completion?()
-        }
+        export(urlAsset, with: videoComposition, to: outputURL, completion: completion)
     }
 
     // MARK: SatoCameraOutput
