@@ -45,7 +45,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     // MARK: State
     fileprivate var cameraFace: CameraFace = .Back
-    fileprivate var currentFilter: Filter = Filter.shared.list[0]
+    var currentFilter: Filter = Filter.shared.list[0]
     fileprivate var light = Light()
     fileprivate var currentLiveGifPreset: LiveGifPreset = LiveGifPreset()
     

@@ -333,13 +333,12 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // MARK: Rendering
     
     func render(_ videoURL: URL, outputURL: URL, completion: (()->())?) {
-        // TODO: get current filter
-        let filter = CIFilter(name: "CISepiaTone")!
-
         let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.m4v")
-        applyFilter(filter, toVideo: videoURL, outputURL: tempURL) {
-            self.overlayEffectsToVideo(tempURL, outputURL: outputURL) {
-                completion?()
+        if let filter = satoCamera.currentFilter.filter {
+            applyFilter(filter, toVideo: videoURL, outputURL: tempURL) {
+                self.overlayEffectsToVideo(tempURL, outputURL: outputURL) {
+                    completion?()
+                }
             }
         }
     }
