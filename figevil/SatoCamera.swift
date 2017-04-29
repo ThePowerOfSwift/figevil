@@ -199,13 +199,35 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 self.stop()
                 if currentAssetWriter == .First {
                     saveFirstAssetWriter(completion: {
-                        self.getVideo()
-                        
+                        self.stitchFragmentVideosTogether(completion: { (outputURL: URL) -> Void in
+                            self.resultVideoURL = outputURL
+                            let outputAsset = AVURLAsset(url: outputURL)
+                            self.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
+                                self.resizedURLs = imageURLs
+                                self.showGifWithGLKView(with: imageURLs)
+                            })
+                            //                let urls = getThumbnailFrom(videoURL: outputURL)
+                            //                showGifWithGLKView(with: urls)
+                            //                resizedURLs = urls
+                            print("output URL duration: \(outputAsset.duration)")
+                        })
                     })
+                    
                 } else if currentAssetWriter == .Second {
                     saveSecondAssetWriter(completion: {
-                        self.getVideo()
-                        
+                        self.stitchFragmentVideosTogether(completion: { (outputURL: URL) -> Void in
+                            self.resultVideoURL = outputURL
+                            let outputAsset = AVURLAsset(url: outputURL)
+                            self.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
+                                self.resizedURLs = imageURLs
+                                self.showGifWithGLKView(with: imageURLs)
+                            })
+                            //                let urls = getThumbnailFrom(videoURL: outputURL)
+                            //                showGifWithGLKView(with: urls)
+                            //                resizedURLs = urls
+                            print("output URL duration: \(outputAsset.duration)")
+
+                        })
                     })
                 }
             }
@@ -787,7 +809,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // if it's more than 1 second, trim the last 1 second
     // if it's less than 1 second, go to the previous video
     // take 1 - (1 - lv) from the prev video
-    func getVideo() {
+    func stitchFragmentVideosTogether(completion: ((URL) -> Void)?) {
         guard let firstVideoURL = videoURLs.first, let lastVideoURL = videoURLs.last else {
             print("Error: url is nil in \(#function)")
             return
@@ -842,7 +864,15 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             exporter.shouldOptimizeForNetworkUse = false
             
             exporter.exportAsynchronously(completionHandler: {
-                self.exportDidFinish(session: exporter)
+                if exporter.status == AVAssetExportSessionStatus.completed {
+                    if let outputURL = exporter.outputURL {
+                        completion?(outputURL)
+                    } else {
+                        print("Error: exporter could not get output URL")
+                    }
+                } else {
+                    print("Error: exporter could not complete")
+                }
             })
         } else {
             print("no need to trim from the first video")
@@ -851,51 +881,10 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 self.resizedURLs = imageURLs
                 self.showGifWithGLKView(with: imageURLs)
             })
-            //            let urls = getThumbnailFrom(videoURL: lastVideoURL)
-            //            showGifWithGLKView(with: urls)
-            //            resizedURLs = urls
         }
     }
     
     var resultVideoURL: URL!
-    func exportDidFinish(session: AVAssetExportSession) {
-        if session.status == AVAssetExportSessionStatus.completed {
-            if let outputURL = session.outputURL {
-                resultVideoURL = outputURL
-                let outputAsset = AVURLAsset(url: outputURL)
-                generateThumbnailImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
-                    self.resizedURLs = imageURLs
-                    self.showGifWithGLKView(with: imageURLs)
-                })
-                //                let urls = getThumbnailFrom(videoURL: outputURL)
-                //                showGifWithGLKView(with: urls)
-                //                resizedURLs = urls
-                print("output URL duration: \(outputAsset.duration)")
-                PHPhotoLibrary.requestAuthorization
-                    { (status) -> Void in
-                        switch (status) {
-                        case .authorized:
-                            PHPhotoLibrary.shared().performChanges({
-                                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputURL)
-                            }, completionHandler: { (saved: Bool, error: Error?) in
-                                if saved {
-                                    print("saved video to camera roll in \(#function)")
-                                } else {
-                                    print("failed to save video to camera roll in \(#function)")
-                                    if let error = error {
-                                        print(error.localizedDescription)
-                                    }
-                                }
-                            })
-                        case .denied:
-                            print("Error: User denied")
-                        default:
-                            print("Error: Restricted")
-                        }
-                }
-            }
-        }
-    }
     
     // MARK: - Get thumbnail image from video
     func generateThumbnailImagesFrom(videoURL: URL, completion: (([URL]) -> Void)?) {
@@ -1055,6 +1044,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     /** Set to the initial state. */
     internal func reset() {
+        stop()
         originalURLs.removeAll()
         resizedURLs.removeAll()
         renderedURLs.removeAll()
@@ -1192,19 +1182,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    // MARK: - Gif Controls
-    /** Starts recording gif.*/
-    internal func startRecordingGif() {
-        isRecording = true
-    }
-    
-    /** Stops recording gif. */
-    internal func stopRecordingGif() {
-        stop()
-        isRecording = false
-        showGif()
-    }
-    
+    // MARK: - Gif Controls    
     /** Snaps live gif. Starts image post-storing. */
     internal func snapLiveGif() {
         isSnappedGif = true
@@ -1223,7 +1201,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     /** Creates an image view with images for animation. Show the image view on output image view. */
-    func showGif() {
+    func showAnimatedImageView() {
         // make resized images from originals here
         var resizedTempURLs = [URL]()
         let resizedMaxPixel = getMaxPixel(scale: 1)
