@@ -290,7 +290,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             
             self.render(originalMovURL!, outputURL: outputURL) {
                 DispatchQueue.main.async {
-                    
                     self.satoCamera.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (urls: [URL]) in
                         let gifFileURL = URL.messageURL(path: UUID().uuidString)
                         if urls.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
@@ -317,19 +316,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                             print("Error: Faild to make gif file.")
                         }
                     })
-                    
-                    // test result
-                    let player = AVPlayer(url: outputURL)
-                    let playerViewController = AVPlayerViewController()
-                    playerViewController.player = player
-                    self.present(playerViewController, animated: true) {
-                        playerViewController.player!.play()
-                    }
                 }
-                // get frames from movie
-                
-                // apply other effects
-                
             }
         }
         cancel()
