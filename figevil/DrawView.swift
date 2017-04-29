@@ -187,6 +187,8 @@ class Line: NSObject {
         if (view?.traitCollection.forceTouchCapability == .available) {
             lineWidth = max(touch.force * defaultLineWidth, 0.01)
         } else {
+            lineWidth = 7.0
+            /* Below is velocity based line width
             // Calculate velocity
             // pts / second
             let dx = CGFloat(currentPoint!.x - lastPoint!.x)
@@ -205,6 +207,7 @@ class Line: NSObject {
             adjusted = min(max(adjusted, 0.4), base)
             
             lineWidth = CGFloat(  adjusted * Float(defaultLineWidth))
+ */
         }
         
         let linepath = LinePath(path, color: color, lineWidth: lineWidth)
