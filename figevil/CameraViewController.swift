@@ -263,6 +263,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 effect.delegate = satoCamera
             }
         }
+        
+        if let animationEffectView = effects[1] as? AnimationEffectView {
+            interfaceView.contentView.bringSubview(toFront: animationEffectView)
+        }
     }
     
     func tappedEffect(_ sender: UIBarButtonItem) {
