@@ -62,21 +62,22 @@ class Filter: NSObject {
     }
     
     func configureList() {
-        list.append(plain)
-        list.append(sepiaTone)
-        list.append(falseColor)
-        list.append(photoEffectChrome)
-        list.append(photoEffectFade)
+        list.append(normal)
+//        list.append(sepiaTone)
+//        list.append(falseColor)
+//        list.append(photoEffectChrome)
+//        list.append(photoEffectFade)
         list.append(photoEffectInstant)
-        list.append(photoEffectMono)
-        list.append(photoEffectNoir)
+        list.append(colorVibrance)
+//        list.append(photoEffectMono)
+//        list.append(photoEffectNoir)
         list.append(photoEffectProcess)
         list.append(photoEffectTonal)
-        list.append(photoEffectTransfer)
+//        list.append(photoEffectTransfer)
         list.append(colorClamp)
-        list.append(unsharpMask)
-        list.append(comicEffect)
-        list.append(crystallize)
+//        list.append(unsharpMask)
+//        list.append(comicEffect)
+//        list.append(crystallize)
     }
     
     func getIconImage(filter: CIFilter?) -> UIImage {
@@ -106,8 +107,8 @@ class Filter: NSObject {
         return UIImage()
     }
     
-    var plain: Filter {
-        return Filter(name: "Plain", filter: nil)
+    var normal: Filter {
+        return Filter(name: "Normal", filter: nil)
     }
     
     // MARK: Photo Effect
@@ -129,7 +130,7 @@ class Filter: NSObject {
         let maxComp = CIVector(x: 1, y: 1, z: 1, w: 1)
         filter?.setValue(minComp, forKeyPath: "inputMinComponents")
         filter?.setValue(maxComp, forKeyPath: "inputMaxComponents")
-        return Filter(name: "colorClamp", filter: filter)
+        return Filter(name: "Clamp", filter: filter)
     }
     
     var photoEffectChrome: Filter {
@@ -139,12 +140,12 @@ class Filter: NSObject {
     
     var photoEffectFade: Filter {
         let filter = CIFilter(name: "CIPhotoEffectFade")
-        return Filter(name: "photoEffectFade", filter: filter)
+        return Filter(name: "Fade", filter: filter)
     }
     
     var photoEffectInstant: Filter {
         let filter = CIFilter(name: "CIPhotoEffectInstant")
-        return Filter(name: "photoEffectInstant", filter: filter)
+        return Filter(name: "Instant", filter: filter)
     }
     
     var photoEffectMono: Filter {
@@ -154,17 +155,17 @@ class Filter: NSObject {
     
     var photoEffectNoir: Filter {
         let filter = CIFilter(name: "CIPhotoEffectNoir")
-        return Filter(name: "photoEffectNoir", filter: filter)
+        return Filter(name: "Noir", filter: filter)
     }
     
     var photoEffectProcess: Filter {
         let filter = CIFilter(name: "CIPhotoEffectProcess")
-        return Filter(name: "photoEffectProcess", filter: filter)
+        return Filter(name: "Process", filter: filter)
     }
     
     var photoEffectTonal: Filter {
         let filter = CIFilter(name: "CIPhotoEffectTonal")
-        return Filter(name: "photoEffectTonal", filter: filter)
+        return Filter(name: "Tonal", filter: filter)
     }
     
     var photoEffectTransfer: Filter {
@@ -227,6 +228,12 @@ class Filter: NSObject {
     var colorPosterize: Filter {
         let filter = CIFilter(name: "CIColorPosterize")
         return Filter(name: "colorPosterize", filter: filter)
+    }
+    
+    var colorVibrance: Filter {
+        let filter = CIFilter(name: "CIVibrance")
+        filter?.setValue(1.0, forKey: "inputAmount")
+        return Filter(name: "Vibrance", filter: filter)
     }
     
     // MARK: Sharpen
