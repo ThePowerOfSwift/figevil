@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		0571FA59C0B61657852D33D6 /* Pods_figevil.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C710722E2727E087354024E4 /* Pods_figevil.framework */; };
+		7803FADB1EB91F2200E5D9AD /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7803FADA1EB91F2200E5D9AD /* Lottie.framework */; };
+		7803FADC1EB91F3000E5D9AD /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7803FADA1EB91F2200E5D9AD /* Lottie.framework */; };
+		7803FADD1EB91F3000E5D9AD /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7803FADA1EB91F2200E5D9AD /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		78091B7A1E9466A700722B4D /* Stickers in Resources */ = {isa = PBXBuildFile; fileRef = 78091B791E9466A700722B4D /* Stickers */; };
 		782399E01E847C2B00207B56 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782399DF1E847C2B00207B56 /* Globals.swift */; };
 		782399E21E8489C200207B56 /* FirstTimeExperience.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 782399E11E8489C200207B56 /* FirstTimeExperience.storyboard */; };
@@ -53,8 +56,6 @@
 		7863631C1E8B1CEE00B902B5 /* StraightCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E377C1421E89DF5200573E12 /* StraightCollectionViewLayout.swift */; };
 		78843BCA1EA1546B000F740D /* DrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78843BC91EA1546B000F740D /* DrawView.swift */; };
 		789134471E9E8CB2008E004C /* AnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 789134461E9E8CB2008E004C /* AnimationView.swift */; };
-		7892E8961EB3EA0100CC01A3 /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7892E8941EB3E9F800CC01A3 /* Lottie.framework */; };
-		7892E8971EB3EA0100CC01A3 /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7892E8941EB3E9F800CC01A3 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		789717601E941ECE00D89CB3 /* AnimationEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7897175F1E941ECE00D89CB3 /* AnimationEffectView.swift */; };
 		78BEF4371E89E4F100047212 /* GifCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BEF4341E89E4F100047212 /* GifCollectionViewCell.swift */; };
 		78BEF4391E89E4F100047212 /* GifCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 78BEF4351E89E4F100047212 /* GifCollectionViewCell.xib */; };
@@ -86,6 +87,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		7803FADE1EB91F3000E5D9AD /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				7803FADD1EB91F3000E5D9AD /* Lottie.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		782399F71E85A36A00207B56 /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -97,17 +109,6 @@
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		7843513A1EA92DA100EEF3C8 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				7892E8971EB3EA0100CC01A3 /* Lottie.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -115,6 +116,7 @@
 		2816F0DD14A7284C19D30662 /* Pods-MeKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeKeyboard.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MeKeyboard/Pods-MeKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
 		54758DDE5EE3F1B539963AA4 /* Pods-figevil.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-figevil.debug.xcconfig"; path = "Pods/Target Support Files/Pods-figevil/Pods-figevil.debug.xcconfig"; sourceTree = "<group>"; };
 		5815A8F1BFBE50E3044E72FF /* Pods_MeKeyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MeKeyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		7803FADA1EB91F2200E5D9AD /* Lottie.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Lottie.framework; sourceTree = "<group>"; };
 		78091B791E9466A700722B4D /* Stickers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Stickers; sourceTree = "<group>"; };
 		782399DF1E847C2B00207B56 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
 		782399E11E8489C200207B56 /* FirstTimeExperience.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = FirstTimeExperience.storyboard; sourceTree = "<group>"; };
@@ -163,7 +165,6 @@
 		7857A02D1E6504EC00660B68 /* montgomery.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = montgomery.jpg; sourceTree = "<group>"; };
 		78843BC91EA1546B000F740D /* DrawView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawView.swift; sourceTree = "<group>"; };
 		789134461E9E8CB2008E004C /* AnimationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimationView.swift; sourceTree = "<group>"; };
-		7892E8941EB3E9F800CC01A3 /* Lottie.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Lottie.framework; sourceTree = "<group>"; };
 		7897175F1E941ECE00D89CB3 /* AnimationEffectView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimationEffectView.swift; sourceTree = "<group>"; };
 		78BEF4341E89E4F100047212 /* GifCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GifCollectionViewCell.swift; sourceTree = "<group>"; };
 		78BEF4351E89E4F100047212 /* GifCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GifCollectionViewCell.xib; sourceTree = "<group>"; };
@@ -197,7 +198,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				0571FA59C0B61657852D33D6 /* Pods_figevil.framework in Frameworks */,
-				7892E8961EB3EA0100CC01A3 /* Lottie.framework in Frameworks */,
+				7803FADB1EB91F2200E5D9AD /* Lottie.framework in Frameworks */,
+				7803FADC1EB91F3000E5D9AD /* Lottie.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -207,7 +209,7 @@
 		249DBC6DC94AD21D808F7A54 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				7892E8941EB3E9F800CC01A3 /* Lottie.framework */,
+				7803FADA1EB91F2200E5D9AD /* Lottie.framework */,
 				C710722E2727E087354024E4 /* Pods_figevil.framework */,
 				5815A8F1BFBE50E3044E72FF /* Pods_MeKeyboard.framework */,
 			);
@@ -433,7 +435,7 @@
 				6FD47EB58A085448A367AEAF /* [CP] Embed Pods Frameworks */,
 				9823CA148D0253A50AB38F4F /* [CP] Copy Pods Resources */,
 				782399F71E85A36A00207B56 /* Embed App Extensions */,
-				7843513A1EA92DA100EEF3C8 /* Embed Frameworks */,
+				7803FADE1EB91F3000E5D9AD /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
