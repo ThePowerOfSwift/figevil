@@ -23,8 +23,11 @@ class CameraInterfaceView: UIView {
         }
     }
     @IBOutlet weak var contentView: UIView!
+    @IBOutlet weak var contentViewAspectConstraint: NSLayoutConstraint!
     @IBOutlet weak var primaryMenuView: UIView!
     @IBOutlet weak var primaryMenuViewBottomConstraint: NSLayoutConstraint!
+    @IBOutlet weak var bottomBackgroundView: UIView!
+    @IBOutlet weak var bottomBackgroundViewHeightConstraint: NSLayoutConstraint!
     
     // Model
     /// State flag for capture or preview mode

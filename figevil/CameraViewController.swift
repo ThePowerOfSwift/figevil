@@ -114,6 +114,12 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         setupEffects()
         // Setup collection views for menu and options
         setupMenuBubbles()
+        
+        // Setup content frame
+        //interfaceView.contentViewAspectConstraint.constant =
+        let topContentHeight = interfaceView.topToolbar.frame.height + interfaceView.contentView.frame.height
+        let bottomBackgroundHeight = view.frame.height - topContentHeight
+        interfaceView.bottomBackgroundViewHeightConstraint.constant = bottomBackgroundHeight
     }
     
     var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
