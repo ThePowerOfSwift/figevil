@@ -42,10 +42,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // TODO:         Clients invoke -startRunning to start the flow of data from inputs to outputs connected to the AVCaptureSession instance. This call blocks until the session object has completely started up or failed. A failure to start running is reported through the AVCaptureSessionRuntimeErrorNotification mechanism.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.satoCamera.start()
-        }
+        self.satoCamera.start()
         
         setupKeyboardObserver()
     }

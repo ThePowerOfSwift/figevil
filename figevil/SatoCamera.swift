@@ -29,7 +29,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     internal var session = AVCaptureSession()
     internal var sessionQueue = DispatchQueue(label: "sessionQueue")
     /** Frame of sampleBufferView of CameraOutput delegate. Should be set when being initialized. */
-    fileprivate var frame: CGRect
+    fileprivate var frame: CGRect = CGRect.zero
     
     // MARK: OpenGL for live camera
     fileprivate var liveCameraGLKView: GLKView!
@@ -143,6 +143,20 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         return self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0
     }
     
+    // MARK: Notifications
+    
+    private func setupSessionObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(sessionRuntimeError(notification:)), name: .AVCaptureSessionRuntimeError, object: nil)
+    }
+    
+    private func removeSessionObserver() {
+        NotificationCenter.default.removeObserver(self, name: .AVCaptureSessionRuntimeError, object: nil)
+    }
+    
+    @objc private func sessionRuntimeError(notification: NSNotification) {
+        print("Error: camera failed to run.")
+    }
+
     // MARK: - Capture output
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
@@ -258,17 +272,19 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     // MARK: - Initial setups
     init(frame: CGRect) {
-        self.frame = frame
-        //http://stackoverflow.com/questions/29619846/in-swift-didset-doesn-t-fire-when-invoked-from-init
         super.init()
+        self.frame = frame
+        setupSessionObserver()
+        setupSession()
         setupLiveCameraGLKView()
         setupGifGLKView()
         setupOpenGL()
-        setupSession()
-//        setupFirstAssetWriter()
-//        setupSecondAssetWriter()
         setupAssetWriter(assetWriterID: .First)
         setupAssetWriter(assetWriterID: .Second)
+    }
+    
+    deinit {
+        removeSessionObserver()
     }
     
     func setupLiveCameraGLKView() {
