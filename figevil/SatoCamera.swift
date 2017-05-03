@@ -1254,7 +1254,28 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
+    var taskInQueue = -1
     func showGifWithGLKView(with imageURLs: [URL]) {
+        // Temporary walkaround for the freezing issue after you have taken one
+        
+        let removeSubview: () -> Void = {
+            () -> Void in
+            for subview in self.cameraOutput!.gifOutputView!.subviews {
+                subview.removeFromSuperview()
+            }
+            self.setupGifGLKView()
+            self.cameraOutput?.gifOutputView?.addSubview(self.gifGLKView)
+        }
+        if !Thread.isMainThread {
+            
+            // sync does not work but async works
+            DispatchQueue.main.async {
+                removeSubview()
+            }
+        } else {
+            removeSubview()
+        }
+
         // make resized images from originals here
         cameraOutput?.gifOutputView?.isHidden = false
         cameraOutput?.sampleBufferView?.isHidden = true
@@ -1272,8 +1293,11 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         if self.gifEaglContext != EAGLContext.current() {
             EAGLContext.setCurrent(self.gifEaglContext)
         }
-        //DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
-        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInteractive).async { [unowned self] in
+        
+        taskInQueue += 1
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
+        //DispatchQueue.global(qos: DispatchQoS.QoSClass.userInteractive).async { [unowned self] in
+            print("task in queue: \(self.taskInQueue)")
             self.gifGLKView.bindDrawable()
             
             if self.gifEaglContext != EAGLContext.current() {
@@ -1297,7 +1321,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                         filter.setValue(image, forKey: kCIInputImageKey)
                         if let outputImage = filter.outputImage {
                             self.gifCIContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-                            
                         }
                     } else {
                         self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
