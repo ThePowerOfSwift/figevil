@@ -5,13 +5,7 @@
 //  Created by brandon_withrow on 1/27/17.
 //
 //
-
-#if __has_feature(modules)
 @import Foundation;
-#else
-#import <Foundation/Foundation.h>
-#endif
-
 #ifndef Lottie_h
 #define Lottie_h
 

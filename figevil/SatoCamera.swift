@@ -13,14 +13,14 @@ import QuartzCore
 import MobileCoreServices // for HDD
 import Photos // for HDD saving
 
-/** Init with frame and set yourself (client) to cameraOutput delegate and call start(). */
+/** Init with frame and set yourself (client) to cameraOutput delegate and call start().
+To use, SatoCamera.shared,
+1. conform to SatoCameraOutput protocol.
+2. set your VC to shared.cameraOutput.
+3. call start(). */
 class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
-    /** To use, SatoCamera.shared, 
-     1. conform to SatoCameraOutput protocol.
-     2. set your VC to shared.cameraOutput.
-     3. call start(). */
-    static let shared: SatoCamera = SatoCamera(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.width)))
+    static let shared: SatoCamera = SatoCamera(frame: CGRect(origin: CGPoint.zero, size: Camera.captureSize.square))
     
     // MARK: AVCaptureSession
     fileprivate var videoDevice: AVCaptureDevice?
@@ -29,7 +29,11 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     internal var session = AVCaptureSession()
     internal var sessionQueue = DispatchQueue(label: "sessionQueue")
     /** Frame of sampleBufferView of CameraOutput delegate. Should be set when being initialized. */
-    fileprivate var frame: CGRect = CGRect.zero
+    fileprivate var frame: CGRect = CGRect.zero {
+        didSet {
+            
+        }
+    }
     
     // MARK: OpenGL for live camera
     fileprivate var liveCameraGLKView: GLKView!
@@ -137,8 +141,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // scale 1 is around 3000K
     //let pixelSizeForMessage = getMaxPixel(scale: 2.1) // 350 on iPhone 7 plus, 317 on iPhone 6
     //let pixelSizeForThumbnail = getMaxPixel(scale: 3) // 245 on iPhone 7 plus, 222 on iphone 6
-    var messagePixelSize = Camera.Size.MessagePixelSize
-    var thumbnailPixelSize = Camera.Size.ThumbnailPixelSize
+    var messagePixelSize = Camera.pixelsize.message
+    var thumbnailPixelSize = Camera.pixelsize.thumbnail
     var shouldSaveFrame: Bool {
         return self.didOutputSampleBufferMethodCallCount % self.currentLiveGifPreset.frameCaptureFrequency == 0
     }
@@ -1410,7 +1414,7 @@ struct LiveGifPreset {
     var frameCaptureFrequency: Int {
         return Int(sampleBufferFPS) / gifFPS
     }
-    var sampleBufferFPS: Int32 = Int32(Camera.LiveGifPreset.SampleBufferFPS)
+    var sampleBufferFPS: Int32 = Int32(Camera.liveGifPreset.sampleBufferFPS)
     var liveGifFrameTotalCount: Int {
         return Int(gifDuration * Double(gifFPS))
     }
@@ -1427,8 +1431,8 @@ struct LiveGifPreset {
         self.gifDuration = gifDuration
     }
     init() {
-        self.gifFPS = Camera.LiveGifPreset.GifFPS
-        self.gifDuration = TimeInterval(Camera.LiveGifPreset.GifDuration)
+        self.gifFPS = Camera.liveGifPreset.gifFPS
+        self.gifDuration = TimeInterval(Camera.liveGifPreset.gifDuration)
     }
 }
 
