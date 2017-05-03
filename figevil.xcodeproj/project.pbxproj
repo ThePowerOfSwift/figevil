@@ -8,7 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		0571FA59C0B61657852D33D6 /* Pods_figevil.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C710722E2727E087354024E4 /* Pods_figevil.framework */; };
-		7806FEBA1EBA820300B565A4 /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7806FEB71EBA81FD00B565A4 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		7806FEC51EBA833C00B565A4 /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7806FEC21EBA832D00B565A4 /* Lottie.framework */; };
+		7806FEC61EBA833C00B565A4 /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7806FEC21EBA832D00B565A4 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		78091B7A1E9466A700722B4D /* Stickers in Resources */ = {isa = PBXBuildFile; fileRef = 78091B791E9466A700722B4D /* Stickers */; };
 		782399E01E847C2B00207B56 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782399DF1E847C2B00207B56 /* Globals.swift */; };
 		782399E21E8489C200207B56 /* FirstTimeExperience.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 782399E11E8489C200207B56 /* FirstTimeExperience.storyboard */; };
@@ -75,6 +76,27 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7806FEC11EBA832D00B565A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7806FEBC1EBA832D00B565A4 /* Lottie.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 62CA59B81E3C173B002D7188;
+			remoteInfo = Lottie_iOS;
+		};
+		7806FEC31EBA832D00B565A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7806FEBC1EBA832D00B565A4 /* Lottie.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 84FE12EF1E4C1485009B157C;
+			remoteInfo = LottieLibraryIOS;
+		};
+		7806FEC71EBA833C00B565A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7806FEBC1EBA832D00B565A4 /* Lottie.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 62CA59B71E3C173B002D7188;
+			remoteInfo = Lottie_iOS;
+		};
 		782399F11E85A36A00207B56 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7854B9D11E64F98300591255 /* Project object */;
@@ -91,7 +113,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				7806FEBA1EBA820300B565A4 /* Lottie.framework in Embed Frameworks */,
+				7806FEC61EBA833C00B565A4 /* Lottie.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -114,7 +136,7 @@
 		2816F0DD14A7284C19D30662 /* Pods-MeKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeKeyboard.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MeKeyboard/Pods-MeKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
 		54758DDE5EE3F1B539963AA4 /* Pods-figevil.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-figevil.debug.xcconfig"; path = "Pods/Target Support Files/Pods-figevil/Pods-figevil.debug.xcconfig"; sourceTree = "<group>"; };
 		5815A8F1BFBE50E3044E72FF /* Pods_MeKeyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MeKeyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		7806FEB71EBA81FD00B565A4 /* Lottie.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Lottie.framework; path = figevil/Lottie.framework; sourceTree = "<group>"; };
+		7806FEBC1EBA832D00B565A4 /* Lottie.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Lottie.xcodeproj; path = "../lottie-ios-master/Lottie.xcodeproj"; sourceTree = "<group>"; };
 		78091B791E9466A700722B4D /* Stickers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Stickers; sourceTree = "<group>"; };
 		782399DF1E847C2B00207B56 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
 		782399E11E8489C200207B56 /* FirstTimeExperience.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = FirstTimeExperience.storyboard; sourceTree = "<group>"; };
@@ -196,6 +218,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0571FA59C0B61657852D33D6 /* Pods_figevil.framework in Frameworks */,
+				7806FEC51EBA833C00B565A4 /* Lottie.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,11 +228,20 @@
 		249DBC6DC94AD21D808F7A54 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				7806FEB71EBA81FD00B565A4 /* Lottie.framework */,
+				7806FEBC1EBA832D00B565A4 /* Lottie.xcodeproj */,
 				C710722E2727E087354024E4 /* Pods_figevil.framework */,
 				5815A8F1BFBE50E3044E72FF /* Pods_MeKeyboard.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		7806FEBD1EBA832D00B565A4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7806FEC21EBA832D00B565A4 /* Lottie.framework */,
+				7806FEC41EBA832D00B565A4 /* libLottie.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		782399ED1E85A36A00207B56 /* MeKeyboard */ = {
@@ -437,6 +469,7 @@
 			);
 			dependencies = (
 				782399F21E85A36A00207B56 /* PBXTargetDependency */,
+				7806FEC81EBA833C00B565A4 /* PBXTargetDependency */,
 			);
 			name = figevil;
 			productName = figevil;
@@ -486,6 +519,12 @@
 			mainGroup = 7854B9D01E64F98300591255;
 			productRefGroup = 7854B9DA1E64F98300591255 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 7806FEBD1EBA832D00B565A4 /* Products */;
+					ProjectRef = 7806FEBC1EBA832D00B565A4 /* Lottie.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				7854B9D81E64F98300591255 /* figevil */,
@@ -493,6 +532,23 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		7806FEC21EBA832D00B565A4 /* Lottie.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Lottie.framework;
+			remoteRef = 7806FEC11EBA832D00B565A4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		7806FEC41EBA832D00B565A4 /* libLottie.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libLottie.a;
+			remoteRef = 7806FEC31EBA832D00B565A4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		782399EA1E85A36900207B56 /* Resources */ = {
@@ -668,6 +724,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		7806FEC81EBA833C00B565A4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Lottie_iOS;
+			targetProxy = 7806FEC71EBA833C00B565A4 /* PBXContainerItemProxy */;
+		};
 		782399F21E85A36A00207B56 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 782399EB1E85A36900207B56 /* MeKeyboard */;
