@@ -204,6 +204,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                             let outputAsset = AVURLAsset(url: outputURL)
                             self.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
                                 self.resizedURLs = imageURLs
+                                self.session.stopRunning()
                                 self.showGifWithGLKView(with: imageURLs)
                             })
                             //                let urls = getThumbnailFrom(videoURL: outputURL)
@@ -220,6 +221,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                             let outputAsset = AVURLAsset(url: outputURL)
                             self.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
                                 self.resizedURLs = imageURLs
+                                self.session.stopRunning()
                                 self.showGifWithGLKView(with: imageURLs)
                             })
                             //                let urls = getThumbnailFrom(videoURL: outputURL)
@@ -250,6 +252,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         if liveCameraEaglContext != EAGLContext.current() {
             EAGLContext.setCurrent(liveCameraEaglContext)
         }
+        print("current context: \(EAGLContext.current()) in \(#function)")
         setupOpenGL()
         
         liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
@@ -265,8 +268,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         setupGifGLKView()
         setupOpenGL()
         setupSession()
-//        setupFirstAssetWriter()
-//        setupSecondAssetWriter()
         setupAssetWriter(assetWriterID: .First)
         setupAssetWriter(assetWriterID: .Second)
     }
@@ -278,6 +279,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         self.liveCameraEaglContext = liveCameraEaglContext
+        print("live camera eagle context: \(self.liveCameraEaglContext)")
         liveCameraGLKView = GLKView(frame: frame, context: liveCameraEaglContext)
         liveCameraGLKView.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
         liveCameraGLKView.bindDrawable()
@@ -294,6 +296,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         self.gifEaglContext = gifEaglContext
+        print("gif eagle context: \(self.gifEaglContext)")
         gifGLKView = GLKView(frame: frame, context: gifEaglContext)
         gifGLKView.enableSetNeedsDisplay = false
         gifGLKView.bindDrawable()
@@ -301,6 +304,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         gifGLKViewPreviewViewBounds.size.width = CGFloat(gifGLKView.drawableWidth)
         gifGLKViewPreviewViewBounds.size.height = CGFloat(gifGLKView.drawableHeight)
         gifCIContext = CIContext(eaglContext: gifEaglContext)
+        gifGLKView.delegate = self
     }
     
     /** Authorize camera usage. */
@@ -1188,17 +1192,16 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         isSnappedGif = true
     }
     
-    /** Stops image post-storing. Calls showGif to show gif.*/
-    fileprivate func stopLiveGif() {
-        isSnappedGif = false
-        cameraOutput?.didLiveGifStop?()
-        deviceOrientation = UIDevice.current.orientation
-        cameraOutput?.gifOutputView?.isHidden = false
-        stop()
-        //showGif()
-        showGifWithGLKView()
-        
-    }
+//    /** Stops image post-storing. Calls showGif to show gif.*/
+//    fileprivate func stopLiveGif() {
+//        isSnappedGif = false
+//        cameraOutput?.didLiveGifStop?()
+//        deviceOrientation = UIDevice.current.orientation
+//        cameraOutput?.gifOutputView?.isHidden = false
+//        stop()
+//        //showGif()
+//        showGifWithGLKView(with: resizedURLs)
+//    }
     
     /** Creates an image view with images for animation. Show the image view on output image view. */
     func showAnimatedImageView() {
@@ -1232,63 +1235,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    func showGifWithGLKView() {
-        // make resized images from originals here
-        var resizedTempURLs = [URL]()
-        let resizedMaxPixel = getMaxPixel(scale: 1)
-        for url in originalURLs {
-            if let resizedUrl = url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
-                resizedTempURLs.append(resizedUrl)
-            } else {
-                print("Error: failed to get resized URL")
-            }
-        }
-        
-        resizedURLs = resizedTempURLs
-        
-        var resizedCIImages = [CIImage]()
-        for url in resizedTempURLs {
-            guard let sourceCIImage = url.cgImage?.ciImage else {
-                print("Error: cgImage is nil in \(#function)")
-                return
-            }
-            resizedCIImages.append(sourceCIImage)
-        }
-        
-        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
-            self.gifGLKView.bindDrawable()
-    
-            if self.gifEaglContext != EAGLContext.current() {
-                EAGLContext.setCurrent(self.gifEaglContext)
-            }
-            
-            self.setupOpenGL()
-            while !self.session.isRunning {
-                if self.session.isRunning {
-                    break
-                }
-                
-                self.setupOpenGL()
-                for image in resizedCIImages {
-                    if self.session.isRunning {
-                        break
-                    }
-                    if let filter = self.currentFilter.filter {
-                        filter.setValue(image, forKey: kCIInputImageKey)
-                        if let outputImage = filter.outputImage {
-                            self.gifCIContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-
-                        }
-                    } else {
-                        self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
-                    }
-                    self.gifGLKView.display()
-                    usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
-                }
-            }
-        }
-    }
-    
     func showGifWithGLKView(with imageURLs: [URL]) {
         // make resized images from originals here
         cameraOutput?.gifOutputView?.isHidden = false
@@ -1302,7 +1248,11 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             ciImages.append(sourceCIImage)
         }
         cameraOutput?.gifOutputView?.isHidden = false
-
+        
+        print("current context: \(EAGLContext.current()) in \(#function)")
+        if self.gifEaglContext != EAGLContext.current() {
+            EAGLContext.setCurrent(self.gifEaglContext)
+        }
         //DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
         DispatchQueue.global(qos: DispatchQoS.QoSClass.userInteractive).async { [unowned self] in
             self.gifGLKView.bindDrawable()
@@ -1310,13 +1260,14 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             if self.gifEaglContext != EAGLContext.current() {
                 EAGLContext.setCurrent(self.gifEaglContext)
             }
-            
+
             self.setupOpenGL()
             while !self.session.isRunning {
                 if self.session.isRunning {
                     break
                 }
-                
+                print("current context: \(EAGLContext.current()) in \(#function)")
+
                 self.setupOpenGL()
                 //print("CIImage count: \(ciImages.count)")
                 for image in ciImages {
