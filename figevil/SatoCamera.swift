@@ -1155,8 +1155,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             print("original gif URL filesize: \(originalURL.filesize!)")
             PHPhotoLibrary.requestAuthorization
                 { (status) -> Void in
-                    switch (status)
-                    {
+                    switch (status) {
                     case .authorized:
                         PHPhotoLibrary.shared().performChanges({
                             PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
@@ -1266,8 +1265,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             self.setupGifGLKView()
             self.cameraOutput?.gifOutputView?.addSubview(self.gifGLKView)
         }
+        
         if !Thread.isMainThread {
-            
             // sync does not work but async works
             DispatchQueue.main.async {
                 removeSubview()
