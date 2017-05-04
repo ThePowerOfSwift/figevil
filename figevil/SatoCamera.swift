@@ -250,7 +250,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         didOutputSampleBufferMethodCallCount += 1
-        
         var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
         sourceImage = sourceImage.adjustedExtentForGLKView()
         
@@ -266,9 +265,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         if liveCameraEaglContext != EAGLContext.current() {
             EAGLContext.setCurrent(liveCameraEaglContext)
         }
-        print("current context: \(EAGLContext.current()) in \(#function)")
         setupOpenGL()
-        
         liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
         liveCameraGLKView.display()
     }
@@ -278,7 +275,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         super.init()
         self.frame = frame
         setupSessionObserver()
-        setupSession()
         setupLiveCameraGLKView()
         setupGifGLKView()
         setupOpenGL()
@@ -298,7 +294,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         self.liveCameraEaglContext = liveCameraEaglContext
-        print("live camera eagle context: \(self.liveCameraEaglContext)")
         liveCameraGLKView = GLKView(frame: frame, context: liveCameraEaglContext)
         liveCameraGLKView.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
         liveCameraGLKView.bindDrawable()
@@ -315,7 +310,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         self.gifEaglContext = gifEaglContext
-        print("gif eagle context: \(self.gifEaglContext)")
         gifGLKView = GLKView(frame: frame, context: gifEaglContext)
         gifGLKView.enableSetNeedsDisplay = false
         gifGLKView.bindDrawable()
@@ -1253,31 +1247,13 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    var taskInQueue = -1
     func showGifWithGLKView(with imageURLs: [URL]) {
-        // Temporary walkaround for the freezing issue after you have taken one
-        
-        let removeSubview: () -> Void = {
-            () -> Void in
-            for subview in self.cameraOutput!.gifOutputView!.subviews {
-                subview.removeFromSuperview()
-            }
-            self.setupGifGLKView()
-            self.cameraOutput?.gifOutputView?.addSubview(self.gifGLKView)
+        DispatchQueue.global(qos: .userInteractive).async {
+            // make resized images from originals here
+            self.cameraOutput?.gifOutputView?.isHidden = false
+            self.cameraOutput?.sampleBufferView?.isHidden = true
         }
         
-        if !Thread.isMainThread {
-            // sync does not work but async works
-            DispatchQueue.main.async {
-                removeSubview()
-            }
-        } else {
-            removeSubview()
-        }
-
-        // make resized images from originals here
-        cameraOutput?.gifOutputView?.isHidden = false
-        cameraOutput?.sampleBufferView?.isHidden = true
         var ciImages = [CIImage]()
         for url in imageURLs {
             guard let sourceCIImage = url.cgImage?.ciImage else {
@@ -1286,32 +1262,25 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
             ciImages.append(sourceCIImage)
         }
-        cameraOutput?.gifOutputView?.isHidden = false
-        
-        print("current context: \(EAGLContext.current()) in \(#function)")
+        self.cameraOutput?.gifOutputView?.isHidden = false
         if self.gifEaglContext != EAGLContext.current() {
             EAGLContext.setCurrent(self.gifEaglContext)
         }
         
-        taskInQueue += 1
         DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
-        //DispatchQueue.global(qos: DispatchQoS.QoSClass.userInteractive).async { [unowned self] in
-            print("task in queue: \(self.taskInQueue)")
             self.gifGLKView.bindDrawable()
             
             if self.gifEaglContext != EAGLContext.current() {
                 EAGLContext.setCurrent(self.gifEaglContext)
             }
-
+            
             self.setupOpenGL()
             while !self.session.isRunning {
                 if self.session.isRunning {
                     break
                 }
-                print("current context: \(EAGLContext.current()) in \(#function)")
-
+                
                 self.setupOpenGL()
-                //print("CIImage count: \(ciImages.count)")
                 for image in ciImages {
                     if self.session.isRunning {
                         break
@@ -1324,7 +1293,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     } else {
                         self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
                     }
-
+                    
                     self.gifGLKView.display()
                     usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
                 }
