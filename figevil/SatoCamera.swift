@@ -157,6 +157,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         print("Error: camera failed to run.")
     }
 
+    var stillShot: CIImage?
     // MARK: - Capture output
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
@@ -205,9 +206,47 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
                 pixelBufferCount = 0
             }
+            var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
+            sourceImage = sourceImage.adjustedExtentForGLKView()
+            stillShot = sourceImage
+            
+            // filteredImage has the same address as sourceImage
+            guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
+                print("Error: filtered image is nil in \(#function)")
+                return
+            }
+            
+            liveCameraGLKView.bindDrawable()
+            
+            // Prepare CIContext with EAGLContext
+            if liveCameraEaglContext != EAGLContext.current() {
+                EAGLContext.setCurrent(liveCameraEaglContext)
+            }
+            setupOpenGL()
+            liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
+            liveCameraGLKView.display()
         }
         
         if isPostRecording {
+            if let stillShot = stillShot {
+                
+                DispatchQueue.main.async {
+                    let cvc = self.cameraOutput as? CameraViewController
+                    let vc = UIViewController()
+                    vc.view.backgroundColor = UIColor.red
+                    let image = UIImage(ciImage: stillShot)
+                    let imageView = UIImageView(image: image)
+                    imageView.frame = UIScreen.main.bounds
+                    
+                    print("image view: \(imageView)")
+                    print("image: \(image)")
+                    vc.view.addSubview(imageView)
+                    cvc?.present(vc, animated: true, completion: {
+                        print("view controller presented")
+                    })
+                }
+            }
+            
             // stop
             if pixelBufferCount == pixelBufferCountAtSnapping + pixelBufferMaxCount {
                 self.stop()
@@ -225,6 +264,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                             //                showGifWithGLKView(with: urls)
                             //                resizedURLs = urls
                             print("output URL duration: \(outputAsset.duration)")
+                            
+                            
                         })
                     })
                     
@@ -238,9 +279,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                                 self.session.stopRunning()
                                 self.showGifWithGLKView(with: imageURLs)
                             })
-                            //                let urls = getThumbnailFrom(videoURL: outputURL)
-                            //                showGifWithGLKView(with: urls)
-                            //                resizedURLs = urls
                             print("output URL duration: \(outputAsset.duration)")
 
                         })
@@ -250,24 +288,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         didOutputSampleBufferMethodCallCount += 1
-        var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        sourceImage = sourceImage.adjustedExtentForGLKView()
-        
-        // filteredImage has the same address as sourceImage
-        guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
-            print("Error: filtered image is nil in \(#function)")
-            return
-        }
-        
-        liveCameraGLKView.bindDrawable()
-        
-        // Prepare CIContext with EAGLContext
-        if liveCameraEaglContext != EAGLContext.current() {
-            EAGLContext.setCurrent(liveCameraEaglContext)
-        }
-        setupOpenGL()
-        liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
-        liveCameraGLKView.display()
+
     }
     
     // MARK: - Initial setups
