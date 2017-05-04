@@ -37,6 +37,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         if !debugCameraOff {
             setupSatoCamera()
         }
+        print("sato cam size \(satoCamera.liveCameraGLKView.frame))")
         setupInterfaceView()
     }
     

@@ -75,6 +75,12 @@ class CameraInterfaceView: UIView {
     
     // MARK: Methods
     
+    /// Sets and resizes the capture screen display
+    func setCaptureSize(_ size: Camera.captureSize) {
+
+        
+    }
+    
     /// Trigger 'redraw' of interface toolbars
     func updateInterface() {
         // Repopulate top toolbar
