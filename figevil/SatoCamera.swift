@@ -227,6 +227,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                             let outputAsset = AVURLAsset(url: outputURL)
                             self.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
                                 self.resizedURLs = imageURLs
+                                self.session.stopRunning()
                                 self.showGifWithGLKView(with: imageURLs)
                             })
                             //                let urls = getThumbnailFrom(videoURL: outputURL)
@@ -243,6 +244,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                             let outputAsset = AVURLAsset(url: outputURL)
                             self.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
                                 self.resizedURLs = imageURLs
+                                self.session.stopRunning()
                                 self.showGifWithGLKView(with: imageURLs)
                             })
                             //                let urls = getThumbnailFrom(videoURL: outputURL)
@@ -275,6 +277,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         if liveCameraEaglContext != EAGLContext.current() {
             EAGLContext.setCurrent(liveCameraEaglContext)
         }
+        print("current context: \(EAGLContext.current()) in \(#function)")
         setupOpenGL()
         
         liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
@@ -298,6 +301,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         setupLiveCameraGLKView()
         setupGifGLKView()
         setupOpenGL()
+        setupSession()
         setupAssetWriter(assetWriterID: .First)
         setupAssetWriter(assetWriterID: .Second)
         
@@ -335,6 +339,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         let drawableFrame = CGRect(origin: CGPoint.zero, size: CGSize(width: liveCameraGLKView.drawableWidth, height: liveCameraGLKView.drawableHeight))
         gifGLKViewPreviewViewBounds = drawableFrame
         gifCIContext = CIContext(eaglContext: gifEaglContext)
+        gifGLKView.delegate = self
     }
     
     /** Authorize camera usage. */
@@ -1222,17 +1227,16 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         isSnappedGif = true
     }
     
-    /** Stops image post-storing. Calls showGif to show gif.*/
-    fileprivate func stopLiveGif() {
-        isSnappedGif = false
-        cameraOutput?.didLiveGifStop?()
-        deviceOrientation = UIDevice.current.orientation
-        cameraOutput?.gifOutputView?.isHidden = false
-        stop()
-        //showGif()
-        showGifWithGLKView()
-        
-    }
+//    /** Stops image post-storing. Calls showGif to show gif.*/
+//    fileprivate func stopLiveGif() {
+//        isSnappedGif = false
+//        cameraOutput?.didLiveGifStop?()
+//        deviceOrientation = UIDevice.current.orientation
+//        cameraOutput?.gifOutputView?.isHidden = false
+//        stop()
+//        //showGif()
+//        showGifWithGLKView(with: resizedURLs)
+//    }
     
     /** Creates an image view with images for animation. Show the image view on output image view. */
     func showAnimatedImageView() {
@@ -1336,7 +1340,11 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             ciImages.append(sourceCIImage)
         }
         cameraOutput?.gifOutputView?.isHidden = false
-
+        
+        print("current context: \(EAGLContext.current()) in \(#function)")
+        if self.gifEaglContext != EAGLContext.current() {
+            EAGLContext.setCurrent(self.gifEaglContext)
+        }
         //DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
         DispatchQueue.global(qos: DispatchQoS.QoSClass.userInteractive).async { [unowned self] in
             self.gifGLKView.bindDrawable()
@@ -1344,13 +1352,14 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             if self.gifEaglContext != EAGLContext.current() {
                 EAGLContext.setCurrent(self.gifEaglContext)
             }
-            
+
             self.setupOpenGL()
             while !self.session.isRunning {
                 if self.session.isRunning {
                     break
                 }
-                
+                print("current context: \(EAGLContext.current()) in \(#function)")
+
                 self.setupOpenGL()
                 //print("CIImage count: \(ciImages.count)")
                 for image in ciImages {
