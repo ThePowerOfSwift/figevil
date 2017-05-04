@@ -32,7 +32,7 @@
                         <constraint firstAttribute="height" constant="374" id="Crw-Rt-DMB"/>
                     </constraints>
                 </view>
-                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6bc-C9-LEg">
+                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translatesAutoresizingMaskIntoConstraints="NO" id="6bc-C9-LEg">
                     <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                     <items/>
                 </toolbar>
@@ -42,7 +42,7 @@
                         <constraint firstAttribute="height" constant="70" id="NS9-bJ-6NB"/>
                     </constraints>
                 </view>
-                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="oAz-fb-G56">
+                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translatesAutoresizingMaskIntoConstraints="NO" id="oAz-fb-G56">
                     <rect key="frame" x="0.0" y="623" width="375" height="44"/>
                     <items/>
                 </toolbar>

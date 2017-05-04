@@ -32,22 +32,38 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var captureSize: Camera.screen = Camera.screen.square {
         didSet {
             if oldValue != captureSize {
-                setupLiveCameraGLKView()
-                setupGifGLKView()
+                let frame = CGRect(origin: CGPoint.zero, size: captureSize.size())
+                liveCameraGLKView.resize(frame: frame)
+                gifGLKView.resize(frame: frame)
             }
         }
     }
     
-    // MARK: OpenGL for live camera
-    private var liveCameraGLKView: GLKView!
-    fileprivate var liveCameraCIContext: CIContext?
-    fileprivate var liveCameraEaglContext: EAGLContext?
-    private var liveCameraGLKViewBounds: CGRect = CGRect.zero
-    // MARK: OpenGL for gif preview
-    fileprivate var gifGLKView: GLKView!
-    fileprivate var gifCIContext: CIContext?
-    fileprivate var gifEaglContext: EAGLContext?
-    fileprivate var gifGLKViewPreviewViewBounds = CGRect()
+    /// Struct that represents GLKView and underlying EAGLContext/CIContext
+    private struct CameraGLKView {
+        var eaglContext: EAGLContext!
+        var glkView: GLKView!
+        var ciContext: CIContext!
+        var drawFrame: CGRect!
+        
+        init(frame: CGRect, context: EAGLContext) {
+            eaglContext = context
+            resize(frame: frame)
+            ciContext = CIContext(eaglContext: context)
+        }
+        
+        mutating func resize(frame: CGRect) {
+            glkView = GLKView(frame: frame, context: eaglContext)
+            glkView.enableSetNeedsDisplay = false
+            glkView.bindDrawable()
+            drawFrame = CGRect(origin: CGPoint.zero, size: CGSize(width: glkView.drawableWidth, height: glkView.drawableHeight))
+        }
+    }
+    
+    /// OpenGL for live camera
+    private var liveCameraGLKView: CameraGLKView!
+    /// OpenGL for gif preview
+    private var gifGLKView: CameraGLKView!
     
     // MARK: State
     fileprivate var cameraFace: CameraFace = .Back
@@ -68,8 +84,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         didSet {
-            liveCameraGLKView.removeFromSuperview()
-            gifGLKView.removeFromSuperview()
+            liveCameraGLKView.glkView.removeFromSuperview()
+            gifGLKView.glkView.removeFromSuperview()
             guard let cameraOutput = cameraOutput else {
                 print("Error: video preview or camera output is nil")
                 return
@@ -78,8 +94,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 print("Error: sample buffer view or gif output view is nil")
                 return
             }
-            sampleBufferOutput.addSubview(liveCameraGLKView)
-            gifOutputView.addSubview(gifGLKView)
+            sampleBufferOutput.addSubview(liveCameraGLKView.glkView)
+            gifOutputView.addSubview(gifGLKView.glkView)
         }
     }
     
@@ -262,7 +278,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         
         var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
         if captureSize == .square {
-            sourceImage = sourceImage.adjustedExtentForGLKView(liveCameraGLKViewBounds.size)
+            sourceImage = sourceImage.adjustedExtentForGLKView(liveCameraGLKView.drawFrame.size)
         }
         
         // filteredImage has the same address as sourceImage
@@ -270,18 +286,15 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             print("Error: filtered image is nil in \(#function)")
             return
         }
-        
-        liveCameraGLKView.bindDrawable()
+        liveCameraGLKView.glkView.bindDrawable()
         
         // Prepare CIContext with EAGLContext
-        if liveCameraEaglContext != EAGLContext.current() {
-            EAGLContext.setCurrent(liveCameraEaglContext)
+        if liveCameraGLKView.eaglContext != EAGLContext.current() {
+            EAGLContext.setCurrent(liveCameraGLKView.eaglContext)
         }
-        print("current context: \(EAGLContext.current()) in \(#function)")
         setupOpenGL()
-        
-        liveCameraCIContext?.draw(filteredImage, in: liveCameraGLKViewBounds, from: sourceImage.extent)
-        liveCameraGLKView.display()
+        liveCameraGLKView.ciContext.draw(filteredImage, in: liveCameraGLKView.drawFrame, from: sourceImage.extent)
+        liveCameraGLKView.glkView.display()
     }
 
     // MARK: - Initial setups
@@ -301,45 +314,28 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         setupLiveCameraGLKView()
         setupGifGLKView()
         setupOpenGL()
-        setupSession()
         setupAssetWriter(assetWriterID: .First)
-        setupAssetWriter(assetWriterID: .Second)
-        
-        captureSize = .square
+        setupAssetWriter(assetWriterID: .Second)        
     }
 
-    // TODO: keep the same cicontext
-    func setupLiveCameraGLKView() {
-        guard let liveCameraEaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
-            print("Error: eaglContext is nil")
+    private func setupLiveCameraGLKView() {
+        guard let eaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
+            print("Error: failed to create EAGLContext in \(#function)")
             setupResult = .configurationFailed
             return
         }
-        self.liveCameraEaglContext = liveCameraEaglContext
-        let frame = CGRect(origin: CGPoint.zero, size: captureSize.size())
-        liveCameraGLKView = GLKView(frame: frame, context: liveCameraEaglContext)
-        liveCameraGLKView.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
-        liveCameraGLKView.bindDrawable()
-        let drawableFrame = CGRect(origin: CGPoint.zero, size: CGSize(width: liveCameraGLKView.drawableWidth, height: liveCameraGLKView.drawableHeight))
-        liveCameraGLKViewBounds = drawableFrame
-        liveCameraCIContext = CIContext(eaglContext: liveCameraEaglContext)
-        liveCameraGLKView.delegate = self
+        
+        liveCameraGLKView = CameraGLKView(frame: CGRect(origin: CGPoint.zero, size: captureSize.size()), context: eaglContext)
     }
     
-    func setupGifGLKView() {
-        guard let gifEaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
+    private func setupGifGLKView() {
+        guard let eaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
             print("Error: failed to create EAGLContext in \(#function)")
+            setupResult = .configurationFailed
             return
         }
-        self.gifEaglContext = gifEaglContext
-        let frame = CGRect(origin: CGPoint.zero, size: captureSize.size())
-        gifGLKView = GLKView(frame: frame, context: gifEaglContext)
-        gifGLKView.enableSetNeedsDisplay = false
-        gifGLKView.bindDrawable()
-        let drawableFrame = CGRect(origin: CGPoint.zero, size: CGSize(width: liveCameraGLKView.drawableWidth, height: liveCameraGLKView.drawableHeight))
-        gifGLKViewPreviewViewBounds = drawableFrame
-        gifCIContext = CIContext(eaglContext: gifEaglContext)
-        gifGLKView.delegate = self
+        
+        gifGLKView = CameraGLKView(frame: CGRect(origin: CGPoint.zero, size: captureSize.size()), context: eaglContext)
     }
     
     /** Authorize camera usage. */
@@ -463,7 +459,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     internal func tapToFocusAndExposure(touch: UITouch) {
-        let touchPoint = touch.location(in: liveCameraGLKView)
+        let touchPoint = touch.location(in: liveCameraGLKView.glkView)
         // https://developer.apple.com/library/content/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/04_MediaCapture.html
         // convert device point to image point in unit
         let convertedX = touchPoint.y / captureSize.size().height
@@ -1294,10 +1290,10 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
-            self.gifGLKView.bindDrawable()
+            self.gifGLKView.glkView.bindDrawable()
     
-            if self.gifEaglContext != EAGLContext.current() {
-                EAGLContext.setCurrent(self.gifEaglContext)
+            if self.gifGLKView.eaglContext != EAGLContext.current() {
+                EAGLContext.setCurrent(self.gifGLKView.eaglContext)
             }
             
             self.setupOpenGL()
@@ -1314,13 +1310,13 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     if let filter = self.currentFilter.filter {
                         filter.setValue(image, forKey: kCIInputImageKey)
                         if let outputImage = filter.outputImage {
-                            self.gifCIContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                            self.gifGLKView.ciContext.draw(outputImage, in: self.gifGLKView.drawFrame, from: image.extent)
 
                         }
                     } else {
-                        self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                        self.gifGLKView.ciContext.draw(image, in: self.gifGLKView.drawFrame, from: image.extent)
                     }
-                    self.gifGLKView.display()
+                    self.gifGLKView.glkView.display()
                     usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
                 }
             }
@@ -1341,16 +1337,15 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         cameraOutput?.gifOutputView?.isHidden = false
         
-        print("current context: \(EAGLContext.current()) in \(#function)")
-        if self.gifEaglContext != EAGLContext.current() {
-            EAGLContext.setCurrent(self.gifEaglContext)
+        if gifGLKView.eaglContext != EAGLContext.current() {
+            EAGLContext.setCurrent(gifGLKView.eaglContext)
         }
         //DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
         DispatchQueue.global(qos: DispatchQoS.QoSClass.userInteractive).async { [unowned self] in
-            self.gifGLKView.bindDrawable()
+            self.gifGLKView.glkView.bindDrawable()
             
-            if self.gifEaglContext != EAGLContext.current() {
-                EAGLContext.setCurrent(self.gifEaglContext)
+            if self.gifGLKView.eaglContext != EAGLContext.current() {
+                EAGLContext.setCurrent(self.gifGLKView.eaglContext)
             }
 
             self.setupOpenGL()
@@ -1369,14 +1364,14 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     if let filter = self.currentFilter.filter {
                         filter.setValue(image, forKey: kCIInputImageKey)
                         if let outputImage = filter.outputImage {
-                            self.gifCIContext?.draw(outputImage, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                            self.gifGLKView.ciContext.draw(outputImage, in: self.gifGLKView.drawFrame, from: image.extent)
                             
                         }
                     } else {
-                        self.gifCIContext?.draw(image, in: self.gifGLKViewPreviewViewBounds, from: image.extent)
+                        self.gifGLKView.ciContext.draw(image, in: self.gifGLKView.drawFrame, from: image.extent)
                     }
 
-                    self.gifGLKView.display()
+                    self.gifGLKView.glkView.display()
                     usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
                 }
             }

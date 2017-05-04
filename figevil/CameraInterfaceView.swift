@@ -48,7 +48,7 @@ class CameraInterfaceView: UIView {
     var previewBottomItems: [UIBarButtonItem] = []
 
     /// Sets and resizes the capture screen display
-    var captureSize: Camera.screen = .fullscreen {
+    var captureSize: Camera.screen = .square {
         didSet {
             updateCaptureSize()
         }
@@ -76,8 +76,7 @@ class CameraInterfaceView: UIView {
         addSubview(view)
         
         // Sync contents
-        isCapture = true
-        captureSize = .square
+        updateInterface()
     }
     
     // MARK: Methods
