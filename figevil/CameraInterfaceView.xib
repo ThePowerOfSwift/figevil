@@ -34,14 +34,6 @@
                         <constraint firstAttribute="height" constant="44" id="58Z-xi-1kJ"/>
                     </constraints>
                 </view>
-                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translucent="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6bc-C9-LEg">
-                    <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
-                    <items/>
-                </toolbar>
-                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translucent="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oAz-fb-G56">
-                    <rect key="frame" x="0.0" y="623" width="375" height="44"/>
-                    <items/>
-                </toolbar>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kb2-bg-7gK">
                     <rect key="frame" x="0.0" y="44" width="375" height="375"/>
                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
@@ -49,6 +41,10 @@
                         <constraint firstAttribute="width" secondItem="kb2-bg-7gK" secondAttribute="height" multiplier="1:1" id="gkX-Hc-CjV"/>
                     </constraints>
                 </view>
+                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translucent="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6bc-C9-LEg">
+                    <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                    <items/>
+                </toolbar>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZiH-cj-6JQ">
                     <rect key="frame" x="0.0" y="553" width="375" height="70"/>
                     <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -56,6 +52,10 @@
                         <constraint firstAttribute="height" constant="70" id="NS9-bJ-6NB"/>
                     </constraints>
                 </view>
+                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translucent="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oAz-fb-G56">
+                    <rect key="frame" x="0.0" y="623" width="375" height="44"/>
+                    <items/>
+                </toolbar>
             </subviews>
             <constraints>
                 <constraint firstItem="ZiH-cj-6JQ" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="4Th-Ak-H2z"/>
