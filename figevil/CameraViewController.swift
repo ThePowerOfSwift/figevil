@@ -16,7 +16,14 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     /** Model */
     var satoCamera: SatoCamera = SatoCamera.shared
-
+    var aspectRatio = Camera.screen.square {
+        didSet {
+            if oldValue != aspectRatio {
+                updateAspectRatio()
+            }
+        }
+    }
+    
     var interfaceView: CameraInterfaceView {
         return view as! CameraInterfaceView
     }
@@ -102,7 +109,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             case .save:
                 save()
             case .aspectRatio:
-                aspectRatio()
+                toggleAspectRatio()
             }
         }
     }
@@ -115,10 +122,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         setupMenuBubbles()        
     }
     
-    func toggleCaptureSize(_ size: Camera.screen) {
-        
-    }
-    
     var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
     func setupBarButton() {
         // Interface status
@@ -128,7 +131,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         liveBarButtonItem.isEnabled = false
 
         // Camera actions
-
+        
         let downloadButton = UIBarButtonItem(image: #imageLiteral(resourceName: "downloads"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[downloadButton] = interfaceAction.load as AnyObject
         // TODO: Implement download
@@ -142,7 +145,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         let shareButton = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[shareButton] = interfaceAction.share as AnyObject
-        // TODO:
         shareButton.isEnabled = false
         
         let circleImage = #imageLiteral(resourceName: "circle")
@@ -156,6 +158,9 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         let saveButton = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[saveButton] = interfaceAction.save as AnyObject
+
+        let aspectRatioButton = UIBarButtonItem(image: #imageLiteral(resourceName: "fullscreen"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
+        barButtonMap[aspectRatioButton] = interfaceAction.aspectRatio as AnyObject
 
         // Camera Effects
         
@@ -177,11 +182,15 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         // Set toolbar items
         
-        interfaceView.captureTopItems = [flashButton,
+        interfaceView.captureTopItems = [downloadButton,
+                                         UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil),
+                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                                          UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                                          liveBarButtonItem,
                                          UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-                                         downloadButton]
+                                         aspectRatioButton,
+                                         UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+                                         flashButton]
         interfaceView.previewTopItems = [cancelButton,
                                          UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                                          shareButton]
@@ -289,10 +298,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         interfaceView.reset()
     }
     
-    func aspectRatio() {
-        // TODO:
-    }
-    
     func save() {
         satoCamera.save(renderItems: nil) { (success, savedURLs, filesize) in
             // render animation into movie
@@ -358,6 +363,23 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         return satoCamera.toggleTorch()
     }
     
+    
+    func toggleAspectRatio() {
+        aspectRatio = aspectRatio == .square ? .fullscreen : .square
+    }
+
+    // Force camera and interface to update content (capture / output) aspect ratio
+    func updateAspectRatio() {
+        // Update UI and camera
+        satoCamera.captureSize = aspectRatio
+        interfaceView.captureSize = aspectRatio
+        
+        // Update bar button image
+        if let aspectBarButton = barButtonMap.filter({ ($0.value as? interfaceAction) == interfaceAction.aspectRatio }).first?.key {
+            aspectBarButton.image = aspectRatio == .fullscreen ? #imageLiteral(resourceName: "squarescreen") : #imageLiteral(resourceName: "fullscreen")
+        }
+    }
+
     // MARK: Rendering
     
     func render(_ videoURL: URL, outputURL: URL, completion: (()->())?) {

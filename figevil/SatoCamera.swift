@@ -53,10 +53,17 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         mutating func resize(frame: CGRect) {
+            let oldGLKView = glkView
+            
             glkView = GLKView(frame: frame, context: eaglContext)
             glkView.enableSetNeedsDisplay = false
             glkView.bindDrawable()
             drawFrame = CGRect(origin: CGPoint.zero, size: CGSize(width: glkView.drawableWidth, height: glkView.drawableHeight))
+            
+            if let superview = oldGLKView?.superview {
+                superview.insertSubview(glkView, belowSubview: oldGLKView!)
+                oldGLKView?.removeFromSuperview()
+            }
         }
     }
     
@@ -276,7 +283,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         
         didOutputSampleBufferMethodCallCount += 1
         
-        var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
+        var sourceImage = CIImage(cvPixelBuffer: pixelBuffer)
         if captureSize == .square {
             sourceImage = sourceImage.adjustedExtentForGLKView(liveCameraGLKView.drawFrame.size)
         }
@@ -315,7 +322,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         setupGifGLKView()
         setupOpenGL()
         setupAssetWriter(assetWriterID: .First)
-        setupAssetWriter(assetWriterID: .Second)        
+        setupAssetWriter(assetWriterID: .Second)
+        
     }
 
     private func setupLiveCameraGLKView() {
@@ -589,35 +597,37 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         var pixelBufferAdaptorAttributes = [String:Any]()
         if let recommendedSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
             
+            var imageWidth = Double(captureSize.size().width)
+            var imageHeight = Double(captureSize.size().height)
+            
+            var scaleMode = AVVideoScalingModeFit
+            
             if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
-                let imageLength = min(width, height)
-                outputSettings = [
-                    AVVideoWidthKey : imageLength,
-                    AVVideoHeightKey : imageLength,
-                    AVVideoCodecKey : AVVideoCodecH264,
-                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
-                ]
+                imageWidth = width
+                imageHeight = height
                 
-                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
-                                                kCVPixelBufferWidthKey as String: imageLength]
+                if captureSize == .square {
+                    let length = min(imageWidth, imageHeight)
+                    imageWidth = length
+                    imageHeight = length
+                }
+                
+                scaleMode = AVVideoScalingModeResizeAspectFill
             } else {
-                print("Error: failed to get width and height from recommended settings in \(#function)")
-                let imageLength = UIScreen.main.bounds.width
-                outputSettings = [
-                    AVVideoWidthKey : imageLength,
-                    AVVideoHeightKey : imageLength,
-                    AVVideoCodecKey : AVVideoCodecH264,
-                    //AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
-                    AVVideoScalingModeKey : AVVideoScalingModeFit
-                ]
-                
-                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
-                                                kCVPixelBufferWidthKey as String: imageLength]
+                print("Failed to get width and height from recommended settings in \(#function)")
             }
+            outputSettings = [
+                AVVideoWidthKey : imageWidth,
+                AVVideoHeightKey : imageHeight,
+                AVVideoCodecKey : AVVideoCodecH264,
+                AVVideoScalingModeKey : scaleMode]
+            
+            pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageWidth,
+                                            kCVPixelBufferWidthKey as String: imageHeight]
         } else {
             outputSettings = [
-                AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
-                AVVideoHeightKey : Int(UIScreen.main.bounds.width) + 1,
+                AVVideoWidthKey : Int(captureSize.size().width) + 1,
+                AVVideoHeightKey : Int(captureSize.size().height) + 1,
                 AVVideoCodecKey : AVVideoCodecH264
             ]
             pixelBufferAdaptorAttributes = [kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)]
@@ -1353,7 +1363,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 if self.session.isRunning {
                     break
                 }
-                print("current context: \(EAGLContext.current()) in \(#function)")
 
                 self.setupOpenGL()
                 //print("CIImage count: \(ciImages.count)")

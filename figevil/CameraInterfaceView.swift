@@ -83,28 +83,30 @@ class CameraInterfaceView: UIView {
     
     /// Trigger 'redraw' of capture size
     func updateCaptureSize() {
+        let toolbars = [topToolbar!, bottomToolbar!]
+        
         switch captureSize {
         case .fullscreen:
             // Make toolbars transparent
-            for toolbar in [topToolbar!, bottomToolbar!] {
+            for toolbar in toolbars {
                 toolbar.setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
                 toolbar.backgroundColor = UIColor.clear
             }
             // Adjust content size
             contentViewTopConstraint.constant = -topToolbar.frame.height
-            
         case .square:
             // Make toolbars black
-            for toolbar in [topToolbar!, bottomToolbar!] {
-                toolbar.barStyle = .black
-            }
+            _ = toolbars.map({ $0.barStyle = .black})
             // Adjust content size
             contentViewTopConstraint.constant = 0
         }
+        
+        // Change the content view height
         contentViewHeightConstraint.constant = captureSize.size().height
 
+        // Animate (autolayout changes above)
         UIView.animate(withDuration: AnimationTime.select) {
-            self.setNeedsLayout()
+            self.layoutIfNeeded()
         }
     }
     
