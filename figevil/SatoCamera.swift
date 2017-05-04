@@ -1248,7 +1248,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     func showGifWithGLKView(with imageURLs: [URL]) {
-        DispatchQueue.global(qos: .userInteractive).async {
+        DispatchQueue.main.async {
             // make resized images from originals here
             self.cameraOutput?.gifOutputView?.isHidden = false
             self.cameraOutput?.sampleBufferView?.isHidden = true
