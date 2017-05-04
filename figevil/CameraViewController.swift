@@ -37,7 +37,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         if !debugCameraOff {
             setupSatoCamera()
         }
-        print("sato cam size \(satoCamera.liveCameraGLKView.frame))")
         setupInterfaceView()
     }
     
@@ -80,7 +79,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // MARK: InterfaceView
 
     enum interfaceAction {
-        case capture, flash, load, cancel, share, selfie, save
+        case capture, flash, load, cancel, share, selfie, save, aspectRatio
     }
     
     func tappedInterface(_ sender: UIBarButtonItem) {
@@ -102,6 +101,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 toggleSelfie()
             case .save:
                 save()
+            case .aspectRatio:
+                aspectRatio()
             }
         }
     }
@@ -111,13 +112,11 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         setupEffects()
         // Setup collection views for menu and options
-        setupMenuBubbles()
+        setupMenuBubbles()        
+    }
+    
+    func toggleCaptureSize(_ size: Camera.screen) {
         
-        // Setup content frame
-        //interfaceView.contentViewAspectConstraint.constant =
-        let topContentHeight = interfaceView.topToolbar.frame.height + interfaceView.contentView.frame.height
-        let bottomBackgroundHeight = view.frame.height - topContentHeight
-        interfaceView.bottomBackgroundViewHeightConstraint.constant = bottomBackgroundHeight
     }
     
     var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
@@ -288,6 +287,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     func cancel() {
         satoCamera.reset()
         interfaceView.reset()
+    }
+    
+    func aspectRatio() {
+        // TODO:
     }
     
     func save() {

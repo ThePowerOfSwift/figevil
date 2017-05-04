@@ -20,7 +20,7 @@ To use, SatoCamera.shared,
 3. call start(). */
 class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
-    static let shared: SatoCamera = SatoCamera(size: Camera.captureSize.square)
+    static let shared: SatoCamera = SatoCamera()
     
     // MARK: AVCaptureSession
     fileprivate var videoDevice: AVCaptureDevice?
@@ -29,19 +29,17 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     internal var session = AVCaptureSession()
     internal var sessionQueue = DispatchQueue(label: "sessionQueue")
     /** Frame of sampleBufferView of CameraOutput delegate. Should be set when being initialized. */
-    private var captureSize: CGSize = Camera.captureSize.square {
+    var captureSize: Camera.screen = Camera.screen.square {
         didSet {
-            let frame = CGRect(origin: CGPoint.zero, size: captureSize)
-            liveCameraGLKView.frame = frame
-            let drawableFrame = CGRect(origin: CGPoint.zero, size: CGSize(width: liveCameraGLKView.drawableWidth, height: liveCameraGLKView.drawableHeight))
-            liveCameraGLKViewBounds = drawableFrame
-            gifGLKView.frame = frame
-
+            if oldValue != captureSize {
+                setupLiveCameraGLKView()
+                setupGifGLKView()
+            }
         }
     }
     
     // MARK: OpenGL for live camera
-     var liveCameraGLKView: GLKView!
+    private var liveCameraGLKView: GLKView!
     fileprivate var liveCameraCIContext: CIContext?
     fileprivate var liveCameraEaglContext: EAGLContext?
     private var liveCameraGLKViewBounds: CGRect = CGRect.zero
@@ -138,7 +136,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     func maxpixel(scale: Double) -> Int {
-        let longerSide = Double(max(captureSize.height, captureSize.width))
+        let longerSide = Double(max(captureSize.size().height, captureSize.size().width))
         return Int(longerSide / scale)
     }
     
@@ -261,7 +259,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutputSampleBufferMethodCallCount += 1
         
         var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        sourceImage = sourceImage.adjustedExtentForGLKView()
+        if captureSize == .square {
+            sourceImage = sourceImage.adjustedExtentForGLKView(liveCameraGLKViewBounds.size)
+        }
         
         // filteredImage has the same address as sourceImage
         guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -283,12 +283,16 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 
     // MARK: - Initial setups
     
-    init(size: CGSize) {
+    override init() {
         super.init()
-        // Set size
-        captureSize = size
-        print("set capture size: \(size)")
-        // Continue setup
+        setup()
+    }
+        
+    deinit {
+        removeSessionObserver()
+    }
+    
+    private func setup() {
         setupSessionObserver()
         setupSession()
         setupLiveCameraGLKView()
@@ -296,12 +300,11 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         setupOpenGL()
         setupAssetWriter(assetWriterID: .First)
         setupAssetWriter(assetWriterID: .Second)
+        
+        captureSize = .square
     }
-    
-    deinit {
-        removeSessionObserver()
-    }
-    
+
+    // TODO: keep the same cicontext
     func setupLiveCameraGLKView() {
         guard let liveCameraEaglContext = EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
             print("Error: eaglContext is nil")
@@ -309,7 +312,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         self.liveCameraEaglContext = liveCameraEaglContext
-        let frame = CGRect(origin: CGPoint.zero, size: captureSize)
+        let frame = CGRect(origin: CGPoint.zero, size: captureSize.size())
         liveCameraGLKView = GLKView(frame: frame, context: liveCameraEaglContext)
         liveCameraGLKView.enableSetNeedsDisplay = false // disable normal UIView drawing cycle
         liveCameraGLKView.bindDrawable()
@@ -325,10 +328,12 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
         self.gifEaglContext = gifEaglContext
-        let frame = CGRect(origin: CGPoint.zero, size: captureSize)
+        let frame = CGRect(origin: CGPoint.zero, size: captureSize.size())
         gifGLKView = GLKView(frame: frame, context: gifEaglContext)
         gifGLKView.enableSetNeedsDisplay = false
         gifGLKView.bindDrawable()
+        let drawableFrame = CGRect(origin: CGPoint.zero, size: CGSize(width: liveCameraGLKView.drawableWidth, height: liveCameraGLKView.drawableHeight))
+        gifGLKViewPreviewViewBounds = drawableFrame
         gifCIContext = CIContext(eaglContext: gifEaglContext)
     }
     
@@ -428,7 +433,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         sessionQueue.suspend()
         askUserCameraAccessAuthorization { (authorized: Bool) in
             if authorized {
-                print("camera access authorized")
                 self.setupResult = .success
                 self.sessionQueue.resume()
             } else {
@@ -457,8 +461,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         let touchPoint = touch.location(in: liveCameraGLKView)
         // https://developer.apple.com/library/content/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/04_MediaCapture.html
         // convert device point to image point in unit
-        let convertedX = touchPoint.y / captureSize.height
-        let convertedY = (captureSize.width - touchPoint.x) / captureSize.width
+        let convertedX = touchPoint.y / captureSize.size().height
+        let convertedY = (captureSize.size().width - touchPoint.x) / captureSize.size().width
         let convertedPoint = CGPoint(x: convertedX, y: convertedY)
         focus(with: .autoFocus, exposureMode: .autoExpose, at: convertedPoint)
         
@@ -1062,9 +1066,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // MARK: - Camera Controls
     internal func start() {
         session.startRunning()
-        if !session.isRunning {
-            print("Error: camera failed to run.")
-        }
+//        if !session.isRunning {
+//            print("Error: camera failed to run.")
+//        }
     }
     
     internal func stop() {
@@ -1106,7 +1110,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         
         var urls = [URL]()
         for image in filteredResizedUIImages {
-            let frame = CGRect(origin: CGPoint.zero, size: CGSize(width: captureSize.width, height: captureSize.height))
+            let frame = CGRect(origin: CGPoint.zero, size: CGSize(width: captureSize.size().width, height: captureSize.size().height))
             let renderedImage = image.render(items: renderItems, frame: frame)
             guard let cgImage = renderedImage.cgImage else {
                 print("Error: Could not get cgImage from rendered UIImage in \(#function)")
@@ -1384,7 +1388,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
         }
         
-        let frame = CGRect(origin: CGPoint.zero, size: CGSize(width: captureSize.width, height: captureSize.height))
+        let frame = CGRect(origin: CGPoint.zero, size: CGSize(width: captureSize.size().width, height: captureSize.size().height))
         let imageView = UIImageView(frame: frame)
         imageView.animationImages = filteredUIImages
         imageView.animationRepeatCount = 0
@@ -1627,9 +1631,9 @@ enum CGImagePropertyOrientation: Int {
 
 extension CIImage {
     /** Crop center square from rectangle shaped CIImage*/
-    func adjustedExtentForGLKView() -> CIImage {
+    func adjustedExtentForGLKView(_ size: CGSize) -> CIImage {
         let sourceHeight = self.extent.height
-        let newHeight = self.extent.width
+        let newHeight = size.height
         let gap = sourceHeight - newHeight
         let originY = gap / 2
         let extent = CGRect(origin: CGPoint(x: self.extent.origin.x, y: originY), size: CGSize(width: self.extent.width, height: self.extent.width))

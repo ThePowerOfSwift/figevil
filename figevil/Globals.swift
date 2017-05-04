@@ -12,29 +12,24 @@ let debug: Bool = false
 let debugCameraOff: Bool = false
 
 enum Camera {
-    enum captureSize {
-            static let fullscreen = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-            static let square = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.width)
-//        case fullscreen
-//        case square
-//        
-//        func size(_ x: Camera.captureSize) -> CGSize {
-//            var size: CGSize = CGSize.zero
-//            
-//            switch x {
-//            case .fullscreen:
-//                size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-//            case .square:
-//                size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.width)
-//            }
-//            
-//            return size
-//        }
+    enum screen {
+        case fullscreen
+        case square
+        
+        func size() -> CGSize {
+            var size = CGSize.zero
+            
+            switch self {
+            case .fullscreen:
+                size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+            case .square:
+                size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.width)
+            }
+            
+            return size
+        }
     }
     
-    func test() {
-        
-    }
     enum liveGifPreset {
         static let sampleBufferFPS = 30
         static let gifFPS = 10

@@ -23,11 +23,10 @@ class CameraInterfaceView: UIView {
         }
     }
     @IBOutlet weak var contentView: UIView!
-    @IBOutlet weak var contentViewAspectConstraint: NSLayoutConstraint!
+    @IBOutlet weak var contentViewTopConstraint: NSLayoutConstraint!
+    @IBOutlet weak var contentViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var primaryMenuView: UIView!
     @IBOutlet weak var primaryMenuViewBottomConstraint: NSLayoutConstraint!
-    @IBOutlet weak var bottomBackgroundView: UIView!
-    @IBOutlet weak var bottomBackgroundViewHeightConstraint: NSLayoutConstraint!
     
     // Model
     /// State flag for capture or preview mode
@@ -47,6 +46,13 @@ class CameraInterfaceView: UIView {
     var captureBottomItems: [UIBarButtonItem] = []
     /// Items for bottom toolbar when in Preview mode
     var previewBottomItems: [UIBarButtonItem] = []
+
+    /// Sets and resizes the capture screen display
+    var captureSize: Camera.screen = .fullscreen {
+        didSet {
+            updateCaptureSize()
+        }
+    }
 
     // MARK: Lifecycle
     
@@ -71,14 +77,36 @@ class CameraInterfaceView: UIView {
         
         // Sync contents
         isCapture = true
+        captureSize = .square
     }
     
     // MARK: Methods
     
-    /// Sets and resizes the capture screen display
-    func setCaptureSize(_ size: Camera.captureSize) {
+    /// Trigger 'redraw' of capture size
+    func updateCaptureSize() {
+        switch captureSize {
+        case .fullscreen:
+            // Make toolbars transparent
+            for toolbar in [topToolbar!, bottomToolbar!] {
+                toolbar.setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
+                toolbar.backgroundColor = UIColor.clear
+            }
+            // Adjust content size
+            contentViewTopConstraint.constant = -topToolbar.frame.height
+            
+        case .square:
+            // Make toolbars black
+            for toolbar in [topToolbar!, bottomToolbar!] {
+                toolbar.barStyle = .black
+            }
+            // Adjust content size
+            contentViewTopConstraint.constant = 0
+        }
+        contentViewHeightConstraint.constant = captureSize.size().height
 
-        
+        UIView.animate(withDuration: AnimationTime.select) {
+            self.setNeedsLayout()
+        }
     }
     
     /// Trigger 'redraw' of interface toolbars
