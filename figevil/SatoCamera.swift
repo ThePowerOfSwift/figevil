@@ -228,24 +228,24 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         if isPostRecording {
-            if let stillShot = stillShot {
-                
-                DispatchQueue.main.async {
-                    let cvc = self.cameraOutput as? CameraViewController
-                    let vc = UIViewController()
-                    vc.view.backgroundColor = UIColor.red
-                    let image = UIImage(ciImage: stillShot)
-                    let imageView = UIImageView(image: image)
-                    imageView.frame = UIScreen.main.bounds
-                    
-                    print("image view: \(imageView)")
-                    print("image: \(image)")
-                    vc.view.addSubview(imageView)
-                    cvc?.present(vc, animated: true, completion: {
-                        print("view controller presented")
-                    })
-                }
-            }
+//            if let stillShot = stillShot {
+//                
+//                DispatchQueue.main.async {
+//                    let cvc = self.cameraOutput as? CameraViewController
+//                    let vc = UIViewController()
+//                    vc.view.backgroundColor = UIColor.red
+//                    let image = UIImage(ciImage: stillShot)
+//                    let imageView = UIImageView(image: image)
+//                    imageView.frame = UIScreen.main.bounds
+//                    
+//                    print("image view: \(imageView)")
+//                    print("image: \(image)")
+//                    vc.view.addSubview(imageView)
+//                    cvc?.present(vc, animated: true, completion: {
+//                        print("view controller presented")
+//                    })
+//                }
+//            }
             
             // stop
             if pixelBufferCount == pixelBufferCountAtSnapping + pixelBufferMaxCount {
