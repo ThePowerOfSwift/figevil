@@ -11,6 +11,37 @@ import UIKit
 let debug: Bool = false
 let debugCameraOff: Bool = false
 
+enum Camera {
+    enum screen {
+        case fullscreen
+        case square
+        
+        func size() -> CGSize {
+            var size = CGSize.zero
+            
+            switch self {
+            case .fullscreen:
+                size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+            case .square:
+                size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.width)
+            }
+            
+            return size
+        }
+    }
+    
+    enum liveGifPreset {
+        static let sampleBufferFPS = 30
+        static let gifFPS = 10
+        static let gifDuration = 2
+    }
+    
+    enum pixelsize {
+        static let message = 350
+        static let thumbnail = 245
+    }
+}
+
 enum Sizes {
     static let minimumTappable = CGSize(width: 44.0, height: 44.0)
     static let minimumGestureManipulation = CGSize(width: 90.0, height: 90.0)
@@ -97,19 +128,5 @@ enum Storyboard {
         let storyboard = UIStoryboard(name: Storyboard.Names.Camera, bundle: nil)
         assert((storyboard.instantiateInitialViewController() != nil), "Main view controller does not have an initial VC")
         return storyboard.instantiateInitialViewController()!
-    }
-}
-
-struct Camera {
-    struct LiveGifPreset {
-        static let SampleBufferFPS = 30
-        static let GifFPS = 10
-        static let GifDuration = 2
-    }
-    
-    struct Size {
-        static let MessagePixelSize = 350
-        static let ThumbnailPixelSize = 245
-        
     }
 }

@@ -6,17 +6,15 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12086"/>
-        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="CameraInterfaceView" customModule="figevil" customModuleProvider="target">
             <connections>
-                <outlet property="bottomBackgroundView" destination="xI1-dC-KNj" id="fOw-MP-3Xg"/>
-                <outlet property="bottomBackgroundViewHeightConstraint" destination="58Z-xi-1kJ" id="tA3-MS-Z9Y"/>
                 <outlet property="bottomToolbar" destination="oAz-fb-G56" id="agh-Nf-LPv"/>
                 <outlet property="contentView" destination="kb2-bg-7gK" id="gZm-bk-aqN"/>
-                <outlet property="contentViewAspectConstraint" destination="gkX-Hc-CjV" id="v1P-A7-bvM"/>
+                <outlet property="contentViewHeightConstraint" destination="Crw-Rt-DMB" id="cQs-O7-rMc"/>
+                <outlet property="contentViewTopConstraint" destination="pT5-M3-yYK" id="f4e-L4-znJ"/>
                 <outlet property="primaryMenuView" destination="ZiH-cj-6JQ" id="hYi-Mb-CsP"/>
                 <outlet property="primaryMenuViewBottomConstraint" destination="n0l-zf-a92" id="M5q-cF-Qor"/>
                 <outlet property="topToolbar" destination="6bc-C9-LEg" id="eBX-Ch-gGo"/>
@@ -27,36 +25,29 @@
             <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xI1-dC-KNj">
-                    <rect key="frame" x="0.0" y="623" width="375" height="44"/>
-                    <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kb2-bg-7gK">
+                    <rect key="frame" x="0.0" y="44" width="375" height="374"/>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     <constraints>
-                        <constraint firstAttribute="height" constant="44" id="58Z-xi-1kJ"/>
+                        <constraint firstAttribute="height" constant="374" id="Crw-Rt-DMB"/>
                     </constraints>
                 </view>
-                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translucent="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6bc-C9-LEg">
+                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translatesAutoresizingMaskIntoConstraints="NO" id="6bc-C9-LEg">
                     <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                     <items/>
                 </toolbar>
-                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translucent="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oAz-fb-G56">
-                    <rect key="frame" x="0.0" y="623" width="375" height="44"/>
-                    <items/>
-                </toolbar>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kb2-bg-7gK">
-                    <rect key="frame" x="0.0" y="44" width="375" height="375"/>
-                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                    <constraints>
-                        <constraint firstAttribute="width" secondItem="kb2-bg-7gK" secondAttribute="height" multiplier="1:1" id="gkX-Hc-CjV"/>
-                    </constraints>
-                </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZiH-cj-6JQ">
                     <rect key="frame" x="0.0" y="553" width="375" height="70"/>
-                    <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="70" id="NS9-bJ-6NB"/>
                     </constraints>
                 </view>
+                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translatesAutoresizingMaskIntoConstraints="NO" id="oAz-fb-G56">
+                    <rect key="frame" x="0.0" y="623" width="375" height="44"/>
+                    <items/>
+                </toolbar>
             </subviews>
+            <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
             <constraints>
                 <constraint firstItem="ZiH-cj-6JQ" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="4Th-Ak-H2z"/>
                 <constraint firstItem="6bc-C9-LEg" firstAttribute="top" secondItem="16v-Uw-NE6" secondAttribute="top" id="CHF-d4-qKy"/>
@@ -67,12 +58,9 @@
                 <constraint firstAttribute="trailing" secondItem="ZiH-cj-6JQ" secondAttribute="trailing" id="LLn-19-Ul2"/>
                 <constraint firstItem="6bc-C9-LEg" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="Nj7-Mb-2Pd"/>
                 <constraint firstAttribute="bottom" secondItem="oAz-fb-G56" secondAttribute="bottom" id="Qk6-Od-XUA"/>
-                <constraint firstItem="xI1-dC-KNj" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="dHg-2P-Qfi"/>
-                <constraint firstAttribute="trailing" secondItem="xI1-dC-KNj" secondAttribute="trailing" id="kBt-Hf-QcC"/>
                 <constraint firstAttribute="trailing" secondItem="6bc-C9-LEg" secondAttribute="trailing" id="lbx-Vo-PAg"/>
                 <constraint firstItem="oAz-fb-G56" firstAttribute="top" secondItem="ZiH-cj-6JQ" secondAttribute="bottom" id="n0l-zf-a92"/>
                 <constraint firstItem="kb2-bg-7gK" firstAttribute="top" secondItem="6bc-C9-LEg" secondAttribute="bottom" id="pT5-M3-yYK"/>
-                <constraint firstAttribute="bottom" secondItem="xI1-dC-KNj" secondAttribute="bottom" id="zdb-YF-imD"/>
             </constraints>
             <nil key="simulatedStatusBarMetrics"/>
             <point key="canvasLocation" x="48.5" y="296.5"/>
