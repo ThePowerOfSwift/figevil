@@ -1214,8 +1214,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         var messageURLs = [URL]()
         for url in renderedURLs {
             
-            if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
-                messageURLs.append(messageURL)
+            if url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
+                messageURLs.append(resizedUrlPath)
             } else {
                 print("Error: resizing to message failed in \(#function)")
             }
@@ -1257,8 +1257,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         var resizedTempURLs = [URL]()
         let resizedMaxPixel = maxpixel(scale: 1)
         for url in originalURLs {
-            if let resizedUrl = url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
-                resizedTempURLs.append(resizedUrl)
+            if url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
+                resizedTempURLs.append(resizedUrlPath)
             } else {
                 print("Error: failed to get resized URL")
             }
@@ -1287,9 +1287,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         // make resized images from originals here
         var resizedTempURLs = [URL]()
         let resizedMaxPixel = maxpixel(scale: 1)
-        for url in originalURLs {
-            if let resizedUrl = url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
-                resizedTempURLs.append(resizedUrl)
+        for url in originalURLs {            
+            if url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
+                resizedTempURLs.append(resizedUrlPath)
             } else {
                 print("Error: failed to get resized URL")
             }
@@ -1497,11 +1497,11 @@ extension URL {
     //try print out each CGImage to see if max pixel effect the size
     
     /** Resize an image at a given url. */
-    func resize(maxSize: Int, destinationURL: URL) -> URL? {
+    func resize(maxSize: Int, destinationURL: URL) -> Bool {
         var sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
         guard let imageSource = CGImageSourceCreateWithURL(self as CFURL, sourceOptions as CFDictionary?) else {
             print("Error: cannot create image source for resize")
-            return nil
+            return false
         }
         
         sourceOptions[kCGImageSourceCreateThumbnailFromImageAlways as NSObject] = true as AnyObject
@@ -1510,22 +1510,22 @@ extension URL {
         
         guard let resizedImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, sourceOptions as CFDictionary?) else {
             print("Error: failed to resize image")
-            return nil
+            return false
         }
         
         guard let imageDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, kUTTypeJPEG, 1, nil) else {
             print("Error: cannot create image destination")
-            return nil
+            return false
         }
         
         CGImageDestinationAddImage(imageDestination, resizedImage, nil)
         
         if !CGImageDestinationFinalize(imageDestination) {
             print("Error: cannot finalize and write image destination for resize")
-            return nil
+            return false
         }
         
-        return destinationURL
+        return true
     }
     
     /** Make UIImage from URL*/

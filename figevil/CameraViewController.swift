@@ -305,24 +305,25 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             self.render(originalMovURL, outputURL: outputURL) {
                 DispatchQueue.main.async {
                     self.satoCamera.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (urls: [URL]) in
-                        let gifFileURL = URL.messageURL(path: UUID().uuidString)
-                        //let gifFileURL = URL.thumbnailURL(path: UUID().uuidString)
-                        
-                        // TODO: resize for thumbnail
+                        // resize for thumbnail
                         var thumbnailTempURLs = [URL]()
                         for url in urls {
                             let thumbnailTempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
-                            url.resize(maxSize: Camera.pixelsize.thumbnail, destinationURL: thumbnailTempURL)
-                            thumbnailTempURLs.append(thumbnailTempURL)
+                            if url.resize(maxSize: Camera.pixelsize.thumbnail, destinationURL: thumbnailTempURL) {
+                                thumbnailTempURLs.append(thumbnailTempURL)
+                            } else {
+                                print("Error: url is resized.")
+                            }
                         }
                         
                         let gifThumbnailURL = URL.thumbnailURL(path: String(Date().timeIntervalSinceReferenceDate))
                         if thumbnailTempURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifThumbnailURL) {
-                            print("thumbnail is saved to URL.thumbnail directory. size: \(gifThumbnailURL.filesize)")
+                            print("thumbnail is saved to URL.thumbnail directory. size: \(String(describing: gifThumbnailURL.filesize))")
                         } else {
                             print("thumbnail could NOT saved to URL.thumbnail directory")
                         }
                         
+                        let gifFileURL = URL.messageURL(path: UUID().uuidString)
                         if urls.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
                             print("urls.makeGifFile")
                             PHPhotoLibrary.requestAuthorization { (status) -> Void in
