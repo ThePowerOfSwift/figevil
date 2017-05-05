@@ -296,6 +296,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     func cancel() {
         satoCamera.reset()
         interfaceView.reset()
+        effects.forEach({ $0.reset() })
     }
     
     func save() {

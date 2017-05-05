@@ -76,7 +76,7 @@ class AnimationEffectView: UIView, CameraEffect {
     }
     
     func reset() {
-        // TODO
+        animationView.reset()
     }
 
 }

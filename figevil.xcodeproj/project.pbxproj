@@ -44,7 +44,6 @@
 		7854BA051E64FD7D00591255 /* FilterImageEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9F91E64FD7D00591255 /* FilterImageEffect.swift */; };
 		7854BA061E64FD7D00591255 /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9FA1E64FD7D00591255 /* Filter.swift */; };
 		7854BA071E64FD7D00591255 /* DrawImageEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9FB1E64FD7D00591255 /* DrawImageEffectView.swift */; };
-		7854BA081E64FD7D00591255 /* DrawView_old.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9FC1E64FD7D00591255 /* DrawView_old.swift */; };
 		7854BA091E64FD7D00591255 /* BubbleMenuCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9FD1E64FD7D00591255 /* BubbleMenuCollectionViewController.swift */; };
 		7854BA0A1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854B9FE1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift */; };
 		7854BA0B1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7854B9FF1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib */; };
@@ -175,7 +174,6 @@
 		7854B9F91E64FD7D00591255 /* FilterImageEffect.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilterImageEffect.swift; sourceTree = "<group>"; };
 		7854B9FA1E64FD7D00591255 /* Filter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		7854B9FB1E64FD7D00591255 /* DrawImageEffectView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawImageEffectView.swift; sourceTree = "<group>"; };
-		7854B9FC1E64FD7D00591255 /* DrawView_old.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawView_old.swift; sourceTree = "<group>"; };
 		7854B9FD1E64FD7D00591255 /* BubbleMenuCollectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BubbleMenuCollectionViewController.swift; sourceTree = "<group>"; };
 		7854B9FE1E64FD7D00591255 /* BubbleMenuCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BubbleMenuCollectionViewCell.swift; sourceTree = "<group>"; };
 		7854B9FF1E64FD7D00591255 /* BubbleMenuCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BubbleMenuCollectionViewCell.xib; sourceTree = "<group>"; };
@@ -292,7 +290,6 @@
 				7854B9F81E64FD7D00591255 /* TextView.swift */,
 				7854B9FB1E64FD7D00591255 /* DrawImageEffectView.swift */,
 				78843BC91EA1546B000F740D /* DrawView.swift */,
-				7854B9FC1E64FD7D00591255 /* DrawView_old.swift */,
 			);
 			name = Effects;
 			sourceTree = "<group>";
@@ -693,7 +690,6 @@
 				789134471E9E8CB2008E004C /* AnimationView.swift in Sources */,
 				7854B9F31E64FD5B00591255 /* SatoCamera.swift in Sources */,
 				E335FE761E70EEBC00A5BAD2 /* CIImage+Resize.swift in Sources */,
-				7854BA081E64FD7D00591255 /* DrawView_old.swift in Sources */,
 				E335FE741E70EE5400A5BAD2 /* CVPixelBuffer+DeepCopy.swift in Sources */,
 				7854BA011E64FD7D00591255 /* CameraViewController.swift in Sources */,
 				7854BA031E64FD7D00591255 /* TextImageEffectView.swift in Sources */,
