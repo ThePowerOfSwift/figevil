@@ -620,22 +620,30 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             var imageWidth = Double(captureSize.size().width)
             var imageHeight = Double(captureSize.size().height)
             
-            var scaleMode = AVVideoScalingModeFit
+            var scaleMode = AVVideoScalingModeResizeAspect
             
-            if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
-                imageWidth = width
-                imageHeight = height
-                
-                if captureSize == .square {
-                    let length = min(imageWidth, imageHeight)
-                    imageWidth = length
-                    imageHeight = length
-                }
-                
+            if captureSize == .square {
+                let length = min(imageWidth, imageHeight)
+                imageWidth = length
+                imageHeight = length
                 scaleMode = AVVideoScalingModeResizeAspectFill
-            } else {
-                print("Failed to get width and height from recommended settings in \(#function)")
             }
+            
+//            if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
+//                imageWidth = width
+//                imageHeight = height
+//                
+//                if captureSize == .square {
+//                    let length = min(imageWidth, imageHeight)
+//                    imageWidth = length
+//                    imageHeight = length
+//                }
+//                
+//                scaleMode = AVVideoScalingModeResizeAspectFill
+//            } else {
+//                print("Failed to get width and height from recommended settings in \(#function)")
+//            }
+            
             outputSettings = [
                 AVVideoWidthKey : imageWidth,
                 AVVideoHeightKey : imageHeight,
@@ -860,7 +868,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    var resultVideoURL: URL!
+    var resultVideoURL: URL?
     
     // MARK: - Get thumbnail image from video
     func generateThumbnailImagesFrom(videoURL: URL, completion: (([URL]) -> Void)?) {
@@ -1069,69 +1077,136 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
 
     internal func save(renderItems: [UIImage]?, completion: ((_ saved: Bool, _ savedUrl: SavedURLs?, _ fileSize: String?) -> ())?) {
-        renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
-        var thumbnailURLs = [URL]()
-        var messageURLs = [URL]()
-        for url in renderedURLs {
-            if let thumbnailURL = url.resize(maxSize: thumbnailPixelSize, destinationURL: resizedUrlPath) {
-                thumbnailURLs.append(thumbnailURL)
-            } else {
-                print("Error: resizing to thumbnail failed in \(#function)")
-            }
-            
-            if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
-                messageURLs.append(messageURL)
-            } else {
-                print("Error: resizing to message failed in \(#function)")
-            }
-        }
+//        renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
+//        var thumbnailURLs = [URL]()
+//        var messageURLs = [URL]()
+//        for url in renderedURLs {
+//            if let thumbnailURL = url.resize(maxSize: thumbnailPixelSize, destinationURL: resizedUrlPath) {
+//                thumbnailURLs.append(thumbnailURL)
+//            } else {
+//                print("Error: resizing to thumbnail failed in \(#function)")
+//            }
+//            
+//            if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
+//                messageURLs.append(messageURL)
+//            } else {
+//                print("Error: resizing to message failed in \(#function)")
+//            }
+//        }
+//        
+//        let path = String(Date().timeIntervalSinceReferenceDate)
+//        let thumbnailURL = URL.thumbnailURL(path: path)
+//        let messageURL = URL.messageURL(path: path)
+//        let originalURL = URL.originalURL(path: path)
+//        
+//        let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL, video: resultVideoURL)
+//        
+//        if thumbnailURLs.makeGifFile(frameDelay: 0.5, destinationURL: thumbnailURL) {
+//            print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
+//        } else {
+//            print("Error: thumbnail gif URL failed to save in \(#function)")
+//        }
+//        
+//        if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: messageURL) {
+//            print("message gif URL filesize: \(messageURL.filesize!)")
+//        } else {
+//            print("Error: message gif URL failed to save in \(#function)")
+//        }
         
-        let path = String(Date().timeIntervalSinceReferenceDate)
-        let thumbnailURL = URL.thumbnailURL(path: path)
-        let messageURL = URL.messageURL(path: path)
-        let originalURL = URL.originalURL(path: path)
+        //completion?(true, savedURLs, originalURL.filesize)
         
-        let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL, video: resultVideoURL)
-        
-        if thumbnailURLs.makeGifFile(frameDelay: 0.5, destinationURL: thumbnailURL) {
-            print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
-        } else {
-            print("Error: thumbnail gif URL failed to save in \(#function)")
-        }
-        
-        if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: messageURL) {
-            print("message gif URL filesize: \(messageURL.filesize!)")
-        } else {
-            print("Error: message gif URL failed to save in \(#function)")
-        }
-        
-    
-        if renderedURLs.makeGifFile(frameDelay: 0.5, destinationURL: originalURL) {
-            print("original gif URL filesize: \(originalURL.filesize!)")
-            PHPhotoLibrary.requestAuthorization
-                { (status) -> Void in
-                    switch (status) {
-                    case .authorized:
-                        PHPhotoLibrary.shared().performChanges({
-                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
-                        }, completionHandler: { (saved: Bool, error: Error?) in
-                            if saved {
-                                completion?(true, savedURLs, originalURL.filesize!)
-                            } else {
-                                print("Error: did not save gif")
-                                completion?(false, nil, nil)
-                            }
-                        })
-                    case .denied:
-                        print("Error: User denied")
-                    default:
-                        print("Error: Restricted")
-                    }
-            }
-        } else {
-            print("Error: original gif URL failed to save in \(#function)")
-        }
+        //        if renderedURLs.makeGifFile(frameDelay: 0.5, destinationURL: originalURL) {
+        //            print("original gif URL filesize: \(originalURL.filesize!)")
+        //            PHPhotoLibrary.requestAuthorization
+        //                { (status) -> Void in
+        //                    switch (status) {
+        //                    case .authorized:
+        //                        PHPhotoLibrary.shared().performChanges({
+        //                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
+        //                        }, completionHandler: { (saved: Bool, error: Error?) in
+        //                            if saved {
+        //                                completion?(true, savedURLs, originalURL.filesize!)
+        //                            } else {
+        //                                print("Error: did not save gif")
+        //                                completion?(false, nil, nil)
+        //                            }
+        //                        })
+        //                    case .denied:
+        //                        print("Error: User denied")
+        //                    default:
+        //                        print("Error: Restricted")
+        //                    }
+        //            }
+        //        } else {
+        //            print("Error: original gif URL failed to save in \(#function)")
+        //        }
     }
+    
+//    internal func save(renderItems: [UIImage]?, completion: ((_ saved: Bool, _ savedUrl: SavedURLs?, _ fileSize: String?) -> ())?) {
+//        renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
+//        var thumbnailURLs = [URL]()
+//        var messageURLs = [URL]()
+//        for url in renderedURLs {
+//            if let thumbnailURL = url.resize(maxSize: thumbnailPixelSize, destinationURL: resizedUrlPath) {
+//                thumbnailURLs.append(thumbnailURL)
+//            } else {
+//                print("Error: resizing to thumbnail failed in \(#function)")
+//            }
+//            
+//            if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
+//                messageURLs.append(messageURL)
+//            } else {
+//                print("Error: resizing to message failed in \(#function)")
+//            }
+//        }
+//        
+//        let path = String(Date().timeIntervalSinceReferenceDate)
+//        let thumbnailURL = URL.thumbnailURL(path: path)
+//        let messageURL = URL.messageURL(path: path)
+//        let originalURL = URL.originalURL(path: path)
+//        
+//        let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL, video: resultVideoURL)
+//        
+//        if thumbnailURLs.makeGifFile(frameDelay: 0.5, destinationURL: thumbnailURL) {
+//            print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
+//        } else {
+//            print("Error: thumbnail gif URL failed to save in \(#function)")
+//        }
+//        
+//        if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: messageURL) {
+//            print("message gif URL filesize: \(messageURL.filesize!)")
+//        } else {
+//            print("Error: message gif URL failed to save in \(#function)")
+//        }
+//        
+//        completion?(true, savedURLs, originalURL.filesize)
+//        
+////        if renderedURLs.makeGifFile(frameDelay: 0.5, destinationURL: originalURL) {
+////            print("original gif URL filesize: \(originalURL.filesize!)")
+////            PHPhotoLibrary.requestAuthorization
+////                { (status) -> Void in
+////                    switch (status) {
+////                    case .authorized:
+////                        PHPhotoLibrary.shared().performChanges({
+////                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
+////                        }, completionHandler: { (saved: Bool, error: Error?) in
+////                            if saved {
+////                                completion?(true, savedURLs, originalURL.filesize!)
+////                            } else {
+////                                print("Error: did not save gif")
+////                                completion?(false, nil, nil)
+////                            }
+////                        })
+////                    case .denied:
+////                        print("Error: User denied")
+////                    default:
+////                        print("Error: Restricted")
+////                    }
+////            }
+////        } else {
+////            print("Error: original gif URL failed to save in \(#function)")
+////        }
+//    }
     
     /** Share message size gif. */
     func share(renderItems: [UIImage], completion: ((_ saved: Bool, _ savedUrl: URL?) -> ())?) {
@@ -1139,8 +1214,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         var messageURLs = [URL]()
         for url in renderedURLs {
             
-            if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
-                messageURLs.append(messageURL)
+            if url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
+                messageURLs.append(resizedUrlPath)
             } else {
                 print("Error: resizing to message failed in \(#function)")
             }
@@ -1182,8 +1257,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         var resizedTempURLs = [URL]()
         let resizedMaxPixel = maxpixel(scale: 1)
         for url in originalURLs {
-            if let resizedUrl = url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
-                resizedTempURLs.append(resizedUrl)
+            if url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
+                resizedTempURLs.append(resizedUrlPath)
             } else {
                 print("Error: failed to get resized URL")
             }
@@ -1212,9 +1287,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         // make resized images from originals here
         var resizedTempURLs = [URL]()
         let resizedMaxPixel = maxpixel(scale: 1)
-        for url in originalURLs {
-            if let resizedUrl = url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
-                resizedTempURLs.append(resizedUrl)
+        for url in originalURLs {            
+            if url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
+                resizedTempURLs.append(resizedUrlPath)
             } else {
                 print("Error: failed to get resized URL")
             }
@@ -1422,11 +1497,11 @@ extension URL {
     //try print out each CGImage to see if max pixel effect the size
     
     /** Resize an image at a given url. */
-    func resize(maxSize: Int, destinationURL: URL) -> URL? {
+    func resize(maxSize: Int, destinationURL: URL) -> Bool {
         var sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
         guard let imageSource = CGImageSourceCreateWithURL(self as CFURL, sourceOptions as CFDictionary?) else {
             print("Error: cannot create image source for resize")
-            return nil
+            return false
         }
         
         sourceOptions[kCGImageSourceCreateThumbnailFromImageAlways as NSObject] = true as AnyObject
@@ -1435,22 +1510,22 @@ extension URL {
         
         guard let resizedImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, sourceOptions as CFDictionary?) else {
             print("Error: failed to resize image")
-            return nil
+            return false
         }
         
         guard let imageDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, kUTTypeJPEG, 1, nil) else {
             print("Error: cannot create image destination")
-            return nil
+            return false
         }
         
         CGImageDestinationAddImage(imageDestination, resizedImage, nil)
         
         if !CGImageDestinationFinalize(imageDestination) {
             print("Error: cannot finalize and write image destination for resize")
-            return nil
+            return false
         }
         
-        return destinationURL
+        return true
     }
     
     /** Make UIImage from URL*/
@@ -1582,7 +1657,7 @@ extension CIImage {
         let newHeight = size.height
         let gap = sourceHeight - newHeight
         let originY = gap / 2
-        let extent = CGRect(origin: CGPoint(x: self.extent.origin.x, y: originY), size: CGSize(width: self.extent.width, height: self.extent.width))
+        let extent = CGRect(origin: CGPoint(x: self.extent.origin.x, y: originY), size: CGSize(width: size.width, height: size.height))
         return self.cropping(to: extent)
     }
 }
