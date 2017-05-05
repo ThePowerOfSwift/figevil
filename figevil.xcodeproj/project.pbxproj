@@ -423,8 +423,8 @@
 				E335FE6F1E70E89F00A5BAD2 /* Light.swift */,
 				7854BA0D1E65005600591255 /* Index.swift */,
 				E335FE7F1E70F19500A5BAD2 /* Camera Extentions */,
-				7854B9F41E64FD7D00591255 /* Camera.storyboard */,
 				7854B9F51E64FD7D00591255 /* CameraViewController.swift */,
+				7854B9F41E64FD7D00591255 /* Camera.storyboard */,
 				7847FF5B1EA4663C00DAD910 /* Interface */,
 			);
 			name = Camera;
