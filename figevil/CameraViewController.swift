@@ -295,19 +295,21 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     func save() {
         satoCamera.save(renderItems: nil) { (success, savedURLs, filesize) in
+            print("IN SAVING COMPLETION")
             // render animation into movie
             let originalMovURL = savedURLs?.video
             let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("result.m4v")
             
             self.render(originalMovURL!, outputURL: outputURL) {
+                print("self.render")
                 DispatchQueue.main.async {
                     self.satoCamera.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (urls: [URL]) in
                         let gifFileURL = URL.messageURL(path: UUID().uuidString)
+                        print("generateThumbnailImagesFrom")
                         if urls.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
-                            PHPhotoLibrary.requestAuthorization
-                                { (status) -> Void in
-                                    switch (status)
-                                    {
+                            print("urls.makeGifFile")
+                            PHPhotoLibrary.requestAuthorization { (status) -> Void in
+                                    switch (status) {
                                     case .authorized:
                                         PHPhotoLibrary.shared().performChanges({
                                             PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifFileURL)
@@ -362,11 +364,9 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     func render(_ videoURL: URL, outputURL: URL, completion: (()->())?) {
         let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.m4v")
-        if let filter = satoCamera.currentFilter.filter {
-            applyFilter(filter, toVideo: videoURL, outputURL: tempURL) {
-                self.overlayEffectsToVideo(tempURL, outputURL: outputURL) {
-                    completion?()
-                }
+        applyFilter(satoCamera.currentFilter.filter, toVideo: videoURL, outputURL: tempURL) {
+            self.overlayEffectsToVideo(tempURL, outputURL: outputURL) {
+                completion?()
             }
         }
     }
@@ -409,17 +409,23 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 
     }
     
-    func applyFilter(_ filter: CIFilter, toVideo url: URL, outputURL: URL, completion: (()->())?) {
+    func applyFilter(_ filter: CIFilter?, toVideo url: URL, outputURL: URL, completion: (()->())?) {
         let urlAsset = AVURLAsset(url: url)
 
         // Setup video composition to overlay animations and export
         let videoComposition = AVMutableVideoComposition(asset: urlAsset) { (request) in
             // Clamp to avoid blurring transparent pixels at the image edges
-            filter.setValue(request.sourceImage, forKey: kCIInputImageKey)
-            let output = filter.outputImage!
+            
+            var outputImage = request.sourceImage
+            if let filter = filter {
+                filter.setValue(request.sourceImage, forKey: kCIInputImageKey)
+                if let image = filter.outputImage {
+                    outputImage = image
+                }
+            }
             
             // Provide the filter output to the composition
-            request.finish(with: output, context: nil)
+            request.finish(with: outputImage, context: nil)
         }
 
         // Export video with filter

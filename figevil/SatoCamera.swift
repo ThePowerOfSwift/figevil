@@ -188,7 +188,8 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         
         if didOutputSampleBufferMethodCallCount == 0 {
             setupAssetWriter(assetWriterID: .First)
-            startFirstAssetWriter()
+            //startFirstAssetWriter()
+            startAssetWriter(assetWriterID: .First)
         }
         
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
@@ -222,12 +223,14 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                     saveFirstAssetWriter(completion: nil)
                     //setupSecondAssetWriter()
                     setupAssetWriter(assetWriterID: .Second)
-                    startSecondAssetWriter()
+                    //startSecondAssetWriter()
+                    startAssetWriter(assetWriterID: .Second)
                 } else if currentAssetWriter == .Second {
                     saveSecondAssetWriter(completion: nil)
                     //setupFirstAssetWriter()
                     setupAssetWriter(assetWriterID: .First)
-                    startFirstAssetWriter()
+                    //startFirstAssetWriter()
+                    startAssetWriter(assetWriterID: .First)
                 }
                 pixelBufferCount = 0
             }
@@ -667,144 +670,56 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         } catch let e {
             print(e.localizedDescription)
         }
+    }
+    
+    func startAssetWriter(assetWriterID: AssetWriterID) {
+        currentAssetWriter = assetWriterID
         
+        switch assetWriterID {
+        case .First:
+            if let firstAssetWriter = firstAssetWriter {
+                firstAssetWriter.startWriting()
+                firstAssetWriter.startSession(atSourceTime: kCMTimeZero)
+            }
+        case .Second:
+            if let secondAssetWriter = secondAssetWriter {
+                secondAssetWriter.startWriting()
+                secondAssetWriter.startSession(atSourceTime: kCMTimeZero)
+            }
+        }
+    }
 
-    }
+//    
+//    func startFirstAssetWriter() {
+//        currentAssetWriter = .First
+//        guard let firstAssetWriter = firstAssetWriter else {
+//            print("Error: asset writer is nil in \(#function)")
+//            return
+//        }
+//        firstAssetWriter.startWriting()
+//        firstAssetWriter.startSession(atSourceTime: kCMTimeZero)
+//        //print("asset writer has started")
+//    }
+//    
+//    func startSecondAssetWriter() {
+//        currentAssetWriter = .Second
+//        guard let secondAssetWriter = secondAssetWriter else {
+//            print("Error: asset writer is nil in \(#function)")
+//            return
+//        }
+//        secondAssetWriter.startWriting()
+//        secondAssetWriter.startSession(atSourceTime: kCMTimeZero)
+//        //print("asset writer has started")
+//    }
     
-    func setupFirstAssetWriter() {
-        var outputSettings = [String:Any]()
-        var pixelBufferAdaptorAttributes = [String:Any]()
-        if let recommendedSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
-            
-            if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
-                let imageLength = min(width, height)
-                outputSettings = [
-                    AVVideoWidthKey : imageLength,
-                    AVVideoHeightKey : imageLength,
-                    AVVideoCodecKey : AVVideoCodecH264,
-                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
-                ]
-                
-                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
-                                                kCVPixelBufferWidthKey as String: imageLength]
-            } else {
-                print("Error: failed to get width and height from recommended settings in \(#function)")
-                let imageLength = UIScreen.main.bounds.width
-                outputSettings = [
-                    AVVideoWidthKey : imageLength,
-                    AVVideoHeightKey : imageLength,
-                    AVVideoCodecKey : AVVideoCodecH264,
-                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
-                ]
-                
-                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
-                                                kCVPixelBufferWidthKey as String: imageLength]
-            }
-
-        } else {
-            outputSettings = [
-                AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
-                AVVideoHeightKey : Int(UIScreen.main.bounds.width) + 1,
-                AVVideoCodecKey : AVVideoCodecH264
-            ]
-            pixelBufferAdaptorAttributes = [kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)]
-            
+    func cancelAssetWriter(assetWriterID: AssetWriterID) {
+        switch assetWriterID {
+        case .First:
+            firstAssetWriter?.cancelWriting()
+        case .Second:
+            secondAssetWriter?.cancelWriting()
         }
-        
-        firstAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
-        
-        firstPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: firstAssetWriterInput, sourcePixelBufferAttributes: pixelBufferAdaptorAttributes)
-        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
-        firstVideoURL = videoURL
-        do {
-            firstAssetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
-            if let assetWriter = firstAssetWriter {
-                assetWriter.add(firstAssetWriterInput)
-                firstAssetWriterInput.expectsMediaDataInRealTime = true
-            }
-        } catch let e {
-            print(e.localizedDescription)
-        }
-    }
-    
-    func setupSecondAssetWriter() {
-        var outputSettings = [String:Any]()
-        var pixelBufferAdaptorAttributes = [String:Any]()
-        if let recommendedSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(withOutputFileType: AVFileTypeMPEG4) as? [String : Any] {
-    
-            if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
-                let imageLength = min(width, height)
-                outputSettings = [
-                    AVVideoWidthKey : imageLength,
-                    AVVideoHeightKey : imageLength,
-                    AVVideoCodecKey : AVVideoCodecH264,
-                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
-                ]
-                
-                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
-                                                kCVPixelBufferWidthKey as String: imageLength]
-            } else {
-                print("Error: failed to get width and height from recommended settings in \(#function)")
-                let imageLength = UIScreen.main.bounds.width
-                outputSettings = [
-                    AVVideoWidthKey : imageLength,
-                    AVVideoHeightKey : imageLength,
-                    AVVideoCodecKey : AVVideoCodecH264,
-                    AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill
-                ]
-                
-                pixelBufferAdaptorAttributes = [kCVPixelBufferHeightKey as String : imageLength,
-                                                kCVPixelBufferWidthKey as String: imageLength]
-            }
-            
-        } else {
-            outputSettings = [
-                AVVideoWidthKey : Int(UIScreen.main.bounds.width) + 1,
-                AVVideoHeightKey : Int(UIScreen.main.bounds.width) + 1,
-                AVVideoCodecKey : AVVideoCodecH264
-            ]
-            pixelBufferAdaptorAttributes = [kCVPixelBufferPixelFormatTypeKey as String : Int(kCVPixelFormatType_32BGRA)]
-            
-        }
-        
-        secondAssetWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
-        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
-        secondVideoURL = videoURL
-
-        secondPixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: secondAssetWriterInput, sourcePixelBufferAttributes: pixelBufferAdaptorAttributes)
-        
-        do {
-            secondAssetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
-            if let assetWriter = secondAssetWriter {
-                assetWriter.add(secondAssetWriterInput)
-                secondAssetWriterInput.expectsMediaDataInRealTime = true
-            }
-        } catch let e {
-            print(e.localizedDescription)
-        }
-    }
-    
-    func startFirstAssetWriter() {
-        currentAssetWriter = .First
-        guard let firstAssetWriter = firstAssetWriter else {
-            print("Error: asset writer is nil in \(#function)")
-            return
-        }
-        firstAssetWriter.startWriting()
-        firstAssetWriter.startSession(atSourceTime: kCMTimeZero)
-        //print("asset writer has started")
-    }
-    
-    func startSecondAssetWriter() {
-        currentAssetWriter = .Second
-        guard let secondAssetWriter = secondAssetWriter else {
-            print("Error: asset writer is nil in \(#function)")
-            return
-        }
-        secondAssetWriter.startWriting()
-        secondAssetWriter.startSession(atSourceTime: kCMTimeZero)
-        //print("asset writer has started")
-    }
+    }    
     
     func cancelFirstAssetWriter() {
         firstAssetWriter?.cancelWriting()
@@ -1181,6 +1096,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             print("Error: message gif URL failed to save in \(#function)")
         }
         
+    
         if renderedURLs.makeGifFile(frameDelay: 0.5, destinationURL: originalURL) {
             print("original gif URL filesize: \(originalURL.filesize!)")
             PHPhotoLibrary.requestAuthorization
