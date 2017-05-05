@@ -620,7 +620,14 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             var imageWidth = Double(captureSize.size().width)
             var imageHeight = Double(captureSize.size().height)
             
-            var scaleMode = AVVideoScalingModeResizeAspectFill
+            var scaleMode = AVVideoScalingModeResizeAspect
+            
+            if captureSize == .square {
+                let length = min(imageWidth, imageHeight)
+                imageWidth = length
+                imageHeight = length
+                scaleMode = AVVideoScalingModeResizeAspectFill
+            }
             
 //            if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
 //                imageWidth = width
