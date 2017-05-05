@@ -241,9 +241,10 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
                 pixelBufferCount = 0
             }
-            var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-            sourceImage = sourceImage.adjustedExtentForGLKView(liveCameraGLKView.drawFrame.size)
+            var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer).adjustedExtentForGLKView(liveCameraGLKView.drawFrame.size)
+            
             stillShot = sourceImage
+            print("sourceImage.extent: \(sourceImage.extent)")
             
             // filteredImage has the same address as sourceImage
             guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -1588,9 +1589,16 @@ extension CIImage {
     func adjustedExtentForGLKView(_ size: CGSize) -> CIImage {
         let sourceHeight = self.extent.height
         let newHeight = size.height
-        let gap = sourceHeight - newHeight
-        let originY = gap / 2
-        let extent = CGRect(origin: CGPoint(x: self.extent.origin.x, y: originY), size: CGSize(width: size.width, height: size.height))
+        let gapY = sourceHeight - newHeight
+        let originY = gapY / 2
+        
+        let sourceWidth = self.extent.width
+        let newWidth = size.width
+        let gapX = sourceWidth - newWidth
+        let originX = gapX / 2
+        
+        let extent = CGRect(origin: CGPoint(x: originX, y: originY), size: CGSize(width: size.width, height: size.height))
+        
         return self.cropping(to: extent)
     }
 }
