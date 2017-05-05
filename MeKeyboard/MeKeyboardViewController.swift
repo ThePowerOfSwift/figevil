@@ -175,7 +175,7 @@ class MeKeyboardViewController: UIInputViewController, GifCollectionViewControll
             // Put gif to pasteboard
             UIPasteboard.general.setData(try Data(contentsOf: gifURL), forPasteboardType: kUTTypeGIF as String)
         } catch {
-            //TODO: raise error message when not correctly pasted
+            // TODO: raise error message when not correctly pasted
             // TODO: turn off low quality images
             print("Error: could not read data contents of gif URL at (\(gifURL.path))")
             print("\(error.localizedDescription)")

@@ -30,6 +30,11 @@ class AnimationView: UIView {
     func setup() {
     }
     
+    func reset() {
+        animationViews.forEach({ $0.removeFromSuperview() })
+        animationViews = []
+    }
+    
     func addAnimation(_ url: URL) {
         
         guard let animationView = LOTAnimationView(contentsOf: url) else {
