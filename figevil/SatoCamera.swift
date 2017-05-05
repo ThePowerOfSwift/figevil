@@ -1075,138 +1075,71 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         return urls
     }
-
-    internal func save(renderItems: [UIImage]?, completion: ((_ saved: Bool, _ savedUrl: SavedURLs?, _ fileSize: String?) -> ())?) {
-//        renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
-//        var thumbnailURLs = [URL]()
-//        var messageURLs = [URL]()
-//        for url in renderedURLs {
-//            if let thumbnailURL = url.resize(maxSize: thumbnailPixelSize, destinationURL: resizedUrlPath) {
-//                thumbnailURLs.append(thumbnailURL)
-//            } else {
-//                print("Error: resizing to thumbnail failed in \(#function)")
-//            }
-//            
-//            if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
-//                messageURLs.append(messageURL)
-//            } else {
-//                print("Error: resizing to message failed in \(#function)")
-//            }
-//        }
-//        
-//        let path = String(Date().timeIntervalSinceReferenceDate)
-//        let thumbnailURL = URL.thumbnailURL(path: path)
-//        let messageURL = URL.messageURL(path: path)
-//        let originalURL = URL.originalURL(path: path)
-//        
-//        let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL, video: resultVideoURL)
-//        
-//        if thumbnailURLs.makeGifFile(frameDelay: 0.5, destinationURL: thumbnailURL) {
-//            print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
-//        } else {
-//            print("Error: thumbnail gif URL failed to save in \(#function)")
-//        }
-//        
-//        if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: messageURL) {
-//            print("message gif URL filesize: \(messageURL.filesize!)")
-//        } else {
-//            print("Error: message gif URL failed to save in \(#function)")
-//        }
-        
-        //completion?(true, savedURLs, originalURL.filesize)
-        
-        //        if renderedURLs.makeGifFile(frameDelay: 0.5, destinationURL: originalURL) {
-        //            print("original gif URL filesize: \(originalURL.filesize!)")
-        //            PHPhotoLibrary.requestAuthorization
-        //                { (status) -> Void in
-        //                    switch (status) {
-        //                    case .authorized:
-        //                        PHPhotoLibrary.shared().performChanges({
-        //                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
-        //                        }, completionHandler: { (saved: Bool, error: Error?) in
-        //                            if saved {
-        //                                completion?(true, savedURLs, originalURL.filesize!)
-        //                            } else {
-        //                                print("Error: did not save gif")
-        //                                completion?(false, nil, nil)
-        //                            }
-        //                        })
-        //                    case .denied:
-        //                        print("Error: User denied")
-        //                    default:
-        //                        print("Error: Restricted")
-        //                    }
-        //            }
-        //        } else {
-        //            print("Error: original gif URL failed to save in \(#function)")
-        //        }
-    }
     
-//    internal func save(renderItems: [UIImage]?, completion: ((_ saved: Bool, _ savedUrl: SavedURLs?, _ fileSize: String?) -> ())?) {
-//        renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
-//        var thumbnailURLs = [URL]()
-//        var messageURLs = [URL]()
-//        for url in renderedURLs {
-//            if let thumbnailURL = url.resize(maxSize: thumbnailPixelSize, destinationURL: resizedUrlPath) {
-//                thumbnailURLs.append(thumbnailURL)
-//            } else {
-//                print("Error: resizing to thumbnail failed in \(#function)")
-//            }
-//            
-//            if let messageURL = url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
-//                messageURLs.append(messageURL)
-//            } else {
-//                print("Error: resizing to message failed in \(#function)")
-//            }
-//        }
-//        
-//        let path = String(Date().timeIntervalSinceReferenceDate)
-//        let thumbnailURL = URL.thumbnailURL(path: path)
-//        let messageURL = URL.messageURL(path: path)
-//        let originalURL = URL.originalURL(path: path)
-//        
-//        let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL, video: resultVideoURL)
-//        
-//        if thumbnailURLs.makeGifFile(frameDelay: 0.5, destinationURL: thumbnailURL) {
-//            print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
-//        } else {
-//            print("Error: thumbnail gif URL failed to save in \(#function)")
-//        }
-//        
-//        if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: messageURL) {
-//            print("message gif URL filesize: \(messageURL.filesize!)")
-//        } else {
-//            print("Error: message gif URL failed to save in \(#function)")
-//        }
-//        
-//        completion?(true, savedURLs, originalURL.filesize)
-//        
-////        if renderedURLs.makeGifFile(frameDelay: 0.5, destinationURL: originalURL) {
-////            print("original gif URL filesize: \(originalURL.filesize!)")
-////            PHPhotoLibrary.requestAuthorization
-////                { (status) -> Void in
-////                    switch (status) {
-////                    case .authorized:
-////                        PHPhotoLibrary.shared().performChanges({
-////                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
-////                        }, completionHandler: { (saved: Bool, error: Error?) in
-////                            if saved {
-////                                completion?(true, savedURLs, originalURL.filesize!)
-////                            } else {
-////                                print("Error: did not save gif")
-////                                completion?(false, nil, nil)
-////                            }
-////                        })
-////                    case .denied:
-////                        print("Error: User denied")
-////                    default:
-////                        print("Error: Restricted")
-////                    }
-////            }
-////        } else {
-////            print("Error: original gif URL failed to save in \(#function)")
-////        }
-//    }
+    internal func save(renderItems: [UIImage]?, completion: ((_ saved: Bool, _ savedUrl: SavedURLs?, _ fileSize: String?) -> ())?) {
+        renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
+        var thumbnailURLs = [URL]()
+        var messageURLs = [URL]()
+        for url in renderedURLs {
+            
+            if url.resize(maxSize: thumbnailPixelSize, destinationURL: resizedUrlPath) {
+                thumbnailURLs.append(resizedUrlPath)
+            } else {
+                print("Error: resizing to thumbnail failed in \(#function)")
+            }
+            
+            if url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
+                messageURLs.append(resizedUrlPath)
+            } else {
+                print("Error: resizing to message failed in \(#function)")
+            }
+        }
+        
+        let path = String(Date().timeIntervalSinceReferenceDate)
+        let thumbnailURL = URL.thumbnailURL(path: path)
+        let messageURL = URL.messageURL(path: path)
+        let originalURL = URL.originalURL(path: path)
+        
+        let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL, video: resultVideoURL)
+        
+        if thumbnailURLs.makeGifFile(frameDelay: 0.5, destinationURL: thumbnailURL) {
+            print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
+        } else {
+            print("Error: thumbnail gif URL failed to save in \(#function)")
+        }
+        
+        if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: messageURL) {
+            print("message gif URL filesize: \(messageURL.filesize!)")
+        } else {
+            print("Error: message gif URL failed to save in \(#function)")
+        }
+        
+        if renderedURLs.makeGifFile(frameDelay: 0.5, destinationURL: originalURL) {
+            print("original gif URL filesize: \(originalURL.filesize!)")
+            PHPhotoLibrary.requestAuthorization
+                { (status) -> Void in
+                    switch (status) {
+                    case .authorized:
+                        PHPhotoLibrary.shared().performChanges({
+                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
+                        }, completionHandler: { (saved: Bool, error: Error?) in
+                            if saved {
+                                completion?(true, savedURLs, originalURL.filesize)
+                            } else {
+                                print("Error: did not save gif")
+                                completion?(false, nil, nil)
+                            }
+                        })
+                    case .denied:
+                        print("Error: User denied")
+                    default:
+                        print("Error: Restricted")
+                    }
+            }
+        } else {
+            print("Error: original gif URL failed to save in \(#function)")
+        }
+    }
     
     /** Share message size gif. */
     func share(renderItems: [UIImage], completion: ((_ saved: Bool, _ savedUrl: URL?) -> ())?) {
