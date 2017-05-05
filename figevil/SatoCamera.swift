@@ -1657,7 +1657,7 @@ extension CIImage {
         let newHeight = size.height
         let gap = sourceHeight - newHeight
         let originY = gap / 2
-        let extent = CGRect(origin: CGPoint(x: self.extent.origin.x, y: originY), size: CGSize(width: self.extent.width, height: self.extent.width))
+        let extent = CGRect(origin: CGPoint(x: self.extent.origin.x, y: originY), size: CGSize(width: size.width, height: size.height))
         return self.cropping(to: extent)
     }
 }
