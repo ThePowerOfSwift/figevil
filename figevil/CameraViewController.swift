@@ -589,13 +589,51 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     var isKeyboardOpenAccessGranted: Bool {
-        let originalString = UIPasteboard.general.string
-        UIPasteboard.general.string = "This string will set if keyboard access is fully granted."
-        if UIPasteboard.general.hasStrings {
-            UIPasteboard.general.string = originalString
-            return true
+        
+//        let originalString = UIPasteboard.general.string
+        
+//        UIPasteboard.general.string = "This string will set if keyboard access is fully granted."
+//        if UIPasteboard.general.hasStrings {
+//            UIPasteboard.general.string = originalString
+//            return true
+//        } else {
+//            return false
+//        }
+        
+// =========================================
+//        let filemanager = FileManager.default
+//        let path = "group.com.sunsethq.figevil"
+//        if let containerPath = filemanager.containerURL(forSecurityApplicationGroupIdentifier: path) {
+//            let containerPathString = containerPath.path
+//            do {
+//                try filemanager.contentsOfDirectory(atPath: containerPathString)
+//                return true
+//            } catch let error {
+//                print(error.localizedDescription)
+//            }
+//        }
+//        return false
+
+// =========================================
+        if #available(iOSApplicationExtension 10.0, *) {
+            UIPasteboard.general.string = "TEST"
+            if UIPasteboard.general.hasStrings {
+                // Enable string-related control...
+                UIPasteboard.general.string = ""
+                return  true
+            }
+            else {
+                UIPasteboard.general.string = ""
+                return  false
+            }
+        } else {
+            // Fallback on earlier versions
+            if UIPasteboard.general.isKind(of: UIPasteboard.self) {
+                return true
+            } else {
+                return false
+            }
         }
-        return false
     }
 }
 
