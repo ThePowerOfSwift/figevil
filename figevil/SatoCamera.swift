@@ -355,6 +355,31 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
 
         liveCameraGLKView = CameraGLKView(frame: CGRect(origin: CGPoint.zero, size: captureSize.size()), context: eaglContext)
+//        let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
+//        rightSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.right
+//        liveCameraGLKView.glkView.addGestureRecognizer(rightSwipeGestureRecognizer)
+//        let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
+//        leftSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.left
+//        liveCameraGLKView.glkView.addGestureRecognizer(leftSwipeGestureRecognizer)
+        addSwipeRecognizers(targetView: liveCameraGLKView.glkView)
+    }
+    
+    func addSwipeRecognizers(targetView: GLKView) {
+        let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
+        rightSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.right
+        targetView.addGestureRecognizer(rightSwipeGestureRecognizer)
+        let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
+        leftSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.left
+        targetView.addGestureRecognizer(leftSwipeGestureRecognizer)
+    }
+    
+    func filterSwiped(sender: UISwipeGestureRecognizer) {
+        if sender.direction == UISwipeGestureRecognizerDirection.right {
+            print("swiped right")
+            
+        } else {
+            print("swiped left")
+        }
     }
     
     private func setupGifGLKView() {
@@ -1755,7 +1780,7 @@ extension AVCaptureDevice {
 // MARK: - FilterImageEffectDelegate
 extension SatoCamera: FilterImageEffectDelegate {
     
-    func didSelectFilter(_ sender: FilterImageEffect, filter: Filter?) {
+    func didSelectFilter(_ sender: FilterImageEffect, filter: Filter?, at: Int) {
 
         guard let filter = filter else {
             print("filter is nil in \(#function)")

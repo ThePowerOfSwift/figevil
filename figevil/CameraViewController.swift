@@ -45,6 +45,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             setupSatoCamera()
         }
         setupInterfaceView()
+        //view.bringSubview(toFront: sampleBufferView!)
+        interfaceView.contentView.bringSubview(toFront: sampleBufferView!)
     }
     
     override func viewWillAppear(_ animated: Bool) {
