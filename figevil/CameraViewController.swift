@@ -86,7 +86,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // MARK: InterfaceView
 
     enum interfaceAction {
-        case capture, flash, load, cancel, share, selfie, save, aspectRatio
+        case capture, flash, load, reset, share, selfie, save, aspectRatio
     }
     
     func tappedInterface(_ sender: UIBarButtonItem) {
@@ -100,8 +100,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             case .load:
                 // TODO:
                 break
-            case .cancel:
-                cancel()
+            case .reset:
+                reset()
             case .share:
                 share()
             case .selfie:
@@ -140,8 +140,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         let flashButton = UIBarButtonItem(image: #imageLiteral(resourceName: "flash"), style: .plain, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[flashButton] = interfaceAction.flash as AnyObject
         
-        let cancelButton = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(tappedInterface(_:)))
-        barButtonMap[cancelButton] = interfaceAction.cancel as AnyObject
+        let resetButton = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(tappedInterface(_:)))
+        barButtonMap[resetButton] = interfaceAction.reset as AnyObject
         
         let shareButton = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[shareButton] = interfaceAction.share as AnyObject
@@ -191,7 +191,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                                          aspectRatioButton,
                                          UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                                          flashButton]
-        interfaceView.previewTopItems = [cancelButton,
+        interfaceView.previewTopItems = [resetButton,
                                          UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                                          shareButton]
         interfaceView.captureBottomItems = [filterEffectButton,
@@ -293,7 +293,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         satoCamera.tapToFocusAndExposure(touch: touches.first!)
     }
 
-    func cancel() {
+    func reset() {
         satoCamera.reset()
         interfaceView.reset()
         effects.forEach({ $0.reset() })
@@ -301,102 +301,69 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     func save() {
         // render animation into movie
-        if let originalMovURL = satoCamera.resultVideoURL {
-            let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("result.m4v")
-            self.render(originalMovURL, outputURL: outputURL) {
-                DispatchQueue.main.async {
-                    self.satoCamera.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (urls: [URL]) in
-                        // resize for thumbnail
-                        var thumbnailTempURLs = [URL]()
-                        for url in urls {
-                            let thumbnailTempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
-                            if url.resize(maxSize: Camera.pixelsize.thumbnail, destinationURL: thumbnailTempURL) {
-                                thumbnailTempURLs.append(thumbnailTempURL)
-                            } else {
-                                print("Error: url is resized.")
-                            }
-                        }
-                        
-                        let gifThumbnailURL = URL.thumbnailURL(path: String(Date().timeIntervalSinceReferenceDate))
-                        if thumbnailTempURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifThumbnailURL) {
-                            print("thumbnail is saved to URL.thumbnail directory. size: \(String(describing: gifThumbnailURL.filesize))")
-                        } else {
-                            print("thumbnail could NOT saved to URL.thumbnail directory")
-                        }
-                        
-                        let gifFileURL = URL.messageURL(path: UUID().uuidString)
-                        if urls.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
-                            print("urls.makeGifFile")
-                            PHPhotoLibrary.requestAuthorization { (status) -> Void in
-                                switch (status) {
-                                case .authorized:
-                                    PHPhotoLibrary.shared().performChanges({
-                                        PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifFileURL)
-                                    }, completionHandler: { (saved: Bool, error: Error?) in
-                                        if saved {
-                                        } else {
-                                            print("Error: did not save gif")
-                                        }
-                                    })
-                                case .denied:
-                                    print("Error: User denied")
-                                default:
-                                    print("Error: Restricted")
-                                }
-                            }
-                        } else {
-                            print("Error: Faild to make gif file.")
-                        }
-                    })
-                }
-            }
-        } else {
-            print("Error: satoCamera.resultVideoURL is nil")
+        guard let originalMovURL = satoCamera.resultVideoURL else {
+            print("Error: No recorded video to save")
+            reset()
+            return
         }
-        cancel()
+        let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("result.m4v")
+        
+        render(originalMovURL, outputURL: outputURL) {
+            DispatchQueue.main.async {
+                self.satoCamera.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (urls: [URL]) in
+                    // resize for thumbnail
+                    var thumbnailTempURLs = [URL]()
+                    for url in urls {
+                        let thumbnailTempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+                        if url.resize(maxSize: Camera.pixelsize.thumbnail, destinationURL: thumbnailTempURL) {
+                            thumbnailTempURLs.append(thumbnailTempURL)
+                        } else {
+                            print("Error: url is resized.")
+                        }
+                    }
+                    
+                    let path = UUID().uuidString
+                    let gifFileURL = URL.messageURL(path: path)
+                    let gifThumbnailURL = URL.thumbnailURL(path: path)
+                    
+                    if thumbnailTempURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifThumbnailURL) {
+                        print("thumbnail is saved to URL.thumbnail directory. size: \(String(describing: gifThumbnailURL.filesize))")
+                    } else {
+                        print("thumbnail could NOT saved to URL.thumbnail directory")
+                    }
+                    
+                    // TODO: Save to PHLibrary
+                    
+                    if urls.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
+                        print("urls.makeGifFile")
+                        PHPhotoLibrary.requestAuthorization { (status) -> Void in
+                            switch (status) {
+                            case .authorized:
+                                PHPhotoLibrary.shared().performChanges({
+                                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifFileURL)
+                                }, completionHandler: { (saved: Bool, error: Error?) in
+                                    if saved {
+                                    } else {
+                                        print("Error: did not save gif")
+                                    }
+                                })
+                            case .denied:
+                                print("Error: User denied")
+                            default:
+                                print("Error: Restricted")
+                            }
+                        }
+                    } else {
+                        print("Error: Faild to make gif file.")
+                    }
+                })
+                // Reset the camera
+                self.reset()
+            }
+        }
     }
     
-//    func save() {
-//        satoCamera.save(renderItems: nil) { (success, savedURLs, filesize) in
-//            print("IN SAVING COMPLETION")
-//            // render animation into movie
-//            let originalMovURL = savedURLs?.video
-//            let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("result.m4v")
-//            
-//            self.render(originalMovURL!, outputURL: outputURL) {
-//                print("self.render")
-//                DispatchQueue.main.async {
-//                    self.satoCamera.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (urls: [URL]) in
-//                        let gifFileURL = URL.messageURL(path: UUID().uuidString)
-//                        print("generateThumbnailImagesFrom")
-//                        if urls.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
-//                            print("urls.makeGifFile")
-//                            PHPhotoLibrary.requestAuthorization { (status) -> Void in
-//                                    switch (status) {
-//                                    case .authorized:
-//                                        PHPhotoLibrary.shared().performChanges({
-//                                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifFileURL)
-//                                        }, completionHandler: { (saved: Bool, error: Error?) in
-//                                            if saved {
-//                                            } else {
-//                                                print("Error: did not save gif")
-//                                            }
-//                                        })
-//                                    case .denied:
-//                                        print("Error: User denied")
-//                                    default:
-//                                        print("Error: Restricted")
-//                                    }
-//                            }
-//                        } else {
-//                            print("Error: Faild to make gif file.")
-//                        }
-//                    })
-//                }
-//            }
-//        }
-//        cancel()
-//    }
+
     
     // TODO:
     /// Saves gif and open share sheet
@@ -423,9 +390,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         return satoCamera.toggleTorch()
     }
     
-    
     func toggleAspectRatio() {
-        aspectRatio = aspectRatio == .square ? .fullscreen : .square
+        aspectRatio.toggle()
     }
 
     // Force camera and interface to update content (capture / output) aspect ratio

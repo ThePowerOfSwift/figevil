@@ -241,10 +241,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
                 pixelBufferCount = 0
             }
-            var sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer).adjustedExtentForGLKView(liveCameraGLKView.drawFrame.size)
+            let sourceImage: CIImage = CIImage(cvPixelBuffer: pixelBuffer).adjustedExtentForGLKView(liveCameraGLKView.drawFrame.size)
             
             stillShot = sourceImage
-            print("sourceImage.extent: \(sourceImage.extent)")
             
             // filteredImage has the same address as sourceImage
             guard let filteredImage = currentFilter.generateFilteredCIImage(sourceImage: sourceImage) else {
@@ -623,27 +622,20 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             
             var scaleMode = AVVideoScalingModeResizeAspect
             
-            if captureSize == .square {
-                let length = min(imageWidth, imageHeight)
-                imageWidth = length
-                imageHeight = length
+            if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
+                imageWidth = width
+                imageHeight = height
+                
+                if captureSize == .square {
+                    let length = min(imageWidth, imageHeight)
+                    imageWidth = length
+                    imageHeight = length
+                }
+                
                 scaleMode = AVVideoScalingModeResizeAspectFill
+            } else {
+                print("Failed to get width and height from recommended settings in \(#function)")
             }
-            
-//            if let width = recommendedSettings[AVVideoWidthKey] as? Double, let height = recommendedSettings[AVVideoHeightKey] as? Double {
-//                imageWidth = width
-//                imageHeight = height
-//                
-//                if captureSize == .square {
-//                    let length = min(imageWidth, imageHeight)
-//                    imageWidth = length
-//                    imageHeight = length
-//                }
-//                
-//                scaleMode = AVVideoScalingModeResizeAspectFill
-//            } else {
-//                print("Failed to get width and height from recommended settings in \(#function)")
-//            }
             
             outputSettings = [
                 AVVideoWidthKey : imageWidth,
@@ -1030,6 +1022,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     /** Set to the initial state. */
     internal func reset() {
         stop()
+        resultVideoURL = nil
         originalURLs.removeAll()
         resizedURLs.removeAll()
         renderedURLs.removeAll()

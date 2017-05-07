@@ -114,6 +114,8 @@ class MeKeyboardViewController: UIInputViewController, GifCollectionViewControll
     
     /// Load user generated gifs into VC model
     func loadDatasource() {
+        printDirectoryContents()
+        
         guard let directory = UserGenerated.gifDirectoryURL else {
             print("Error: Directory for user generated gifs cannot be found")
             return
@@ -121,14 +123,12 @@ class MeKeyboardViewController: UIInputViewController, GifCollectionViewControll
         
         // Get gif contents and load to datasource
         do {
-            // Get gif files in application container that end
+            // Get gif files in application container
             let gifURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter { $0.path.contains(UserGenerated.thumbnailTag) && $0.pathExtension == "gif" }
             
             gifContents = []
-            for url in gifURLs {
-                gifContents.append(GifCollectionViewCellContent(url))
-                
-            }
+            gifURLs.forEach { gifContents.append(GifCollectionViewCellContent($0)) }
+            
         } catch {
             print("Error: Cannot get contents of gif directory \(error.localizedDescription)")
             return
@@ -140,6 +140,23 @@ class MeKeyboardViewController: UIInputViewController, GifCollectionViewControll
     override func updateViewConstraints() {
         super.updateViewConstraints()
         // Add custom view sizing constraints here
+    }
+    
+    func printDirectoryContents() {
+        guard let directory = UserGenerated.gifDirectoryURL else {
+            print("Error: Directory for user generated gifs cannot be found")
+            return
+        }
+        do {
+            // Get gif files in application container
+            let gifURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
+            
+            print("Gif Directory contents:")
+            gifURLs.forEach { print($0) }
+        } catch {
+            print("Error: Cannot get contents of gif directory \(error.localizedDescription)")
+            return
+        }
     }
     
     // MARK: GifCollectionViewDatasource

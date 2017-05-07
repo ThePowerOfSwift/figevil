@@ -28,6 +28,10 @@ enum Camera {
             
             return size
         }
+        
+        mutating func toggle() {
+            self = self == .fullscreen ? .square : .fullscreen
+        }
     }
     
     enum liveGifPreset {
