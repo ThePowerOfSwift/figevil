@@ -39,7 +39,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        print("isKeyboardOpenAccessGranted: \(isKeyboardOpenAccessGranted)")
+        
         // Do any additional setup after loading the view.
         if !debugCameraOff {
             setupSatoCamera()
@@ -570,7 +571,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     /** Keyboard appearance notification.  Pushes content (option menu) back to original position when no keyboard is shown */
     func keyboardWillHide(notification: NSNotification) {
-        
+        print("UIPasteboard.general.string: \(UIPasteboard.general.string)")
         // See if menu should be pushed with keyboard
         if let _ = effects[selectedEffectIndex].showsPrimaryMenuOnKeyboard {
             // Get keyboard animation information
@@ -585,6 +586,16 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 self.view.layoutIfNeeded()
             })
         }
+    }
+    
+    var isKeyboardOpenAccessGranted: Bool {
+        let originalString = UIPasteboard.general.string
+        UIPasteboard.general.string = "This string will set if keyboard access is fully granted."
+        if UIPasteboard.general.hasStrings {
+            UIPasteboard.general.string = originalString
+            return true
+        }
+        return false
     }
 }
 
