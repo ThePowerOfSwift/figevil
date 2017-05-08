@@ -362,38 +362,38 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 //        let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
 //        leftSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.left
 //        liveCameraGLKView.glkView.addGestureRecognizer(leftSwipeGestureRecognizer)
-        addSwipeRecognizers(targetView: liveCameraGLKView.glkView)
+        //addSwipeRecognizers(targetView: liveCameraGLKView.glkView)
     }
     
-    func addSwipeRecognizers(targetView: GLKView) {
-        let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
-        rightSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.right
-        targetView.addGestureRecognizer(rightSwipeGestureRecognizer)
-        let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
-        leftSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.left
-        targetView.addGestureRecognizer(leftSwipeGestureRecognizer)
-    }
-    
-    func filterSwiped(sender: UISwipeGestureRecognizer) {
-        if sender.direction == UISwipeGestureRecognizerDirection.right {
-            print("swiped right")
-            if currentFilterIndex == Filter.shared.list.count - 1 {
-                currentFilterIndex = 0
-            } else {
-                currentFilterIndex += 1
-            }
-            didSelectFilter(nil, index: currentFilterIndex)
-            
-        } else {
-            print("swiped left")
-            if currentFilterIndex == 0 {
-                currentFilterIndex = Filter.shared.list.count - 1
-            } else {
-                currentFilterIndex -= 1
-            }
-            didSelectFilter(nil, index: currentFilterIndex)
-        }
-    }
+//    func addSwipeRecognizers(targetView: GLKView) {
+//        let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
+//        rightSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.right
+//        targetView.addGestureRecognizer(rightSwipeGestureRecognizer)
+//        let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
+//        leftSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.left
+//        targetView.addGestureRecognizer(leftSwipeGestureRecognizer)
+//    }
+//    
+//    func filterSwiped(sender: UISwipeGestureRecognizer) {
+//        if sender.direction == UISwipeGestureRecognizerDirection.right {
+//            print("swiped right")
+//            if currentFilterIndex == Filter.shared.list.count - 1 {
+//                currentFilterIndex = 0
+//            } else {
+//                currentFilterIndex += 1
+//            }
+//            didSelectFilter(nil, index: currentFilterIndex)
+//            
+//        } else {
+//            print("swiped left")
+//            if currentFilterIndex == 0 {
+//                currentFilterIndex = Filter.shared.list.count - 1
+//            } else {
+//                currentFilterIndex -= 1
+//            }
+//            didSelectFilter(nil, index: currentFilterIndex)
+//        }
+//    }
     
     private func setupGifGLKView() {
         guard let eaglContext =  EAGLContext(api: EAGLRenderingAPI.openGLES2) else {
