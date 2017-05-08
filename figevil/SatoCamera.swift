@@ -40,7 +40,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     /// Struct that represents GLKView and underlying EAGLContext/CIContext
-    private struct CameraGLKView {
+    struct CameraGLKView {
         var eaglContext: EAGLContext!
         var glkView: GLKView!
         var ciContext: CIContext!
@@ -68,7 +68,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     /// OpenGL for live camera
-    private var liveCameraGLKView: CameraGLKView!
+    var liveCameraGLKView: CameraGLKView!
     /// OpenGL for gif preview
     private var gifGLKView: CameraGLKView!
     
