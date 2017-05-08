@@ -260,7 +260,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
             setupOpenGL()
             liveCameraGLKView.ciContext.draw(filteredImage, in: liveCameraGLKView.drawFrame, from: sourceImage.extent)
-            print("sourceImage.extent: \(sourceImage.extent)")
             liveCameraGLKView.glkView.display()
         }
         
