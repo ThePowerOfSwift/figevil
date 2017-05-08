@@ -42,7 +42,7 @@ enum Camera {
     
     enum pixelsize {
         static let message = 350
-        static let thumbnail = 245
+        static let thumbnail = 100
     }
 }
 
