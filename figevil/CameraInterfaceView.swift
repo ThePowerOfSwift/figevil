@@ -27,6 +27,7 @@ class CameraInterfaceView: UIView {
     @IBOutlet weak var contentViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var primaryMenuView: UIView!
     @IBOutlet weak var primaryMenuViewBottomConstraint: NSLayoutConstraint!
+    @IBOutlet weak var primaryMenuViewHeightConstraint: NSLayoutConstraint!
     
     // Model
     /// State flag for capture or preview mode
@@ -77,6 +78,10 @@ class CameraInterfaceView: UIView {
         
         // Sync contents
         updateInterface()
+        
+        //primaryMenuViewBottomConstraint.constant = 50
+        primaryMenuViewHeightConstraint.constant += 50
+        self.layoutIfNeeded()
     }
     
     // MARK: Methods
