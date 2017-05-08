@@ -53,7 +53,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         setupInterfaceView()
         //view.bringSubview(toFront: sampleBufferView!)
         interfaceView.contentView.bringSubview(toFront: sampleBufferView!)
-        addSwipeRecognizers(targetView: sampleBufferView!)
+        addSwipeRecognizers(to: sampleBufferView!)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -246,13 +246,21 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     /** Add swipe recognizer for right and left to a view. */
-    func addSwipeRecognizers(targetView: UIView) {
+    func addSwipeRecognizers(to targetView: UIView) {
         let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
         rightSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.right
         targetView.addGestureRecognizer(rightSwipeGestureRecognizer)
         let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
         leftSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.left
         targetView.addGestureRecognizer(leftSwipeGestureRecognizer)
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let sampleBufferView = sampleBufferView {
+            if touches.first?.view == satoCamera.liveCameraGLKView.glkView {
+                satoCamera.tapToFocusAndExposure(touch: touches.first!)
+            }
+        }
     }
     
     /** Detect swipe diretion and change filter. */
