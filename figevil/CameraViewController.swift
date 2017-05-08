@@ -348,7 +348,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         render(originalMovURL, outputURL: outputURL) {
             DispatchQueue.main.async {
-                self.satoCamera.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (urls: [URL]) in
+                self.satoCamera.getImagesFrom(videoURL: outputURL, completion: { (urls: [URL]) in
+                    
                     // resize for thumbnail
                     var thumbnailTempURLs = [URL]()
                     for url in urls {

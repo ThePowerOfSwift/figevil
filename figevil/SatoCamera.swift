@@ -291,7 +291,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                         self.stitchFragmentVideosTogether(completion: { (outputURL: URL) -> Void in
                             self.resultVideoURL = outputURL
                             let outputAsset = AVURLAsset(url: outputURL)
-                            self.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
+                            self.getImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
                                 self.resizedURLs = imageURLs
                                 self.session.stopRunning()
                                 self.showGifWithGLKView(with: imageURLs)
@@ -310,7 +310,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                         self.stitchFragmentVideosTogether(completion: { (outputURL: URL) -> Void in
                             self.resultVideoURL = outputURL
                             let outputAsset = AVURLAsset(url: outputURL)
-                            self.generateThumbnailImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
+                            self.getImagesFrom(videoURL: outputURL, completion: { (imageURLs: [URL]) in
                                 self.resizedURLs = imageURLs
                                 self.session.stopRunning()
                                 self.showGifWithGLKView(with: imageURLs)
@@ -855,7 +855,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         } else {
             print("no need to trim from the first video")
             resultVideoURL = lastVideoURL
-            generateThumbnailImagesFrom(videoURL: lastVideoURL, completion: { (imageURLs: [URL]) in
+            getImagesFrom(videoURL: lastVideoURL, completion: { (imageURLs: [URL]) in
                 self.resizedURLs = imageURLs
                 self.showGifWithGLKView(with: imageURLs)
             })
@@ -865,115 +865,49 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var resultVideoURL: URL?
     
     // MARK: - Get thumbnail image from video
-    func generateThumbnailImagesFrom(videoURL: URL, completion: (([URL]) -> Void)?) {
-        let asset = AVAsset(url: videoURL)
+    func getImagesFrom(videoURL: URL, completion: (([URL]) -> Void)?) {
+        let asset = AVURLAsset(url: videoURL)
         let assetImageGenerator = AVAssetImageGenerator(asset: asset)
         assetImageGenerator.requestedTimeToleranceAfter = kCMTimeZero
         assetImageGenerator.requestedTimeToleranceBefore = kCMTimeZero
-        
-        // let extractRate = 30 / currentLiveGifPreset.gifFPS // extract once in every three frames
-        // milisecond 1000 / 10. extract once in every 100 milisecond
-        // 10 / 1000
+
         let track = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
-        let videoLength = track.timeRange.duration
-        //let baseTime = CMTimeMake(100, 1000)
+
+        // Calculate times to extract images
+        // TODO: FPS based instead of fixed?
         let baseTime = CMTimeMake(60, 600)
         var currentTime = baseTime
-        var images = [CGImage]()
-        var imageURLs = [URL]()
-        
         var times = [CMTime]()
-        
-        while videoLength > currentTime {
+        while currentTime < track.timeRange.duration {
             times.append(currentTime)
             currentTime = CMTimeAdd(currentTime, baseTime)
         }
         
-        var generationCount = 0
-        assetImageGenerator.generateCGImagesAsynchronously(forTimes: times as [NSValue]) { (
-            requestedTime: CMTime,
-            image: CGImage?,
-            actualTime: CMTime,
-            result: AVAssetImageGeneratorResult,
-            error: Error?) in
-            if result == AVAssetImageGeneratorResult.succeeded {
-                if let image = image {
-                    images.append(image)
-                    
-                }
-            } else {
-                print("could not generate CGImage")
-            }
-            generationCount += 1
-            
-            if generationCount == times.count {
-                for image in images {
-                    if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
-                        imageURLs.append(url)
-                    }
-                }
-                
-                // end
-                completion?(imageURLs)
-            }
-        }
-    }
-    
-    func generateThumbnailImageFrom(videoURL: URL) -> [URL] {
-        let asset = AVAsset(url: videoURL)
-        let assetImageGenerator = AVAssetImageGenerator(asset: asset)
-        assetImageGenerator.requestedTimeToleranceBefore = kCMTimeZero
-        assetImageGenerator.requestedTimeToleranceAfter = kCMTimeZero
-        
-        // let extractRate = 30 / currentLiveGifPreset.gifFPS // extract once in every three frames
-        // milisecond 1000 / 10. extract once in every 100 milisecond
-        // 10 / 1000
-        let track = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
-        let videoLength = track.timeRange.duration
-        //let baseTime = CMTimeMake(100, 1000)
-        let baseTime = CMTimeMake(60, 600)
-        var currentTime = baseTime
         var imageURLs = [URL]()
-        
-        var times = [CMTime]()
-        
-        while videoLength > currentTime {
-            times.append(currentTime)
-            currentTime = CMTimeAdd(currentTime, baseTime)
-        }
-        
-        assetImageGenerator.generateCGImagesAsynchronously(forTimes: times as [NSValue]) { (
-            requestedTime: CMTime,
+        assetImageGenerator.generateCGImagesAsynchronously(forTimes: times as [NSValue]) {
+            (requestedTime: CMTime,
             image: CGImage?,
             actualTime: CMTime,
             result: AVAssetImageGeneratorResult,
             error: Error?) in
             
-            if let image = image {
+            if result == AVAssetImageGeneratorResult.succeeded, let image = image {
                 if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
                     imageURLs.append(url)
                 }
-            }
-        }
-        
-        while videoLength > currentTime {
-            // extract CGImage at current time
-            do {
-                let image = try assetImageGenerator.copyCGImage(at: currentTime, actualTime: nil)
-                // get url from CGImage
-                // append it to array
-                if let url = image.saveToDisk(cgImagePropertyOrientation: cgImageOrientation) {
-                    imageURLs.append(url)
-                }
                 
-            } catch let error {
-                print(error.localizedDescription)
+                // Finished
+                if requestedTime == times.last {
+                    completion?(imageURLs)
+                }
+            } else if result == AVAssetImageGeneratorResult.cancelled {
+                print("Cancelled image generator for video (time: \(requestedTime))")
             }
-            // currentTime = baseTime + baseTime
-            currentTime = CMTimeAdd(currentTime, baseTime)
+            else {
+                print("Error: Could not generate image from video at \(requestedTime) \(error?.localizedDescription ?? "")")
+                assetImageGenerator.cancelAllCGImageGeneration()
+            }
         }
-        print("image url count: \(imageURLs.count)")
-        return imageURLs
     }
     
     // MARK: - Camera Settings
@@ -1011,9 +945,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // MARK: - Camera Controls
     internal func start() {
         session.startRunning()
-//        if !session.isRunning {
-//            print("Error: camera failed to run.")
-//        }
     }
     
     internal func stop() {
@@ -1612,7 +1543,7 @@ extension CGImage {
         
         var imageDestinationOptions: [NSObject: AnyObject] = [:]
         
-        // make sure to pass rawValue of CGImagePropertyOrientation but not the object itself
+        // Set image orientation
         imageDestinationOptions.updateValue(cgImagePropertyOrientation.rawValue as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         
         CGImageDestinationAddImage(imageDestination, self, imageDestinationOptions as CFDictionary?)
