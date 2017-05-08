@@ -659,7 +659,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         let input = AVAssetWriterInput(mediaType: AVMediaTypeVideo,outputSettings: outputSettings)
         
         let pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input, sourcePixelBufferAttributes: pixelBufferAdaptorAttributes)
-        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
+        let videoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(Autokey)).appendingPathExtension("mp4")
         do {
             let assetWriter = try AVAssetWriter(url: videoURL, fileType: AVFileTypeMPEG4)
             assetWriter.add(input)
@@ -832,7 +832,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
             
             // Export
-            let finalVideoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(UUID().uuidString)).appendingPathExtension("mp4")
+            let finalVideoURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(Autokey)).appendingPathExtension("mp4")
             guard let exporter = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetHighestQuality) else {
                 print("Error: could not make an exporter in \(#function)")
                 return
@@ -1218,11 +1218,11 @@ extension URL {
         }
         
         if FileManager.default.fileExists(atPath: intermediate​Path) {
-            return intermediate​Path.appending("/\(UUID().uuidString)")
+            return intermediate​Path.appending("/\(Autokey)")
         }
         
         print("Error: failed to make path in \(#function)")
-        return NSTemporaryDirectory().appending(UUID().uuidString)
+        return NSTemporaryDirectory().appending(Autokey)
     }
     
     static func thumbnailURL(path: String) -> URL {
@@ -1233,7 +1233,7 @@ extension URL {
             url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
 
         } else {
-            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif"))
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(Autokey).appending(".gif"))
             print("Error: failed to create thumbnail URL")
         }
         return url
@@ -1247,7 +1247,7 @@ extension URL {
             url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
 
         } else {
-            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif"))
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(Autokey).appending(".gif"))
             print("Error: failed to create thumbnail URL")
         }
         return url
@@ -1261,7 +1261,7 @@ extension URL {
             url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
             
         } else {
-            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate)).appending(".gif"))
+            url = URL(fileURLWithPath: NSTemporaryDirectory().appending(Autokey).appending(".gif"))
             print("Error: failed to create thumbnail URL")
         }
         return url
@@ -1423,7 +1423,7 @@ extension CMSampleBuffer {
                                     return nil
         }
         
-        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
+        let path = NSTemporaryDirectory().appending(Autokey)
         let url = outputURL ?? URL(fileURLWithPath: path)
         guard let imageDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeJPEG, 1, nil) else {
             print("Error: cannot create image destination")

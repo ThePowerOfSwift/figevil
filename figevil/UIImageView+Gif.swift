@@ -27,7 +27,7 @@ extension UIImageView {
         let fileProperties = [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFLoopCount as String: loopCount]]
         let frameProperties = [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFDelayTime as String: frameDelay]]
         let documentsDirectory = NSTemporaryDirectory()
-        let url = URL(fileURLWithPath: documentsDirectory).appendingPathComponent(UUID().uuidString).appendingPathExtension("gif")
+        let url = URL(fileURLWithPath: documentsDirectory).appendingPathComponent(Autokey).appendingPathExtension("gif")
         
         guard let destination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeGIF, animationImages.count, nil) else {
             print("destination is nil")
