@@ -157,7 +157,9 @@ class MeKeyboardViewController: UIInputViewController, GifCollectionViewControll
             print("Error: Cannot get contents of gif directory \(error.localizedDescription)")
             return
         }
+        
     }
+    
     
     // MARK: GifCollectionViewDatasource
         

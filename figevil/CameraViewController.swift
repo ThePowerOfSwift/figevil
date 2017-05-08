@@ -306,65 +306,61 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             reset()
             return
         }
-        let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("result.m4v")
         
+        let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(Autokey + FileExtension.movie)
         render(originalMovURL, outputURL: outputURL) {
+            let maxPixelSize = [Camera.pixelsize.thumbnail, Camera.pixelsize.message]
             DispatchQueue.main.async {
-                self.satoCamera.getImagesFrom(videoURL: outputURL, completion: { (urls: [URL]) in
+                self.satoCamera.getImagesFrom(videoURL: outputURL, maxPixelSize: maxPixelSize, completion: { (urls: [URL]) in
                     
-                    // resize for thumbnail
-                    var thumbnailTempURLs = [URL]()
-                    for url in urls {
-                        let thumbnailTempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
-                        if url.resize(maxSize: Camera.pixelsize.thumbnail, destinationURL: thumbnailTempURL) {
-                            thumbnailTempURLs.append(thumbnailTempURL)
-                        } else {
-                            print("Error: url is resized.")
-                        }
-                    }
-                    
-                    let path = UUID().uuidString
+                    let path = Autokey
                     let gifFileURL = URL.messageURL(path: path)
                     let gifThumbnailURL = URL.thumbnailURL(path: path)
                     
-                    if thumbnailTempURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifThumbnailURL) {
-                        print("thumbnail is saved to URL.thumbnail directory. size: \(String(describing: gifThumbnailURL.filesize))")
+                    // Make thumbnail gif
+                    let thumbnailURLs = urls.map { $0.maxpixelURL(Camera.pixelsize.thumbnail) }
+                    if thumbnailURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifThumbnailURL) {
+                        print("Thumbnail gif saved with size: \(String(describing: gifThumbnailURL.filesize))")
                     } else {
-                        print("thumbnail could NOT saved to URL.thumbnail directory")
+                        print("Error: Failed to create Thumbnail gif ")
                     }
                     
+                    // Make message gif
+                    let messageURLs = urls.map { $0.maxpixelURL(Camera.pixelsize.message) }
+                    if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
+                        print("Message gif saved with size: \(String(describing: gifFileURL.filesize))")
+                    } else {
+                        print("Error: Failed to create Message gif ")
+                    }
+                    
+                    // Reset the camera
+                    DispatchQueue.main.async {
+                        self.reset()
+                    }
+
                     // TODO: Save to PHLibrary
-                    
-                    if urls.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
-                        print("urls.makeGifFile")
-                        PHPhotoLibrary.requestAuthorization { (status) -> Void in
-                            switch (status) {
-                            case .authorized:
-                                PHPhotoLibrary.shared().performChanges({
-                                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: gifFileURL)
-                                }, completionHandler: { (saved: Bool, error: Error?) in
-                                    if saved {
-                                    } else {
-                                        print("Error: did not save gif")
-                                    }
-                                })
-                            case .denied:
-                                print("Error: User denied")
-                            default:
-                                print("Error: Restricted")
-                            }
-                        }
-                    } else {
-                        print("Error: Faild to make gif file.")
-                    }
+//                    let fileToSaveToPHURL = gifFileURL
+//                    PHPhotoLibrary.requestAuthorization { (status) -> Void in
+//                        switch (status) {
+//                        case .authorized:
+//                            PHPhotoLibrary.shared().performChanges({
+//                                PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: fileToSaveToPHURL)
+//                            }, completionHandler: { (saved: Bool, error: Error?) in
+//                                if saved {
+//                                } else {
+//                                    print("Error: did not save gif")
+//                                }
+//                            })
+//                        case .denied:
+//                            print("Error: User denied")
+//                        default:
+//                            print("Error: Restricted")
+//                        }
+//                    }
                 })
-                // Reset the camera
-                self.reset()
             }
         }
     }
-    
-
     
     // TODO:
     /// Saves gif and open share sheet
@@ -410,7 +406,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // MARK: Rendering
     
     func render(_ videoURL: URL, outputURL: URL, completion: (()->())?) {
-        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.m4v")
+        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(Autokey + FileExtension.movie)
         applyFilter(satoCamera.currentFilter.filter, toVideo: videoURL, outputURL: tempURL) {
             self.overlayEffectsToVideo(tempURL, outputURL: outputURL) {
                 completion?()

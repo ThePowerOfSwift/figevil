@@ -864,7 +864,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var resultVideoURL: URL?
     
     // MARK: - Get thumbnail image from video
-    func getImagesFrom(videoURL: URL, completion: (([URL]) -> Void)?) {
+    func getImagesFrom(videoURL: URL, maxPixelSize: [Int]? = nil, completion: (([URL]) -> Void)?) {
         let asset = AVURLAsset(url: videoURL)
         let assetImageGenerator = AVAssetImageGenerator(asset: asset)
         assetImageGenerator.requestedTimeToleranceAfter = kCMTimeZero
@@ -882,6 +882,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             currentTime = CMTimeAdd(currentTime, baseTime)
         }
         
+        // Generate images async
         var imageURLs = [URL]()
         assetImageGenerator.generateCGImagesAsynchronously(forTimes: times as [NSValue]) {
             (requestedTime: CMTime,
@@ -889,10 +890,35 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             actualTime: CMTime,
             result: AVAssetImageGeneratorResult,
             error: Error?) in
-            
+
+            let orientation = self.cgImageOrientation
+            // For every image do:
             if result == AVAssetImageGeneratorResult.succeeded, let image = image {
-                if let url = image.saveToDisk(cgImagePropertyOrientation: self.cgImageOrientation) {
+                if let url = image.saveToDisk(orientation: orientation) {
                     imageURLs.append(url)
+
+                    // Perform resize (if needed)
+                    if let maxPixelSize = maxPixelSize {
+                        maxPixelSize.forEach {
+                            let destinationURL = url.maxpixelURL($0)
+
+                            guard let image = CGImage.resize(url, maxPixelSize: $0) else {
+                                print("Error: Failed to resize image for video at \(requestedTime)")
+                                assetImageGenerator.cancelAllCGImageGeneration()
+                                return
+                            }
+                            
+                            if !image.saveToDisk(orientation: orientation, destinationURL: destinationURL) {
+                                print("Error: Failed to saved resized image for video at \(requestedTime)")
+                                assetImageGenerator.cancelAllCGImageGeneration()
+                                return
+                            }
+                        }
+                    }
+                } else {
+                    print("Error: Cannot save image to disk for video at \(requestedTime)")
+                    assetImageGenerator.cancelAllCGImageGeneration()
+                    return
                 }
                 
                 // Finished
@@ -905,6 +931,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             else {
                 print("Error: Could not generate image from video at \(requestedTime) \(error?.localizedDescription ?? "")")
                 assetImageGenerator.cancelAllCGImageGeneration()
+                return
             }
         }
     }
@@ -972,124 +999,9 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         start()
     }
 
-    /** Render everything together. */
-    internal func render(imageUrls: [URL], renderItems: [UIImage]?) -> [URL] {
-        var filteredResizedUIImages = [UIImage]()
-        let ciContext = CIContext()
-        for url in imageUrls {
-            if let image = url.makeUIImage(filter: currentFilter.filter, context: ciContext) {
-                filteredResizedUIImages.append(image)
-            } else {
-                print("Error: resized image is nil in \(#function)")
-            }
-        }
-        
-        var urls = [URL]()
-        for image in filteredResizedUIImages {
-            let frame = CGRect(origin: CGPoint.zero, size: CGSize(width: captureSize.size().width, height: captureSize.size().height))
-            let renderedImage = image.render(items: renderItems, frame: frame)
-            guard let cgImage = renderedImage.cgImage else {
-                print("Error: Could not get cgImage from rendered UIImage in \(#function)")
-                break
-            }
-            guard let url = cgImage.saveToDisk(cgImagePropertyOrientation: cgImageOrientation) else {
-                print("Error: Could not save cgImage to disk in \(#function)")
-                break
-            }
-            urls.append(url)
-        }
-        return urls
-    }
-    
-    internal func save(renderItems: [UIImage]?, completion: ((_ saved: Bool, _ savedUrl: SavedURLs?, _ fileSize: String?) -> ())?) {
-        renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
-        var thumbnailURLs = [URL]()
-        var messageURLs = [URL]()
-        for url in renderedURLs {
-            
-            if url.resize(maxSize: thumbnailPixelSize, destinationURL: resizedUrlPath) {
-                thumbnailURLs.append(resizedUrlPath)
-            } else {
-                print("Error: resizing to thumbnail failed in \(#function)")
-            }
-            
-            if url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
-                messageURLs.append(resizedUrlPath)
-            } else {
-                print("Error: resizing to message failed in \(#function)")
-            }
-        }
-        
-        let path = String(Date().timeIntervalSinceReferenceDate)
-        let thumbnailURL = URL.thumbnailURL(path: path)
-        let messageURL = URL.messageURL(path: path)
-        let originalURL = URL.originalURL(path: path)
-        
-        let savedURLs = SavedURLs(thumbnail: thumbnailURL, message: messageURL, original: originalURL, video: resultVideoURL)
-        
-        if thumbnailURLs.makeGifFile(frameDelay: 0.5, destinationURL: thumbnailURL) {
-            print("thumbnail gif URL filesize: \(thumbnailURL.filesize!)")
-        } else {
-            print("Error: thumbnail gif URL failed to save in \(#function)")
-        }
-        
-        if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: messageURL) {
-            print("message gif URL filesize: \(messageURL.filesize!)")
-        } else {
-            print("Error: message gif URL failed to save in \(#function)")
-        }
-        
-        if renderedURLs.makeGifFile(frameDelay: 0.5, destinationURL: originalURL) {
-            print("original gif URL filesize: \(originalURL.filesize!)")
-            PHPhotoLibrary.requestAuthorization
-                { (status) -> Void in
-                    switch (status) {
-                    case .authorized:
-                        PHPhotoLibrary.shared().performChanges({
-                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: originalURL)
-                        }, completionHandler: { (saved: Bool, error: Error?) in
-                            if saved {
-                                completion?(true, savedURLs, originalURL.filesize)
-                            } else {
-                                print("Error: did not save gif")
-                                completion?(false, nil, nil)
-                            }
-                        })
-                    case .denied:
-                        print("Error: User denied")
-                    default:
-                        print("Error: Restricted")
-                    }
-            }
-        } else {
-            print("Error: original gif URL failed to save in \(#function)")
-        }
-    }
-    
+    // TODO:
     /** Share message size gif. */
     func share(renderItems: [UIImage], completion: ((_ saved: Bool, _ savedUrl: URL?) -> ())?) {
-        renderedURLs = render(imageUrls: resizedURLs, renderItems: renderItems)
-        var messageURLs = [URL]()
-        for url in renderedURLs {
-            
-            if url.resize(maxSize: messagePixelSize, destinationURL: resizedUrlPath) {
-                messageURLs.append(resizedUrlPath)
-            } else {
-                print("Error: resizing to message failed in \(#function)")
-            }
-        }
-        
-        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
-        let url = URL(fileURLWithPath: path)
-        
-        let success = messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: url)
-        
-        if success {
-            print("gif is saved to \(url). Filesize is \(String(describing: url.filesize!))")
-            completion?(success, url)
-        } else {
-            print("Error: gif file is not saved in \(#function)")
-        }
     }
     
     // MARK: - Gif Controls    
@@ -1109,94 +1021,6 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 //        showGifWithGLKView(with: resizedURLs)
 //    }
     
-    /** Creates an image view with images for animation. Show the image view on output image view. */
-    func showAnimatedImageView() {
-        // make resized images from originals here
-        var resizedTempURLs = [URL]()
-        let resizedMaxPixel = maxpixel(scale: 1)
-        for url in originalURLs {
-            if url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
-                resizedTempURLs.append(resizedUrlPath)
-            } else {
-                print("Error: failed to get resized URL")
-            }
-        }
-        
-        resizedURLs = resizedTempURLs
-        
-        if let gifImageView = makeAnimatedImageView(urls: resizedTempURLs, filter: currentFilter.filter, animationDuration: currentLiveGifPreset.gifDuration) {
-            if let cameraOutput = cameraOutput {
-                if let outputImageView = cameraOutput.gifOutputView {
-                    outputImageView.isHidden = false
-                    for subview in outputImageView.subviews {
-                        subview.removeFromSuperview()
-                    }
-                }
-            }
-            cameraOutput?.gifOutputView?.addSubview(gifImageView)
-            cameraOutput?.gifOutputView?.sendSubview(toBack: gifImageView)
-            gifImageView.startAnimating()
-        } else {
-            print("Error: gifImageView is nil")
-        }
-    }
-    
-    func showGifWithGLKView() {
-        // make resized images from originals here
-        var resizedTempURLs = [URL]()
-        let resizedMaxPixel = maxpixel(scale: 1)
-        for url in originalURLs {            
-            if url.resize(maxSize: resizedMaxPixel, destinationURL: resizedUrlPath) {
-                resizedTempURLs.append(resizedUrlPath)
-            } else {
-                print("Error: failed to get resized URL")
-            }
-        }
-        
-        resizedURLs = resizedTempURLs
-        
-        var resizedCIImages = [CIImage]()
-        for url in resizedTempURLs {
-            guard let sourceCIImage = url.cgImage?.ciImage else {
-                print("Error: cgImage is nil in \(#function)")
-                return
-            }
-            resizedCIImages.append(sourceCIImage)
-        }
-        
-        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async { [unowned self] in
-            self.gifGLKView.glkView.bindDrawable()
-    
-            if self.gifGLKView.eaglContext != EAGLContext.current() {
-                EAGLContext.setCurrent(self.gifGLKView.eaglContext)
-            }
-            
-            self.setupOpenGL()
-            while !self.session.isRunning {
-                if self.session.isRunning {
-                    break
-                }
-                
-                self.setupOpenGL()
-                for image in resizedCIImages {
-                    if self.session.isRunning {
-                        break
-                    }
-                    if let filter = self.currentFilter.filter {
-                        filter.setValue(image, forKey: kCIInputImageKey)
-                        if let outputImage = filter.outputImage {
-                            self.gifGLKView.ciContext.draw(outputImage, in: self.gifGLKView.drawFrame, from: image.extent)
-
-                        }
-                    } else {
-                        self.gifGLKView.ciContext.draw(image, in: self.gifGLKView.drawFrame, from: image.extent)
-                    }
-                    self.gifGLKView.glkView.display()
-                    usleep(useconds_t(self.currentLiveGifPreset.sleepDuration))
-                }
-            }
-        }
-    }
     
     func showGifWithGLKView(with imageURLs: [URL]) {
         DispatchQueue.main.async {
@@ -1352,40 +1176,6 @@ extension URL {
         }
     }
     
-    //try print out each CGImage to see if max pixel effect the size
-    
-    /** Resize an image at a given url. */
-    func resize(maxSize: Int, destinationURL: URL) -> Bool {
-        var sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
-        guard let imageSource = CGImageSourceCreateWithURL(self as CFURL, sourceOptions as CFDictionary?) else {
-            print("Error: cannot create image source for resize")
-            return false
-        }
-        
-        sourceOptions[kCGImageSourceCreateThumbnailFromImageAlways as NSObject] = true as AnyObject
-        sourceOptions[kCGImageSourceCreateThumbnailWithTransform as NSObject] = true as AnyObject
-        sourceOptions[kCGImageSourceThumbnailMaxPixelSize as NSObject] = maxSize as AnyObject
-        
-        guard let resizedImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, sourceOptions as CFDictionary?) else {
-            print("Error: failed to resize image")
-            return false
-        }
-        
-        guard let imageDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, kUTTypeJPEG, 1, nil) else {
-            print("Error: cannot create image destination")
-            return false
-        }
-        
-        CGImageDestinationAddImage(imageDestination, resizedImage, nil)
-        
-        if !CGImageDestinationFinalize(imageDestination) {
-            print("Error: cannot finalize and write image destination for resize")
-            return false
-        }
-        
-        return true
-    }
-    
     /** Make UIImage from URL*/
     func makeUIImage(filter: CIFilter?, context: CIContext) -> UIImage? {
         guard let sourceCIImage = self.cgImage?.ciImage else {
@@ -1452,8 +1242,7 @@ extension URL {
     static func messageURL(path: String) -> URL {
         var url: URL
         if let gifDirectoryURL = UserGenerated.gifDirectoryURL {
-
-            let path = path.appending(UserGenerated.messageTag).appending(".gif")
+            let path = path.appending(UserGenerated.messageTag).appending(FileExtension.gif)
             url = gifDirectoryURL.appendingPathComponent(path, isDirectory: false)
 
         } else {
@@ -1475,6 +1264,11 @@ extension URL {
             print("Error: failed to create thumbnail URL")
         }
         return url
+    }
+    
+    func maxpixelURL(_ pixel: Int) -> URL {
+        let path = self.path.appending("@" + String(pixel))
+        return URL(fileURLWithPath: path)
     }
 }
 
@@ -1532,26 +1326,54 @@ extension CGImage {
         return CIImage(cgImage: self)
     }
     
-    func saveToDisk(cgImagePropertyOrientation: CGImagePropertyOrientation) -> URL? {
-        let path = NSTemporaryDirectory().appending(String(Date().timeIntervalSinceReferenceDate))
-        let url = URL(fileURLWithPath: path)
-        guard let imageDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeJPEG, 1, nil) else {
-            print("Error: cannot create image destination")
+    func saveToDisk(orientation: CGImagePropertyOrientation ) -> URL? {
+        let destinationURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(Autokey))
+
+        if !saveToDisk(orientation: orientation, destinationURL: destinationURL) {
+            print("Error: cannot save CGImage to disk")
             return nil
+        }
+        
+        return destinationURL
+    }
+    
+    func saveToDisk(orientation: CGImagePropertyOrientation, destinationURL: URL) -> Bool {
+        guard let imageDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, kUTTypeJPEG, 1, nil) else {
+            print("Error: cannot create image destination for CGImage save")
+            return false
         }
         
         var imageDestinationOptions: [NSObject: AnyObject] = [:]
-        
         // Set image orientation
-        imageDestinationOptions.updateValue(cgImagePropertyOrientation.rawValue as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
+        imageDestinationOptions.updateValue(orientation.rawValue as AnyObject, forKey: kCGImagePropertyOrientation as NSObject)
         
         CGImageDestinationAddImage(imageDestination, self, imageDestinationOptions as CFDictionary?)
-        
         if !CGImageDestinationFinalize(imageDestination) {
             print("Error: failed to finalize image destination")
+            return false
+        }
+        
+        return true
+    }
+    
+    class func resize(_ url: URL, maxPixelSize: Int) -> CGImage? {
+        var sourceOptions: [NSObject: AnyObject] = [kCGImageSourceShouldCache as NSObject: false as AnyObject]
+        
+        guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, sourceOptions as CFDictionary?) else {
+            print("Error: cannot create CGImage source for resize")
             return nil
         }
-        return url
+        
+        sourceOptions[kCGImageSourceCreateThumbnailFromImageAlways as NSObject] = true as AnyObject
+        sourceOptions[kCGImageSourceCreateThumbnailWithTransform as NSObject] = true as AnyObject
+        sourceOptions[kCGImageSourceThumbnailMaxPixelSize as NSObject] = maxPixelSize as AnyObject
+        
+        guard let resizedImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, sourceOptions as CFDictionary?) else {
+            print("Error: failed to resize CGImage")
+            return nil
+        }
+        
+        return resizedImage
     }
 }
 

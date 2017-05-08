@@ -74,26 +74,6 @@ class FTECameraViewController: UIViewController, SatoCameraOutput {
     var longPress: UILongPressGestureRecognizer?
     var cameraState = true
     @IBAction func tappedSnap(_ sender: Any) {
-        if cameraState {
-            satoCamera.snapLiveGif()
-            
-            snapButton.isHidden = true
-            longPress = UILongPressGestureRecognizer(target: self, action: #selector(cancel(_:)))
-            snapButton.addGestureRecognizer(longPress!)
-            cameraState = false
-        } else {
-            // Render sticker
-            UIGraphicsBeginImageContextWithOptions(view.frame.size, false, 0.0)
-            stickerLabel.drawText(in: stickerLabel.frame)
-            guard let image = UIGraphicsGetImageFromCurrentImageContext() else {
-                print("Error: could not render sticker label")
-                return
-            }
-            UIGraphicsEndImageContext()
-
-            // Render gif and save it
-            satoCamera.save(renderItems: [image], completion: { (success, urls, filesize) in })
-        }
     }
     
     func didLiveGifStop() {

@@ -46,6 +46,10 @@ enum Camera {
     }
 }
 
+var Autokey: String {
+    return String(Date().timeIntervalSinceReferenceDate) + UUID().uuidString
+}
+
 enum Sizes {
     static let minimumTappable = CGSize(width: 44.0, height: 44.0)
     static let minimumGestureManipulation = CGSize(width: 90.0, height: 90.0)
@@ -55,6 +59,10 @@ enum Numbers {
     static let tiny: CGFloat = 0.001
 }
 
+enum FileExtension {
+    static let movie: String = ".m4v"
+    static let gif: String = ".gif"
+}
 
 /// Time Internals for animation
 enum AnimationTime {
