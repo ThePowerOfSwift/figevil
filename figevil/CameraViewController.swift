@@ -237,13 +237,10 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
         if effects.count > 0 {
             effects[selectedEffectIndex].didSelectPrimaryMenuItem?(indexPath.row)
-            
         }
     }
     
-    // func scroll
-    // effects[0].didSelectPrimaryMenuItem(filterIndex)
-    
+    /** Add swipe recognizer for right and left to a view. */
     func addSwipeRecognizers(targetView: UIView) {
         let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
         rightSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.right
@@ -253,28 +250,20 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         targetView.addGestureRecognizer(leftSwipeGestureRecognizer)
     }
     
+    /** Detect swipe diretion and change filter. */
     func filterSwiped(sender: UISwipeGestureRecognizer) {
         if sender.direction == UISwipeGestureRecognizerDirection.right {
-            print("swiped right")
             if satoCamera.currentFilterIndex == Filter.shared.list.count - 1 {
                 satoCamera.currentFilterIndex = 0
             } else {
                 satoCamera.currentFilterIndex += 1
             }
+            
             satoCamera.didSelectFilter(nil, index: satoCamera.currentFilterIndex)
             let indexPath = IndexPath(row: satoCamera.currentFilterIndex, section: 0)
-            //menuBubbleCVC?.collectionView?.scrollToItem(at: indexPath, at: UICollectionViewScrollPosition.left, animated: true)
             menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.left)
             
-//            if currentFilterIndex == Filter.shared.list.count - 1 {
-//                currentFilterIndex = 0
-//            } else {
-//                currentFilterIndex += 1
-//            }
-//            didSelectFilter(nil, index: currentFilterIndex)
-            
         } else {
-            print("swiped left")
             if satoCamera.currentFilterIndex == 0 {
                 satoCamera.currentFilterIndex = Filter.shared.list.count - 1
             } else {
@@ -282,7 +271,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             }
             satoCamera.didSelectFilter(nil, index: satoCamera.currentFilterIndex)
             let indexPath = IndexPath(row: satoCamera.currentFilterIndex, section: 0)
-//            menuBubbleCVC?.collectionView?.scrollToItem(at: indexPath, at: UICollectionViewScrollPosition.left, animated: true)
             menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.left)
         }
     }
