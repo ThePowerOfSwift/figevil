@@ -244,6 +244,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // MARK: BubbleMenuCollectionViewControllerDelegate
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
         interfaceView.primaryMenuClipView.clipsToBounds = false
+        interfaceView.primaryMenuClipViewWidthConstraint.constant = view.frame.width
         if effects.count > 0 {
             effects[selectedEffectIndex].didSelectPrimaryMenuItem?(indexPath.row)
         }

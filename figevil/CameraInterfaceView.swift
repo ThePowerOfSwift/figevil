@@ -85,7 +85,6 @@ class CameraInterfaceView: UIView {
         
         //primaryMenuViewBottomConstraint.constant = 50
         primaryMenuClipView.clipsToBounds = true
-        primaryMenuView.clipsToBounds = true
         primaryMenuClipViewHeightConstraint.constant += 50
         self.layoutIfNeeded()
     }
