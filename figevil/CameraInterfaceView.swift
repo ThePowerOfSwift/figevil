@@ -26,8 +26,12 @@ class CameraInterfaceView: UIView {
     @IBOutlet weak var contentViewTopConstraint: NSLayoutConstraint!
     @IBOutlet weak var contentViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var primaryMenuView: UIView!
-    @IBOutlet weak var primaryMenuViewBottomConstraint: NSLayoutConstraint!
-    @IBOutlet weak var primaryMenuViewHeightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var primaryMenuViewWidthConstraint: NSLayoutConstraint!
+    
+    @IBOutlet weak var primaryMenuClipView: UIView!
+    @IBOutlet weak var primaryMenuClipViewWidthConstraint: NSLayoutConstraint!
+    @IBOutlet weak var primaryMenuClipViewHeightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var primaryMenuClipViewBottomConstraint: NSLayoutConstraint!
     
     // Model
     /// State flag for capture or preview mode
@@ -80,7 +84,9 @@ class CameraInterfaceView: UIView {
         updateInterface()
         
         //primaryMenuViewBottomConstraint.constant = 50
-        primaryMenuViewHeightConstraint.constant += 50
+        primaryMenuClipView.clipsToBounds = true
+        primaryMenuView.clipsToBounds = true
+        primaryMenuClipViewHeightConstraint.constant += 50
         self.layoutIfNeeded()
     }
     

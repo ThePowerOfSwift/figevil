@@ -15,9 +15,12 @@
                 <outlet property="contentView" destination="kb2-bg-7gK" id="gZm-bk-aqN"/>
                 <outlet property="contentViewHeightConstraint" destination="Crw-Rt-DMB" id="cQs-O7-rMc"/>
                 <outlet property="contentViewTopConstraint" destination="pT5-M3-yYK" id="f4e-L4-znJ"/>
+                <outlet property="primaryMenuClipView" destination="18j-5a-29g" id="SQR-wN-xj0"/>
+                <outlet property="primaryMenuClipViewBottomConstraint" destination="uUw-gD-EJt" id="qSg-iW-qPN"/>
+                <outlet property="primaryMenuClipViewHeightConstraint" destination="fNe-xD-mgf" id="b94-5V-nQ7"/>
+                <outlet property="primaryMenuClipViewWidthConstraint" destination="bW0-kg-wWn" id="SLQ-wq-CjO"/>
                 <outlet property="primaryMenuView" destination="ZiH-cj-6JQ" id="hYi-Mb-CsP"/>
-                <outlet property="primaryMenuViewBottomConstraint" destination="n0l-zf-a92" id="M5q-cF-Qor"/>
-                <outlet property="primaryMenuViewHeightConstraint" destination="NS9-bJ-6NB" id="hvz-B5-swC"/>
+                <outlet property="primaryMenuViewWidthConstraint" destination="uc8-a5-ioa" id="I4n-T4-edl"/>
                 <outlet property="topToolbar" destination="6bc-C9-LEg" id="eBX-Ch-gGo"/>
             </connections>
         </placeholder>
@@ -37,31 +40,44 @@
                     <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                     <items/>
                 </toolbar>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZiH-cj-6JQ">
-                    <rect key="frame" x="0.0" y="553" width="375" height="70"/>
-                    <constraints>
-                        <constraint firstAttribute="height" constant="70" id="NS9-bJ-6NB"/>
-                    </constraints>
-                </view>
                 <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="black" translatesAutoresizingMaskIntoConstraints="NO" id="oAz-fb-G56">
                     <rect key="frame" x="0.0" y="623" width="375" height="44"/>
                     <items/>
                 </toolbar>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="18j-5a-29g" userLabel="Primary Menu Clip View">
+                    <rect key="frame" x="152" y="553" width="70" height="70"/>
+                    <subviews>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZiH-cj-6JQ">
+                            <rect key="frame" x="-152.5" y="0.0" width="375" height="70"/>
+                            <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="375" id="uc8-a5-ioa"/>
+                            </constraints>
+                        </view>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="bottom" secondItem="ZiH-cj-6JQ" secondAttribute="bottom" id="V97-Yq-GW6"/>
+                        <constraint firstAttribute="width" constant="70" id="bW0-kg-wWn"/>
+                        <constraint firstAttribute="height" constant="70" id="fNe-xD-mgf"/>
+                        <constraint firstItem="ZiH-cj-6JQ" firstAttribute="top" secondItem="18j-5a-29g" secondAttribute="top" id="hhn-8p-R9N"/>
+                        <constraint firstItem="ZiH-cj-6JQ" firstAttribute="centerX" secondItem="18j-5a-29g" secondAttribute="centerX" id="qRW-Dc-1K4"/>
+                    </constraints>
+                </view>
             </subviews>
             <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
             <constraints>
-                <constraint firstItem="ZiH-cj-6JQ" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="4Th-Ak-H2z"/>
+                <constraint firstItem="18j-5a-29g" firstAttribute="centerX" secondItem="16v-Uw-NE6" secondAttribute="centerX" id="08q-k1-KJv"/>
                 <constraint firstItem="6bc-C9-LEg" firstAttribute="top" secondItem="16v-Uw-NE6" secondAttribute="top" id="CHF-d4-qKy"/>
                 <constraint firstAttribute="trailing" secondItem="oAz-fb-G56" secondAttribute="trailing" id="Dim-cL-NVX"/>
                 <constraint firstItem="oAz-fb-G56" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="HDo-tC-Hvq"/>
                 <constraint firstItem="kb2-bg-7gK" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="IVY-tT-JPH"/>
                 <constraint firstAttribute="trailing" secondItem="kb2-bg-7gK" secondAttribute="trailing" id="Jwc-ah-not"/>
-                <constraint firstAttribute="trailing" secondItem="ZiH-cj-6JQ" secondAttribute="trailing" id="LLn-19-Ul2"/>
                 <constraint firstItem="6bc-C9-LEg" firstAttribute="leading" secondItem="16v-Uw-NE6" secondAttribute="leading" id="Nj7-Mb-2Pd"/>
                 <constraint firstAttribute="bottom" secondItem="oAz-fb-G56" secondAttribute="bottom" id="Qk6-Od-XUA"/>
                 <constraint firstAttribute="trailing" secondItem="6bc-C9-LEg" secondAttribute="trailing" id="lbx-Vo-PAg"/>
-                <constraint firstItem="oAz-fb-G56" firstAttribute="top" secondItem="ZiH-cj-6JQ" secondAttribute="bottom" id="n0l-zf-a92"/>
                 <constraint firstItem="kb2-bg-7gK" firstAttribute="top" secondItem="6bc-C9-LEg" secondAttribute="bottom" id="pT5-M3-yYK"/>
+                <constraint firstItem="oAz-fb-G56" firstAttribute="top" secondItem="18j-5a-29g" secondAttribute="bottom" id="uUw-gD-EJt"/>
             </constraints>
             <nil key="simulatedStatusBarMetrics"/>
             <point key="canvasLocation" x="48.5" y="296.5"/>

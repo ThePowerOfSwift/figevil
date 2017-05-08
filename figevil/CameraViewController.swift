@@ -243,6 +243,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     // MARK: BubbleMenuCollectionViewControllerDelegate
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
+        interfaceView.primaryMenuClipView.clipsToBounds = false
         if effects.count > 0 {
             effects[selectedEffectIndex].didSelectPrimaryMenuItem?(indexPath.row)
         }
@@ -644,7 +645,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 
             if interfaceView.primaryMenuView.frame.minY < keyboardFrame.maxY {
                 let height = keyboardFrame.height - interfaceView.bottomToolbar.frame.height
-                interfaceView.primaryMenuViewBottomConstraint.constant = height
+                interfaceView.primaryMenuClipViewBottomConstraint.constant = height
 
                 UIView.animate(withDuration: animationTime, animations: {
                     self.view.layoutIfNeeded()
@@ -664,7 +665,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 return
             }
             
-            interfaceView.primaryMenuViewBottomConstraint.constant = 0
+            interfaceView.primaryMenuClipViewBottomConstraint.constant = 0
 
             UIView.animate(withDuration: animationTime, animations: {
                 self.view.layoutIfNeeded()

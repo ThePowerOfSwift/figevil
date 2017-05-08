@@ -31,6 +31,7 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
         timer = Timer(timeInterval: 3, repeats: false) { (timer: Timer) in
             self.collectionView?.reloadData()
         }
+        collectionView?.backgroundColor = UIColor.red
     }
 
     override func didReceiveMemoryWarning() {
