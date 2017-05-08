@@ -75,6 +75,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // MARK: State
     fileprivate var cameraFace: CameraFace = .Back
     var currentFilter: Filter = Filter.shared.list[0]
+    var currentFilterIndex: Int = 0
     fileprivate var light = Light()
     fileprivate var currentLiveGifPreset: LiveGifPreset = LiveGifPreset()
     
@@ -376,9 +377,21 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     func filterSwiped(sender: UISwipeGestureRecognizer) {
         if sender.direction == UISwipeGestureRecognizerDirection.right {
             print("swiped right")
+            if currentFilterIndex == Filter.shared.list.count - 1 {
+                currentFilterIndex = 0
+            } else {
+                currentFilterIndex += 1
+            }
+            didSelectFilter(nil, index: currentFilterIndex)
             
         } else {
             print("swiped left")
+            if currentFilterIndex == 0 {
+                currentFilterIndex = Filter.shared.list.count - 1
+            } else {
+                currentFilterIndex -= 1
+            }
+            didSelectFilter(nil, index: currentFilterIndex)
         }
     }
     
@@ -1780,14 +1793,9 @@ extension AVCaptureDevice {
 // MARK: - FilterImageEffectDelegate
 extension SatoCamera: FilterImageEffectDelegate {
     
-    func didSelectFilter(_ sender: FilterImageEffect, filter: Filter?, at: Int) {
-
-        guard let filter = filter else {
-            print("filter is nil in \(#function)")
-            return
-        }
-        
-        self.currentFilter = filter
+    func didSelectFilter(_ sender: FilterImageEffect?, index: Int) {
+        self.currentFilterIndex = index
+        self.currentFilter = Filter.shared.list[index]
     }
 }
 

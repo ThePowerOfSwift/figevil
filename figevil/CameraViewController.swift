@@ -236,6 +236,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
         if effects.count > 0 {
             effects[selectedEffectIndex].didSelectPrimaryMenuItem?(indexPath.row)
+            
         }
     }
     
