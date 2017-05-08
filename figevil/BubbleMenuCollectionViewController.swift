@@ -29,7 +29,6 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
         collectionView?.showsHorizontalScrollIndicator = false
         
         timer = Timer(timeInterval: 3, repeats: false) { (timer: Timer) in
-            self.didSelect = false
             self.collectionView?.reloadData()
         }
     }
@@ -52,26 +51,15 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
 
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        if let datasource = datasource {
-//            let count = datasource.bubbleMenuContent(for: self).count
-//            return count
-//        }
-//        return 0
-        return numberOfItems
+        if let datasource = datasource {
+            let count = datasource.bubbleMenuContent(for: self).count
+            return count
+        }
+        return 0
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellType.name, for: indexPath) as! BubbleMenuCollectionViewCell
-    
-        if !didSelect {
-            if let selectedIndexPath = selectedIndexPath {
-                if let bubble = datasource?.bubbleMenuContent(for: self)[selectedIndexPath.row] {
-                    // Configure the cell
-                    cell.bubbleContent = bubble
-                    return cell
-                }
-            }
-        }
         
         if let bubble = datasource?.bubbleMenuContent(for: self)[indexPath.row] {
             // Configure the cell
@@ -82,40 +70,14 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
     }
     
     // MARK: UICollectionViewDelegate
-    var didSelect: Bool = false {
-        didSet {
-            if let datasource = datasource {
-                if didSelect {
-                    numberOfItems = datasource.bubbleMenuContent(for: self).count
-                } else {
-                    numberOfItems = 1
-                }
-                collectionView?.reloadData()
-            }
-        }
-    }
+
     
     var numberOfItems: Int = 1
     var timer: Timer!
-//    var numberOfItems: Int {
-//        if let datasource = datasource {
-//            if didSelect {
-//                return datasource.bubbleMenuContent(for: self).count
-//            } else {
-//                return 1
-//            }
-//        }
-//        return 0
-//    }
-    
-//    func selectionIntervalDidEnd() {
-//        didSelect = false
-//        collectionView?.reloadData()
-//    }
+
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         delegate?.bubbleMenuCollectionViewController(self, didSelectItemAt: indexPath)
-        didSelect = true
         //collectionView.reloadData()
 //        Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { (timer: Timer) in
 //            self.didSelect = false
@@ -127,10 +89,8 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
     
     var isTouchUpdated: Bool = false
 
-    var selectedIndexPath: IndexPath?
     func updateNumberOfItems() {
         collectionView?.reloadData()
-        selectedIndexPath = collectionView?.indexPathsForSelectedItems?[0]
         resetTimer()
     }
     
@@ -140,7 +100,6 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
     }
     
     func hideCells() {
-        self.didSelect = false
         self.collectionView?.reloadData()
     }
     

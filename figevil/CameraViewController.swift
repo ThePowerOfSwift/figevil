@@ -277,7 +277,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             satoCamera.didSelectFilter(nil, index: satoCamera.currentFilterIndex)
             let indexPath = IndexPath(row: satoCamera.currentFilterIndex, section: 0)
             menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.left)
-            menuBubbleCVC?.didSelect = true
             menuBubbleCVC?.updateNumberOfItems()
         } else {
             if satoCamera.currentFilterIndex == 0 {
@@ -289,7 +288,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             satoCamera.didSelectFilter(nil, index: satoCamera.currentFilterIndex)
             let indexPath = IndexPath(row: satoCamera.currentFilterIndex, section: 0)
             menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.right)
-            menuBubbleCVC?.didSelect = true
             menuBubbleCVC?.updateNumberOfItems()
         }
     }
