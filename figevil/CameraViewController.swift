@@ -28,6 +28,12 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         return view as! CameraInterfaceView
     }
     
+    var isBusy: Bool = false {
+        didSet {
+            interfaceView.isUserInteractionEnabled = !isBusy
+        }
+    }
+    
     // MARK: SatoCameraOutput
     // TODO: roll views into one
     // Must always be behind all other views
@@ -93,7 +99,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     func tappedInterface(_ sender: UIBarButtonItem) {
-        if let action = barButtonMap[sender] as? interfaceAction {
+        if let action = barButtonMap[sender] as? interfaceAction, !isBusy {
             switch action {
             case .capture:
                 satoCamera.snapLiveGif()
@@ -332,7 +338,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     // MARK: Camera controls
     
-    // TODO:
     func tappedFlashView(_ sender: UITapGestureRecognizer) {
         let touches = sender.value(forKey: "touches") as! [UITouch]
         satoCamera.tapToFocusAndExposure(touch: touches.first!)
@@ -342,9 +347,12 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         satoCamera.reset()
         interfaceView.reset()
         effects.forEach({ $0.reset() })
+        isBusy = false
     }
     
     func save() {
+        isBusy = true
+        
         // render animation into movie
         guard let originalMovURL = satoCamera.resultVideoURL else {
             print("Error: No recorded video to save")
@@ -411,6 +419,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     /// Saves gif and open share sheet
     func share() {
+        isBusy = true
         // render animation into movie
         guard let originalMovURL = satoCamera.resultVideoURL else {
             print("Error: No recorded video to save")
