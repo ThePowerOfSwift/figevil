@@ -148,7 +148,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         let shareButton = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(tappedInterface(_:)))
         barButtonMap[shareButton] = interfaceAction.share as AnyObject
-        shareButton.isEnabled = false
         
         let circleImage = #imageLiteral(resourceName: "circle")
         let circleBarButton = UIBarButtonItem(image: circleImage, style: .plain, target: self, action: #selector(tappedInterface(_:)))
@@ -347,7 +346,9 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(Autokey + FileExtension.movie)
         render(originalMovURL, outputURL: outputURL) {
+            
             let maxPixelSize = [Camera.pixelsize.thumbnail, Camera.pixelsize.message]
+            
             DispatchQueue.main.async {
                 self.satoCamera.getImagesFrom(videoURL: outputURL, maxPixelSize: maxPixelSize, completion: { (urls: [URL]) in
                     
@@ -400,22 +401,51 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         }
     }
     
-    // TODO:
     /// Saves gif and open share sheet
     func share() {
-        /*
-        // Save to location
-        var savedURL: URL =
-        // Share
-        do {
-            let gifData = try Data(contentsOf: savedUrl)
-            let activityItems: [Any] = [gifData as Any]
-            let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-            self.present(activityViewController, animated: true, completion: nil)
-        } catch {
-            print("Error: cannot get data of GIF \(savedUrl.path)")
-        }*/
+        // render animation into movie
+        guard let originalMovURL = satoCamera.resultVideoURL else {
+            print("Error: No recorded video to save")
+            reset()
+            return
+        }
+        
+        let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(Autokey + FileExtension.movie)
+        render(originalMovURL, outputURL: outputURL) {
+            let maxPixelSize = [Camera.pixelsize.message]
+            DispatchQueue.main.async {
+                self.satoCamera.getImagesFrom(videoURL: outputURL, maxPixelSize: maxPixelSize, completion: { (urls: [URL]) in
+                    
+                    let path = Autokey
+                    let gifFileURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(path))
+
+                    // Make message gif
+                    let messageURLs = urls.map { $0.maxpixelURL(Camera.pixelsize.message) }
+                    if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
+                        print("Message gif saved with size: \(String(describing: gifFileURL.filesize))")
+                    } else {
+                        print("Error: Failed to create Message gif ")
+                    }
+                    
+                    // Share
+                    do {
+                        let gifData = try Data(contentsOf: gifFileURL)
+                        let activityItems: [Any] = [gifData as Any]
+                        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+                        self.present(activityViewController, animated: true, completion: nil)
+                    } catch {
+                        print("Error: cannot get data of GIF \(gifFileURL.path)")
+                    }
+                    
+                    // Reset the camera
+                    DispatchQueue.main.async {
+                        self.reset()
+                    }
+                })
+            }
+        }
     }
+
 
     func toggleSelfie() {
         satoCamera.toggleCamera()
@@ -455,7 +485,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     /// Export video composition
     func export(_ asset: AVAsset, with videoComposition:AVVideoComposition, to: URL, completion: (()->())?) {
         
-        // TODO: if satoCamera.isRunning
         satoCamera.stop()  // Without this line a Mach error is thrown with multi thread conflict w/ camera access
         
         guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
