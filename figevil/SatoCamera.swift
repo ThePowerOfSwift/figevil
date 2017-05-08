@@ -75,6 +75,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     // MARK: State
     fileprivate var cameraFace: CameraFace = .Back
     var currentFilter: Filter = Filter.shared.list[0]
+    var currentFilterIndex: Int = 0
     fileprivate var light = Light()
     fileprivate var currentLiveGifPreset: LiveGifPreset = LiveGifPreset()
     
@@ -1508,14 +1509,9 @@ extension AVCaptureDevice {
 // MARK: - FilterImageEffectDelegate
 extension SatoCamera: FilterImageEffectDelegate {
     
-    func didSelectFilter(_ sender: FilterImageEffect, filter: Filter?) {
-
-        guard let filter = filter else {
-            print("filter is nil in \(#function)")
-            return
-        }
-        
-        self.currentFilter = filter
+    func didSelectFilter(_ sender: FilterImageEffect?, index: Int) {
+        self.currentFilterIndex = index
+        self.currentFilter = Filter.shared.list[index]
     }
 }
 

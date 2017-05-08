@@ -18,8 +18,7 @@ class FilterImageEffect: NSObject, CameraEffect {
     }
     
     func didSelectPrimaryMenuItem(_ atIndex: Int) {
-        let filter = Filter.shared.list[atIndex]
-        delegate?.didSelectFilter(self, filter: filter)
+        delegate?.didSelectFilter(self, index: atIndex)
     }
     
     func reset() {
@@ -28,5 +27,5 @@ class FilterImageEffect: NSObject, CameraEffect {
 }
 
 protocol FilterImageEffectDelegate: class {
-    func didSelectFilter(_ sender: FilterImageEffect, filter: Filter?)
+    func didSelectFilter(_ sender: FilterImageEffect?, index: Int)
 }

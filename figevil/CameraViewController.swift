@@ -45,6 +45,9 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             setupSatoCamera()
         }
         setupInterfaceView()
+        //view.bringSubview(toFront: sampleBufferView!)
+        interfaceView.contentView.bringSubview(toFront: sampleBufferView!)
+        addSwipeRecognizers(targetView: sampleBufferView!)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -234,6 +237,41 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
         if effects.count > 0 {
             effects[selectedEffectIndex].didSelectPrimaryMenuItem?(indexPath.row)
+        }
+    }
+    
+    /** Add swipe recognizer for right and left to a view. */
+    func addSwipeRecognizers(targetView: UIView) {
+        let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
+        rightSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.right
+        targetView.addGestureRecognizer(rightSwipeGestureRecognizer)
+        let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(filterSwiped(sender:)))
+        leftSwipeGestureRecognizer.direction = UISwipeGestureRecognizerDirection.left
+        targetView.addGestureRecognizer(leftSwipeGestureRecognizer)
+    }
+    
+    /** Detect swipe diretion and change filter. */
+    func filterSwiped(sender: UISwipeGestureRecognizer) {
+        if sender.direction == UISwipeGestureRecognizerDirection.right {
+            if satoCamera.currentFilterIndex == Filter.shared.list.count - 1 {
+                satoCamera.currentFilterIndex = 0
+            } else {
+                satoCamera.currentFilterIndex += 1
+            }
+            
+            satoCamera.didSelectFilter(nil, index: satoCamera.currentFilterIndex)
+            let indexPath = IndexPath(row: satoCamera.currentFilterIndex, section: 0)
+            menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.left)
+            
+        } else {
+            if satoCamera.currentFilterIndex == 0 {
+                satoCamera.currentFilterIndex = Filter.shared.list.count - 1
+            } else {
+                satoCamera.currentFilterIndex -= 1
+            }
+            satoCamera.didSelectFilter(nil, index: satoCamera.currentFilterIndex)
+            let indexPath = IndexPath(row: satoCamera.currentFilterIndex, section: 0)
+            menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.left)
         }
     }
     
