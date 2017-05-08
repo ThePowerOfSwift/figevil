@@ -260,6 +260,7 @@ class SatoCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
             setupOpenGL()
             liveCameraGLKView.ciContext.draw(filteredImage, in: liveCameraGLKView.drawFrame, from: sourceImage.extent)
+            print("sourceImage.extent: \(sourceImage.extent)")
             liveCameraGLKView.glkView.display()
         }
         
@@ -1306,19 +1307,16 @@ enum CGImagePropertyOrientation: Int {
 extension CIImage {
     /** Crop center square from rectangle shaped CIImage*/
     func adjustedExtentForGLKView(_ size: CGSize) -> CIImage {
-        let sourceHeight = self.extent.height
-        let newHeight = size.height
-        let gapY = sourceHeight - newHeight
-        let originY = gapY / 2
-        
-        let sourceWidth = self.extent.width
-        let newWidth = size.width
-        let gapX = sourceWidth - newWidth
-        let originX = gapX / 2
-        
-        let extent = CGRect(origin: CGPoint(x: originX, y: originY), size: CGSize(width: size.width, height: size.height))
-        
-        return self.cropping(to: extent)
+        // if passed size is square, use self.extent.width for its height
+        if size.width == size.height {
+            let sourceHeight = self.extent.height
+            let newHeight = self.extent.width
+            let gapY = sourceHeight - newHeight
+            let originY = gapY / 2
+            let extent = CGRect(origin: CGPoint(x: self.extent.origin.x, y: originY), size: CGSize(width: self.extent.width, height: self.extent.width))
+            return self.cropping(to: extent)
+        }
+        return self
     }
 }
 
