@@ -51,9 +51,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             setupSatoCamera()
         }
         setupInterfaceView()
-        //view.bringSubview(toFront: sampleBufferView!)
-        interfaceView.contentView.bringSubview(toFront: sampleBufferView!)
-        addSwipeRecognizers(to: sampleBufferView!)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -129,7 +126,13 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         setupEffects()
         // Setup collection views for menu and options
         setupMenuBubbles()
+        setupFilterSwipe()
         setupBubbleMenuClipToBounds()
+    }
+    
+    func setupFilterSwipe() {
+        interfaceView.contentView.bringSubview(toFront: sampleBufferView!)
+        addSwipeRecognizers(to: sampleBufferView!)
     }
     
     var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
