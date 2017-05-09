@@ -251,10 +251,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didScroll: Bool) {
-        if isClipped {
-            unclipBubbleCollectionView()
-            print("unclipBubbleCollectionView() is called")
-        }
+        unclipBubbleCollectionView()
     }
     
     // MARK: Clipping collection view animation
@@ -304,7 +301,6 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         // store original value of constraint
         primaryMenuClipViewWidthConstraintOriginalValue = interfaceView.primaryMenuClipViewWidthConstraint.constant
         primaryMenuClipViewBottomConstraintOriginalValue = interfaceView.primaryMenuClipViewBottomConstraint.constant
-        print("interfaceView.primaryMenuClipViewWidthConstraint.constant: \(interfaceView.primaryMenuClipViewWidthConstraint.constant)")
         startTimer()
     }
     
