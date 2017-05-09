@@ -45,10 +45,10 @@
                     <items/>
                 </toolbar>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="18j-5a-29g" userLabel="Primary Menu Clip View">
-                    <rect key="frame" x="152" y="553" width="70" height="70"/>
+                    <rect key="frame" x="152" y="513" width="70" height="110"/>
                     <subviews>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZiH-cj-6JQ">
-                            <rect key="frame" x="-152.5" y="0.0" width="375" height="70"/>
+                            <rect key="frame" x="-152.5" y="0.0" width="375" height="110"/>
                             <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <constraints>
                                 <constraint firstAttribute="width" constant="375" id="uc8-a5-ioa"/>
@@ -59,7 +59,7 @@
                     <constraints>
                         <constraint firstAttribute="bottom" secondItem="ZiH-cj-6JQ" secondAttribute="bottom" id="V97-Yq-GW6"/>
                         <constraint firstAttribute="width" constant="70" id="bW0-kg-wWn"/>
-                        <constraint firstAttribute="height" constant="70" id="fNe-xD-mgf"/>
+                        <constraint firstAttribute="height" constant="110" id="fNe-xD-mgf"/>
                         <constraint firstItem="ZiH-cj-6JQ" firstAttribute="top" secondItem="18j-5a-29g" secondAttribute="top" id="hhn-8p-R9N"/>
                         <constraint firstItem="ZiH-cj-6JQ" firstAttribute="centerX" secondItem="18j-5a-29g" secondAttribute="centerX" id="qRW-Dc-1K4"/>
                     </constraints>

@@ -129,12 +129,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         setupEffects()
         // Setup collection views for menu and options
         setupMenuBubbles()
-        
-        interfaceView.primaryMenuClipView.clipsToBounds = true
-        primaryMenuClipViewWidthConstraintOriginalValue = interfaceView.primaryMenuClipViewWidthConstraint.constant
-        print("interfaceView.primaryMenuClipViewWidthConstraint.constant: \(interfaceView.primaryMenuClipViewWidthConstraint.constant)")
-        
-        startTimer()
+        setupBubbleMenuClipToBounds()
     }
     
     var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
@@ -249,32 +244,66 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     // MARK: BubbleMenuCollectionViewControllerDelegate
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
-        interfaceView.primaryMenuClipViewWidthConstraint.constant = view.frame.width
-        resetTimer()
+        unclipBubbleCollectionView()
         if effects.count > 0 {
             effects[selectedEffectIndex].didSelectPrimaryMenuItem?(indexPath.row)
         }
     }
     
-    func updateNumberOfItems() {
-        resetTimer()
+    func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didScroll: Bool) {
+        if isClipped {
+            unclipBubbleCollectionView()
+            print("unclipBubbleCollectionView() is called")
+        }
     }
     
     var timer: Timer!
+    var isClipped: Bool = true
     var primaryMenuClipViewWidthConstraintOriginalValue: CGFloat?
+    var primaryMenuClipViewBottomConstraintOriginalValue: CGFloat?
     // https://stackoverflow.com/questions/31690634/how-to-reset-nstimer-swift-code
     func startTimer() {
-        timer = Timer.scheduledTimer(timeInterval: 3, target: self, selector: #selector(hideCells), userInfo: "timer", repeats: true)
-    }
-    
-    func hideCells() {
-        if let originalValue = primaryMenuClipViewWidthConstraintOriginalValue {
-            interfaceView.primaryMenuClipViewWidthConstraint.constant = originalValue
-        }
+        timer = Timer.scheduledTimer(timeInterval: 3, target: self, selector: #selector(clipBubbleCollectionView), userInfo: "timer", repeats: true)
     }
     
     func resetTimer() {
         timer.invalidate()
+        startTimer()
+    }
+    
+    func clipBubbleCollectionView() {
+        if !isClipped {
+            if let originalWidth = primaryMenuClipViewWidthConstraintOriginalValue, let originalBottom = primaryMenuClipViewBottomConstraintOriginalValue {
+                UIView.animate(withDuration: 0.3, animations: {
+                    self.interfaceView.primaryMenuClipViewWidthConstraint.constant = originalWidth
+                    self.interfaceView.primaryMenuClipViewBottomConstraint.constant = originalBottom
+                    self.view.layoutIfNeeded()
+                })
+            }
+            isClipped = true
+        }
+    }
+    
+    func unclipBubbleCollectionView() {
+        if isClipped {
+            UIView.animate(withDuration: 0.3, animations: {
+                self.interfaceView.primaryMenuClipViewWidthConstraint.constant = self.view.frame.width
+                if let originalBottom = self.primaryMenuClipViewBottomConstraintOriginalValue {
+                    self.interfaceView.primaryMenuClipViewBottomConstraint.constant = originalBottom + 50
+                }
+                self.view.layoutIfNeeded()
+                self.resetTimer()
+            })
+            isClipped = false
+        }
+    }
+    
+    func setupBubbleMenuClipToBounds() {
+        interfaceView.primaryMenuClipView.clipsToBounds = true
+        // store original value of constraint
+        primaryMenuClipViewWidthConstraintOriginalValue = interfaceView.primaryMenuClipViewWidthConstraint.constant
+        primaryMenuClipViewBottomConstraintOriginalValue = interfaceView.primaryMenuClipViewBottomConstraint.constant
+        print("interfaceView.primaryMenuClipViewWidthConstraint.constant: \(interfaceView.primaryMenuClipViewWidthConstraint.constant)")
         startTimer()
     }
     
@@ -307,7 +336,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             satoCamera.didSelectFilter(nil, index: satoCamera.currentFilterIndex)
             let indexPath = IndexPath(row: satoCamera.currentFilterIndex, section: 0)
             menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.left)
-            menuBubbleCVC?.updateNumberOfItems()
+            unclipBubbleCollectionView()
         } else {
             if satoCamera.currentFilterIndex == 0 {
                 //satoCamera.currentFilterIndex = Filter.shared.list.count - 1
@@ -318,7 +347,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
             satoCamera.didSelectFilter(nil, index: satoCamera.currentFilterIndex)
             let indexPath = IndexPath(row: satoCamera.currentFilterIndex, section: 0)
             menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.right)
-            menuBubbleCVC?.updateNumberOfItems()
+            unclipBubbleCollectionView()
         }
     }
     

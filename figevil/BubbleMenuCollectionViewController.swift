@@ -72,41 +72,15 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
     
     // MARK: UICollectionViewDelegate
 
-    
     var numberOfItems: Int = 1
     var timer: Timer!
-
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         delegate?.bubbleMenuCollectionViewController(self, didSelectItemAt: indexPath)
-        //collectionView.reloadData()
-//        Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { (timer: Timer) in
-//            self.didSelect = false
-//            self.collectionView?.reloadData()
-//        }
-        
-        updateNumberOfItems()
     }
     
-    var isTouchUpdated: Bool = false
-
-    func updateNumberOfItems() {
-        collectionView?.reloadData()
-        resetTimer()
-    }
-    
-    // https://stackoverflow.com/questions/31690634/how-to-reset-nstimer-swift-code
-    func startTimer() {
-        timer = Timer.scheduledTimer(timeInterval: 3, target: self, selector: #selector(hideCells), userInfo: "timer", repeats: true)
-    }
-    
-    func hideCells() {
-        self.collectionView?.reloadData()
-    }
-    
-    func resetTimer() {
-        timer.invalidate()
-        startTimer()
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        delegate?.bubbleMenuCollectionViewController(self, didScroll: true)
     }
 }
 
@@ -117,4 +91,5 @@ protocol BubbleMenuCollectionViewControllerDatasource {
 
 protocol BubbleMenuCollectionViewControllerDelegate {
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath)
+    func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didScroll: Bool)
 }
