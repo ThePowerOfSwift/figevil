@@ -128,7 +128,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         setupEffects()
         // Setup collection views for menu and options
-        setupMenuBubbles()        
+        setupMenuBubbles()
+        setupBubbleMenuClipToBounds()
     }
     
     var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
@@ -220,14 +221,17 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     var menuBubbleCVC: BubbleMenuCollectionViewController?
     func setupMenuBubbles() {
-        let layout = StraightCollectionViewLayout()
-        menuBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: layout)
+//        let layout = StraightCollectionViewLayout()
+//        menuBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: layout)
+        let circularLayout = CircularCollectionViewLayout()
+        menuBubbleCVC = BubbleMenuCollectionViewController(collectionViewLayout: circularLayout)
         menuBubbleCVC!.datasource = self
         menuBubbleCVC!.delegate = self
         
         addChildViewController(menuBubbleCVC!)
         interfaceView.primaryMenuView.addSubview(menuBubbleCVC!.view)
         menuBubbleCVC!.view.frame = interfaceView.primaryMenuView.bounds
+        
         menuBubbleCVC!.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         menuBubbleCVC!.didMove(toParentViewController: self)
     }
@@ -240,9 +244,64 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     // MARK: BubbleMenuCollectionViewControllerDelegate
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
+        unclipBubbleCollectionView()
         if effects.count > 0 {
             effects[selectedEffectIndex].didSelectPrimaryMenuItem?(indexPath.row)
         }
+    }
+    
+    func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didScroll: Bool) {
+        unclipBubbleCollectionView()
+    }
+    
+    // MARK: Clipping collection view animation
+    var timer: Timer!
+    var isClipped: Bool = true
+    var primaryMenuClipViewWidthConstraintOriginalValue: CGFloat?
+    var primaryMenuClipViewBottomConstraintOriginalValue: CGFloat?
+    // https://stackoverflow.com/questions/31690634/how-to-reset-nstimer-swift-code
+    func startTimer() {
+        timer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(clipBubbleCollectionView), userInfo: "timer", repeats: true)
+    }
+    
+    func resetTimer() {
+        timer.invalidate()
+        startTimer()
+    }
+    
+    func clipBubbleCollectionView() {
+        if !isClipped {
+            if let originalWidth = primaryMenuClipViewWidthConstraintOriginalValue, let originalBottom = primaryMenuClipViewBottomConstraintOriginalValue {
+                UIView.animate(withDuration: 0.3, animations: {
+                    self.interfaceView.primaryMenuClipViewWidthConstraint.constant = originalWidth
+                    self.interfaceView.primaryMenuClipViewBottomConstraint.constant = originalBottom
+                    self.view.layoutIfNeeded()
+                })
+            }
+            isClipped = true
+        }
+    }
+    
+    func unclipBubbleCollectionView() {
+        if isClipped {
+            UIView.animate(withDuration: 0.3, animations: {
+                self.interfaceView.primaryMenuClipViewWidthConstraint.constant = self.view.frame.width
+                if let originalBottom = self.primaryMenuClipViewBottomConstraintOriginalValue {
+                    self.interfaceView.primaryMenuClipViewBottomConstraint.constant = originalBottom + 50
+                }
+                self.view.layoutIfNeeded()
+                self.resetTimer()
+            })
+            isClipped = false
+        }
+    }
+    
+    func setupBubbleMenuClipToBounds() {
+        interfaceView.primaryMenuClipView.clipsToBounds = true
+        // store original value of constraint
+        primaryMenuClipViewWidthConstraintOriginalValue = interfaceView.primaryMenuClipViewWidthConstraint.constant
+        primaryMenuClipViewBottomConstraintOriginalValue = interfaceView.primaryMenuClipViewBottomConstraint.constant
+        startTimer()
     }
     
     /** Add swipe recognizer for right and left to a view. */
@@ -256,35 +315,34 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let sampleBufferView = sampleBufferView {
-            if touches.first?.view == satoCamera.liveCameraGLKView.glkView {
-                satoCamera.tapToFocusAndExposure(touch: touches.first!)
-            }
+        if touches.first?.view == satoCamera.liveCameraGLKView.glkView {
+            satoCamera.tapToFocusAndExposure(touch: touches.first!)
         }
     }
     
     /** Detect swipe diretion and change filter. */
     func filterSwiped(sender: UISwipeGestureRecognizer) {
-        if sender.direction == UISwipeGestureRecognizerDirection.right {
+        if sender.direction == UISwipeGestureRecognizerDirection.left {
             if satoCamera.currentFilterIndex == Filter.shared.list.count - 1 {
-                satoCamera.currentFilterIndex = 0
+                //satoCamera.currentFilterIndex = 0
             } else {
                 satoCamera.currentFilterIndex += 1
             }
-            
             satoCamera.didSelectFilter(nil, index: satoCamera.currentFilterIndex)
             let indexPath = IndexPath(row: satoCamera.currentFilterIndex, section: 0)
             menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.left)
-            
+            unclipBubbleCollectionView()
         } else {
             if satoCamera.currentFilterIndex == 0 {
-                satoCamera.currentFilterIndex = Filter.shared.list.count - 1
+                //satoCamera.currentFilterIndex = Filter.shared.list.count - 1
             } else {
                 satoCamera.currentFilterIndex -= 1
             }
+
             satoCamera.didSelectFilter(nil, index: satoCamera.currentFilterIndex)
             let indexPath = IndexPath(row: satoCamera.currentFilterIndex, section: 0)
-            menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.left)
+            menuBubbleCVC?.collectionView?.selectItem(at: indexPath, animated: true, scrollPosition: UICollectionViewScrollPosition.right)
+            unclipBubbleCollectionView()
         }
     }
     
@@ -638,7 +696,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 
             if interfaceView.primaryMenuView.frame.minY < keyboardFrame.maxY {
                 let height = keyboardFrame.height - interfaceView.bottomToolbar.frame.height
-                interfaceView.primaryMenuViewBottomConstraint.constant = height
+                interfaceView.primaryMenuClipViewBottomConstraint.constant = height
 
                 UIView.animate(withDuration: animationTime, animations: {
                     self.view.layoutIfNeeded()
@@ -658,7 +716,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 return
             }
             
-            interfaceView.primaryMenuViewBottomConstraint.constant = 0
+            interfaceView.primaryMenuClipViewBottomConstraint.constant = 0
 
             UIView.animate(withDuration: animationTime, animations: {
                 self.view.layoutIfNeeded()

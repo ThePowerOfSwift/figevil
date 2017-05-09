@@ -56,7 +56,7 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellType.name, for: indexPath) as! BubbleMenuCollectionViewCell
-    
+        
         if let bubble = datasource?.bubbleMenuContent(for: self)[indexPath.row] {
             // Configure the cell
             cell.bubbleContent = bubble
@@ -66,9 +66,12 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
     }
     
     // MARK: UICollectionViewDelegate
-    
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         delegate?.bubbleMenuCollectionViewController(self, didSelectItemAt: indexPath)
+    }
+    
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        delegate?.bubbleMenuCollectionViewController(self, didScroll: true)
     }
 }
 
@@ -79,4 +82,5 @@ protocol BubbleMenuCollectionViewControllerDatasource {
 
 protocol BubbleMenuCollectionViewControllerDelegate {
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath)
+    func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didScroll: Bool)
 }
