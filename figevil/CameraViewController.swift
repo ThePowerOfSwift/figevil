@@ -128,7 +128,13 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         
         setupEffects()
         // Setup collection views for menu and options
-        setupMenuBubbles()        
+        setupMenuBubbles()
+        
+        interfaceView.primaryMenuClipView.clipsToBounds = true
+        primaryMenuClipViewWidthConstraintOriginalValue = interfaceView.primaryMenuClipViewWidthConstraint.constant
+        print("interfaceView.primaryMenuClipViewWidthConstraint.constant: \(interfaceView.primaryMenuClipViewWidthConstraint.constant)")
+        
+        startTimer()
     }
     
     var barButtonMap: [UIBarButtonItem: AnyObject] = [:]
@@ -243,11 +249,33 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     // MARK: BubbleMenuCollectionViewControllerDelegate
     func bubbleMenuCollectionViewController(_ bubbleMenuCollectionViewController: BubbleMenuCollectionViewController, didSelectItemAt indexPath: IndexPath) {
-        interfaceView.primaryMenuClipView.clipsToBounds = false
         interfaceView.primaryMenuClipViewWidthConstraint.constant = view.frame.width
+        resetTimer()
         if effects.count > 0 {
             effects[selectedEffectIndex].didSelectPrimaryMenuItem?(indexPath.row)
         }
+    }
+    
+    func updateNumberOfItems() {
+        resetTimer()
+    }
+    
+    var timer: Timer!
+    var primaryMenuClipViewWidthConstraintOriginalValue: CGFloat?
+    // https://stackoverflow.com/questions/31690634/how-to-reset-nstimer-swift-code
+    func startTimer() {
+        timer = Timer.scheduledTimer(timeInterval: 3, target: self, selector: #selector(hideCells), userInfo: "timer", repeats: true)
+    }
+    
+    func hideCells() {
+        if let originalValue = primaryMenuClipViewWidthConstraintOriginalValue {
+            interfaceView.primaryMenuClipViewWidthConstraint.constant = originalValue
+        }
+    }
+    
+    func resetTimer() {
+        timer.invalidate()
+        startTimer()
     }
     
     /** Add swipe recognizer for right and left to a view. */
