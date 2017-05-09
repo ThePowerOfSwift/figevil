@@ -27,11 +27,6 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
         collectionView?.backgroundColor = UIColor.clear
         collectionView?.showsVerticalScrollIndicator = false
         collectionView?.showsHorizontalScrollIndicator = false
-        
-        timer = Timer(timeInterval: 3, repeats: false) { (timer: Timer) in
-            self.collectionView?.reloadData()
-        }
-        collectionView?.backgroundColor = UIColor.red
     }
 
     override func didReceiveMemoryWarning() {
@@ -71,10 +66,6 @@ class BubbleMenuCollectionViewController: UICollectionViewController {
     }
     
     // MARK: UICollectionViewDelegate
-
-    var numberOfItems: Int = 1
-    var timer: Timer!
-    
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         delegate?.bubbleMenuCollectionViewController(self, didSelectItemAt: indexPath)
     }

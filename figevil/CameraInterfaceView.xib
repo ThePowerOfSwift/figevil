@@ -49,13 +49,11 @@
                     <subviews>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZiH-cj-6JQ">
                             <rect key="frame" x="-152.5" y="0.0" width="375" height="110"/>
-                            <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <constraints>
                                 <constraint firstAttribute="width" constant="375" id="uc8-a5-ioa"/>
                             </constraints>
                         </view>
                     </subviews>
-                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     <constraints>
                         <constraint firstAttribute="bottom" secondItem="ZiH-cj-6JQ" secondAttribute="bottom" id="V97-Yq-GW6"/>
                         <constraint firstAttribute="width" constant="70" id="bW0-kg-wWn"/>

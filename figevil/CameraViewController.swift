@@ -257,13 +257,14 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
         }
     }
     
+    // MARK: Clipping collection view animation
     var timer: Timer!
     var isClipped: Bool = true
     var primaryMenuClipViewWidthConstraintOriginalValue: CGFloat?
     var primaryMenuClipViewBottomConstraintOriginalValue: CGFloat?
     // https://stackoverflow.com/questions/31690634/how-to-reset-nstimer-swift-code
     func startTimer() {
-        timer = Timer.scheduledTimer(timeInterval: 3, target: self, selector: #selector(clipBubbleCollectionView), userInfo: "timer", repeats: true)
+        timer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(clipBubbleCollectionView), userInfo: "timer", repeats: true)
     }
     
     func resetTimer() {
@@ -318,16 +319,14 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let sampleBufferView = sampleBufferView {
-            if touches.first?.view == satoCamera.liveCameraGLKView.glkView {
-                satoCamera.tapToFocusAndExposure(touch: touches.first!)
-            }
+        if touches.first?.view == satoCamera.liveCameraGLKView.glkView {
+            satoCamera.tapToFocusAndExposure(touch: touches.first!)
         }
     }
     
     /** Detect swipe diretion and change filter. */
     func filterSwiped(sender: UISwipeGestureRecognizer) {
-        if sender.direction == UISwipeGestureRecognizerDirection.right {
+        if sender.direction == UISwipeGestureRecognizerDirection.left {
             if satoCamera.currentFilterIndex == Filter.shared.list.count - 1 {
                 //satoCamera.currentFilterIndex = 0
             } else {
