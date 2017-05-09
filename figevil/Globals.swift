@@ -85,7 +85,8 @@ enum UserGenerated {
     static let thumbnailTag = "@thumbnail"
     static let messageTag = "@message"
     static let originalTag = "@original"
-    /// URL for user generated gifsg
+    
+    /// URL for user generated gifs
     static var gifDirectoryURL: URL? {
         guard let url = ApplicationGroup.containerURL?.appendingPathComponent("gifs", isDirectory: true) else {
             print("Error: Could not obtain container URL for user generated GIF")

@@ -412,51 +412,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     }
     
     func save() {
-        isBusy = true
-        
-        // render animation into movie
-        guard let originalMovURL = satoCamera.resultVideoURL else {
-            print("Error: No recorded video to save")
-            reset()
-            return
-        }
-        
-        let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(Autokey + FileExtension.movie)
-        render(originalMovURL, outputURL: outputURL) {
-            
-            let maxPixelSize = [Camera.pixelsize.thumbnail, Camera.pixelsize.message]
-            
-            DispatchQueue.main.async {
-                self.satoCamera.getImagesFrom(videoURL: outputURL, maxPixelSize: maxPixelSize, completion: { (urls: [URL]) in
-                    
-                    let path = Autokey
-                    let gifFileURL = URL.messageURL(path: path)
-                    let gifThumbnailURL = URL.thumbnailURL(path: path)
-
-                    
-                    // Make thumbnail gif
-                    let thumbnailURLs = urls.map { $0.maxpixelURL(Camera.pixelsize.thumbnail) }
-                    if thumbnailURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifThumbnailURL) {
-                        print("Thumbnail gif saved with size: \(String(describing: gifThumbnailURL.filesize))")
-                    } else {
-                        print("Error: Failed to create Thumbnail gif ")
-                    }
-
-                    // Make message gif
-                    let messageURLs = urls.map { $0.maxpixelURL(Camera.pixelsize.message) }
-                    if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
-                        print("Message gif saved with size: \(String(describing: gifFileURL.filesize))")
-                    } else {
-                        print("Error: Failed to create Message gif ")
-                    }
-                    
-                    // Reset the camera
-                    DispatchQueue.main.async {
-                        self.reset()
-                    }
-                })
-            }
-        }
+        startRender(options: [.message, .thumbnail])
     }
     
     func saveToPHPhotoLibrary(_ url: URL) {
@@ -481,50 +437,19 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     
     /// Saves gif and open share sheet
     func share() {
-        isBusy = true
-        // render animation into movie
-        guard let originalMovURL = satoCamera.resultVideoURL else {
-            print("Error: No recorded video to save")
-            reset()
-            return
-        }
-        
-        let outputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(Autokey + FileExtension.movie)
-        render(originalMovURL, outputURL: outputURL) {
-            let maxPixelSize = [Camera.pixelsize.message]
-            DispatchQueue.main.async {
-                self.satoCamera.getImagesFrom(videoURL: outputURL, maxPixelSize: maxPixelSize, completion: { (urls: [URL]) in
-                    
-                    let path = Autokey
-                    let gifFileURL = URL(fileURLWithPath: NSTemporaryDirectory().appending(path))
-
-                    // Make message gif
-                    let messageURLs = urls.map { $0.maxpixelURL(Camera.pixelsize.message) }
-                    if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
-                        print("Message gif saved with size: \(String(describing: gifFileURL.filesize))")
-                    } else {
-                        print("Error: Failed to create Message gif ")
-                    }
-                    
-                    // Share
-                    do {
-                        let gifData = try Data(contentsOf: gifFileURL)
-                        let activityItems: [Any] = [gifData as Any]
-                        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-                        self.present(activityViewController, animated: true, completion: nil)
-                    } catch {
-                        print("Error: cannot get data of GIF \(gifFileURL.path)")
-                    }
-                    
-                    // Reset the camera
-                    DispatchQueue.main.async {
-                        self.reset()
-                    }
-                })
+        startRender(options: [.message, .share]) { (output) in
+            
+            // Share
+            do {
+                let gifData = try Data(contentsOf: output.first!)
+                let activityItems: [Any] = [gifData as Any]
+                let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+                self.present(activityViewController, animated: true, completion: nil)
+            } catch {
+                print("Error: cannot get data of GIF \(output.first!.path)")
             }
         }
     }
-
 
     func toggleSelfie() {
         satoCamera.toggleCamera()
@@ -552,26 +477,97 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
 
     // MARK: Rendering
     
-    func render(_ videoURL: URL, outputURL: URL, completion: (()->())?) {
+    enum renderOptions {
+        case share
+        case message
+        case thumbnail
+        
+        func maxPixelSize() -> Int? {
+            switch self {
+            case .message:
+                return Camera.pixelsize.message
+            case .thumbnail:
+                return Camera.pixelsize.thumbnail
+            default:
+                return nil
+            }
+        }
+        
+        func generateNewURL(path: String) -> URL {
+            switch self {
+            case .message:
+                return URL.messageURL(path: path)
+            case .thumbnail:
+                return URL.thumbnailURL(path: path)
+            case .share:
+                return URL(fileURLWithPath: NSTemporaryDirectory().appending(path))
+            }
+        }
+    }
+    
+    func startRender(options: [renderOptions], completion:((_ output: [URL])->())? = nil) {
+        isBusy = true
+        
+        // render animation into movie
+        guard let originalMovURL = satoCamera.resultVideoURL else {
+            print("Error: No recorded video to save")
+            reset()
+            return
+        }
+        
+        // Decompile options
+        let sizeOptions = options.filter { $0 != .share }
+        let maxPixelSize: [Int] = sizeOptions.flatMap { $0.maxPixelSize() }
+        
+        renderGIF(originalMovURL,
+                  outputURL: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(Autokey + FileExtension.movie)) { (videoURL) in
+                    DispatchQueue.main.async {
+                        
+                        self.satoCamera.getImagesFrom(videoURL: videoURL, maxPixelSize: maxPixelSize, completion: { (urls: [URL]) in
+                            
+                            var outputURL: [URL] = []
+                            let path = Autokey
+                            sizeOptions.forEach { (sizeOption) in
+                                let gifImageURL = urls.map { $0.maxpixelURL(sizeOption.maxPixelSize()!) }
+                                let destinationURL = sizeOption.generateNewURL(path: path)
+                                outputURL.append(destinationURL)
+                                
+                                if gifImageURL.makeGifFile(frameDelay: 0.5, destinationURL: destinationURL) {
+                                    print("Gif saved with size: \(String(describing: destinationURL.filesize))")
+                                } else {
+                                    print("Error: Failed to create Message gif ")
+                                }
+                            }
+                            
+                            completion?(outputURL)
+                            
+                            // Reset the camera
+                            DispatchQueue.main.async {
+                                self.reset()
+                            }
+                        })
+                    }
+        }
+    }
+
+    func renderGIF(_ videoURL: URL, outputURL: URL, completion: ((_ videoURL: URL)->())?) {
         satoCamera.stop()  // Without this line a Mach error is thrown with multi thread conflict w/ camera access
 
         let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(Autokey + FileExtension.movie)
         applyFilter(satoCamera.currentFilter.filter, toVideo: videoURL, outputURL: tempURL) {
             self.overlayEffectsToVideo(tempURL, outputURL: outputURL) {
-                completion?()
+                completion?(outputURL)
             }
         }
     }
     
     /// Export video composition
     func export(_ asset: AVAsset, with videoComposition:AVVideoComposition, to: URL, completion: (()->())?) {
-        
-        satoCamera.stop()  // Without this line a Mach error is thrown with multi thread conflict w/ camera access
-        
         guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
             print("Error: failed to initialize exporter to render filters")
             return
         }
+        
         exporter.videoComposition = videoComposition
         exporter.outputFileType = AVFileTypeQuickTimeMovie
         try? FileManager.default.removeItem(at: to)
