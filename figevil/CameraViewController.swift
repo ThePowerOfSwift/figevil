@@ -429,6 +429,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                     let path = Autokey
                     let gifFileURL = URL.messageURL(path: path)
                     let gifThumbnailURL = URL.thumbnailURL(path: path)
+
                     
                     // Make thumbnail gif
                     let thumbnailURLs = urls.map { $0.maxpixelURL(Camera.pixelsize.thumbnail) }
@@ -437,7 +438,7 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                     } else {
                         print("Error: Failed to create Thumbnail gif ")
                     }
-                    
+
                     // Make message gif
                     let messageURLs = urls.map { $0.maxpixelURL(Camera.pixelsize.message) }
                     if messageURLs.makeGifFile(frameDelay: 0.5, destinationURL: gifFileURL) {
@@ -450,27 +451,27 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                     DispatchQueue.main.async {
                         self.reset()
                     }
-
-                    // TODO: Save to PHLibrary
-//                    let fileToSaveToPHURL = gifFileURL
-//                    PHPhotoLibrary.requestAuthorization { (status) -> Void in
-//                        switch (status) {
-//                        case .authorized:
-//                            PHPhotoLibrary.shared().performChanges({
-//                                PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: fileToSaveToPHURL)
-//                            }, completionHandler: { (saved: Bool, error: Error?) in
-//                                if saved {
-//                                } else {
-//                                    print("Error: did not save gif")
-//                                }
-//                            })
-//                        case .denied:
-//                            print("Error: User denied")
-//                        default:
-//                            print("Error: Restricted")
-//                        }
-//                    }
                 })
+            }
+        }
+    }
+    
+    func saveToPHPhotoLibrary(_ url: URL) {
+        PHPhotoLibrary.requestAuthorization { (status) -> Void in
+            switch (status) {
+            case .authorized:
+                PHPhotoLibrary.shared().performChanges({
+                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
+                }, completionHandler: { (saved: Bool, error: Error?) in
+                    if saved {
+                    } else {
+                        print("Error: did not save to PHPhotoLibrary \(error?.localizedDescription ?? "")")
+                    }
+                })
+            case .denied:
+                print("Error: User denied")
+            default:
+                print("Error: Restricted")
             }
         }
     }
@@ -549,6 +550,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
     // MARK: Rendering
     
     func render(_ videoURL: URL, outputURL: URL, completion: (()->())?) {
+        satoCamera.stop()  // Without this line a Mach error is thrown with multi thread conflict w/ camera access
+
         let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(Autokey + FileExtension.movie)
         applyFilter(satoCamera.currentFilter.filter, toVideo: videoURL, outputURL: tempURL) {
             self.overlayEffectsToVideo(tempURL, outputURL: outputURL) {
@@ -589,9 +592,8 @@ class CameraViewController: UIViewController, SatoCameraOutput, BubbleMenuCollec
                 print("session progress: \(currentProgress)")
                 lastProgress = currentProgress
             }
-            _ = group.wait(timeout: DispatchTime.init(uptimeNanoseconds: 500 * NSEC_PER_SEC))
+            _ = group.wait(timeout: DispatchTime.init(uptimeNanoseconds: NSEC_PER_SEC / 2))
         }
-
     }
     
     func applyFilter(_ filter: CIFilter?, toVideo url: URL, outputURL: URL, completion: (()->())?) {
